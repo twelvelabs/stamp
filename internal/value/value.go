@@ -49,7 +49,7 @@ type Value struct {
 	// Note: have to use `DataType` because `Type()` is a pflag.Value method.
 	Name            string       `mapstructure:"name"                          validate:"required"`
 	Help            string       `mapstructure:"help"`
-	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int string"`
+	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string"`
 	Default         interface{}  `mapstructure:"default"`
 	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"`
 	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag"`
@@ -74,13 +74,8 @@ func (v *Value) KebabName() string {
 // Get returns the rendered, casted value.
 // Required to implement [flag.Getter] interface.
 func (v *Value) Get() any {
-	casted, _ := v.get()
-	return casted
-}
-
-// GetE returns the rendered, casted value (or error).
-func (v *Value) GetE() (any, error) {
-	return v.get()
+	data, _ := v.get()
+	return data
 }
 
 // IsBoolFlag returns true if the data type is `bool`.
@@ -152,16 +147,16 @@ func (v *Value) Prompt(prompter Prompter) error {
 
 	switch v.DataType {
 	case DataTypeBool:
-		defaultValue := cast.ToBool(v.Get())
-		response, err = prompter.Confirm(v.Name, defaultValue, v.Help, v.ValidationRules)
+		response, err = prompter.Confirm(v.Name, cast.ToBool(v.Get()), v.Help, v.ValidationRules)
 	case DataTypeInt, DataTypeString:
-		defaultValue := cast.ToString(v.Get())
 		if len(v.Options) > 0 {
 			options := cast.ToStringSlice(v.Options)
-			response, err = prompter.Select(v.Name, options, defaultValue, v.Help, v.ValidationRules)
+			response, err = prompter.Select(v.Name, options, v.String(), v.Help, v.ValidationRules)
 		} else {
-			response, err = prompter.Input(v.Name, defaultValue, v.Help, v.ValidationRules)
+			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
 		}
+	case DataTypeIntSlice:
+		response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
 	default:
 		return ErrInvalidDataType
 	}
@@ -185,7 +180,12 @@ func (v *Value) Set(data string) error {
 
 // Required to implement the [pflag.Value] interface.
 func (v *Value) String() string {
-	return cast.ToString(v.Get())
+	switch v.DataType {
+	case DataTypeIntSlice:
+		return strings.Join(cast.ToStringSlice(v.Get()), ",")
+	default:
+		return cast.ToString(v.Get())
+	}
 }
 
 // Required to implement the [pflag.Value] interface.
@@ -286,6 +286,29 @@ func (v *Value) cast(data any) (any, error) {
 	var casted any
 	var err error
 
+	csvParse := func(s string) []string {
+		if s == "" {
+			return []string{} // empty string; empty slice
+		}
+		segments := strings.Split(s, ",")
+		for i, segment := range segments {
+			segments[i] = strings.TrimSpace(segment)
+		}
+		return segments
+	}
+
+	// Incoming data for slice-types _may_ be comma separated strings
+	// (depending on whether cast is being called by `get` or `set`).
+	// Try to massage the data into something that can be handled by the cast func.
+	coerceToSlice := func(data any) any {
+		if str, ok := data.(string); ok {
+			return csvParse(str)
+		} else if data == nil {
+			return []string{} // some of the cast functions can't handle nil
+		}
+		return data // :shrug:
+	}
+
 	switch v.DataType {
 	case DataTypeBool:
 		casted, err = cast.ToBoolE(data)
@@ -296,6 +319,8 @@ func (v *Value) cast(data any) (any, error) {
 		return casted, nil
 	case DataTypeInt:
 		return cast.ToIntE(data)
+	case DataTypeIntSlice:
+		return cast.ToIntSliceE(coerceToSlice(data))
 	case DataTypeString:
 		return cast.ToStringE(data)
 	default:
@@ -314,8 +339,15 @@ func (v *Value) validate(data any) error {
 	if len(v.Options) > 0 {
 		// Ensure a validation rule for options (saves people from having to do so manually).
 		// Appends a rule like: "oneof=foo bar baz" to the end of any existing rules.
+		var rule string
+		switch v.DataType {
+		case DataTypeIntSlice:
+			rule = "dive,"
+		default:
+			rule = ""
+		}
 		opts := cast.ToStringSlice(v.Options)
-		rule := fmt.Sprintf("oneof=%s", strings.Join(opts, " "))
+		rule += fmt.Sprintf("oneof=%s", strings.Join(opts, " "))
 		if rules == "" {
 			rules = rule
 		} else {

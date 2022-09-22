@@ -160,6 +160,60 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "unable to cast",
 		},
 
+		{
+			Name: "[intSlice] accepts single value input",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  []int{1, 2, 3},
+			}),
+			Input:  "4",
+			Output: []int{4},
+			Err:    "",
+		},
+		{
+			Name: "[intSlice] accepts comma separated input",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  []int{1, 2, 3},
+			}),
+			Input:  "4, 5, 6",
+			Output: []int{4, 5, 6},
+			Err:    "",
+		},
+		{
+			Name: "[intSlice] returns default value if no input given",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  "{{ add .Year 1 }},{{ add .Year 2 }}",
+			}).WithDataMap(DataMap{
+				"Year": 1977,
+			}),
+			Input:  "",
+			Output: []int{1978, 1979},
+			Err:    "",
+		},
+		{
+			Name: "[intSlice] errors when value not in options",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  []int{1, 2},
+				Options:  []any{1, 2, 3},
+			}),
+			Input:  "3, 4",
+			Output: []int{1, 2},
+			Err:    "must be one of [1 2 3]",
+		},
+		{
+			Name: "[intSlice] errors on invalid value",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  []int{1, 2},
+			}),
+			Input:  "foo, bar",
+			Output: []int{1, 2},
+			Err:    "unable to cast",
+		},
+
 		// STRING
 		{
 			Name: "[string] accepts valid input",

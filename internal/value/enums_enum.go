@@ -16,6 +16,8 @@ const (
 	DataTypeBool DataType = "bool"
 	// DataTypeInt is a DataType of type int.
 	DataTypeInt DataType = "int"
+	// DataTypeIntSlice is a DataType of type intSlice.
+	DataTypeIntSlice DataType = "intSlice"
 	// DataTypeString is a DataType of type string.
 	DataTypeString DataType = "string"
 )
@@ -23,6 +25,7 @@ const (
 var _DataTypeNames = []string{
 	string(DataTypeBool),
 	string(DataTypeInt),
+	string(DataTypeIntSlice),
 	string(DataTypeString),
 }
 
@@ -45,9 +48,10 @@ func (x DataType) IsValid() bool {
 }
 
 var _DataTypeValue = map[string]DataType{
-	"bool":   DataTypeBool,
-	"int":    DataTypeInt,
-	"string": DataTypeString,
+	"bool":     DataTypeBool,
+	"int":      DataTypeInt,
+	"intSlice": DataTypeIntSlice,
+	"string":   DataTypeString,
 }
 
 // ParseDataType attempts to convert a string to a DataType.
