@@ -54,6 +54,7 @@ func TestValueGetAndSet(t *testing.T) {
 		Value  *Value
 		Input  string
 		Output any
+		String string
 		Err    string
 	}{
 		{
@@ -84,6 +85,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "false",
 			Output: false,
+			String: "false",
 			Err:    "",
 		},
 		{
@@ -99,6 +101,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "",
 			Output: true,
+			String: "true",
 			Err:    "",
 		},
 		{
@@ -109,6 +112,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "wat",
 			Output: true,
+			String: "true",
 			Err:    "unable to cast to bool",
 		},
 
@@ -121,6 +125,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "25",
 			Output: 25,
+			String: "25",
 			Err:    "",
 		},
 		{
@@ -136,6 +141,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "",
 			Output: 1978,
+			String: "1978",
 			Err:    "",
 		},
 		{
@@ -147,6 +153,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "25",
 			Output: 1,
+			String: "1",
 			Err:    "must be one of [1 2 3]",
 		},
 		{
@@ -157,6 +164,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "wat",
 			Output: 10,
+			String: "10",
 			Err:    "unable to cast",
 		},
 
@@ -168,6 +176,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "4",
 			Output: []int{4},
+			String: "4",
 			Err:    "",
 		},
 		{
@@ -178,6 +187,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "4, 5, 6",
 			Output: []int{4, 5, 6},
+			String: "4,5,6",
 			Err:    "",
 		},
 		{
@@ -190,6 +200,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "",
 			Output: []int{1978, 1979},
+			String: "1978,1979",
 			Err:    "",
 		},
 		{
@@ -201,6 +212,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "3, 4",
 			Output: []int{1, 2},
+			String: "1,2",
 			Err:    "must be one of [1 2 3]",
 		},
 		{
@@ -211,6 +223,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "foo, bar",
 			Output: []int{1, 2},
+			String: "1,2",
 			Err:    "unable to cast",
 		},
 
@@ -223,6 +236,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "bar",
 			Output: "bar",
+			String: "bar",
 			Err:    "",
 		},
 		{
@@ -234,6 +248,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "nope",
 			Output: "foo",
+			String: "foo",
 			Err:    "must be one of [foo bar baz]",
 		},
 		{
@@ -249,6 +264,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "",
 			Output: "Joey Ramone",
+			String: "Joey Ramone",
 			Err:    "",
 		},
 		{
@@ -264,6 +280,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "Dee Dee {{.Last}}",
 			Output: "Dee Dee Ramone",
+			String: "Dee Dee Ramone",
 			Err:    "",
 		},
 		{
@@ -275,6 +292,7 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "     hello world     ",
 			Output: "HELLO-WORLD",
+			String: "HELLO-WORLD",
 			Err:    "",
 		},
 		{
@@ -291,7 +309,57 @@ func TestValueGetAndSet(t *testing.T) {
 			}),
 			Input:  "",
 			Output: "JOEY RAMONE",
+			String: "JOEY RAMONE",
 			Err:    "",
+		},
+
+		{
+			Name: "[stringSlice] accepts single value input",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  []string{"foo", "bar"},
+			}),
+			Input:  "baz",
+			Output: []string{"baz"},
+			String: "baz",
+			Err:    "",
+		},
+		{
+			Name: "[stringSlice] accepts comma separated input",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  []string{"foo"},
+			}),
+			Input:  "bar, baz",
+			Output: []string{"bar", "baz"},
+			String: "bar,baz",
+			Err:    "",
+		},
+		{
+			Name: "[stringSlice] returns default value if no input given",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  "{{ .First }},{{ .Last }}",
+			}).WithDataMap(DataMap{
+				"First": "Joey",
+				"Last":  "Ramone",
+			}),
+			Input:  "",
+			Output: []string{"Joey", "Ramone"},
+			String: "Joey,Ramone",
+			Err:    "",
+		},
+		{
+			Name: "[stringSlice] errors when value not in options",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  []string{"foo"},
+				Options:  []any{"foo", "bar"},
+			}),
+			Input:  "bar, baz",
+			Output: []string{"foo"},
+			String: "foo",
+			Err:    "must be one of [foo bar]",
 		},
 	}
 
@@ -303,9 +371,10 @@ func TestValueGetAndSet(t *testing.T) {
 			if test.Input != "" {
 				err = value.Set(test.Input)
 			}
-			result := value.Get()
 
-			assert.Equal(t, test.Output, result)
+			assert.Equal(t, test.Output, value.Get())
+			assert.Equal(t, test.String, value.String())
+
 			if test.Err == "" {
 				assert.NoError(t, err)
 			} else {
@@ -409,6 +478,19 @@ func TestPrompt(t *testing.T) {
 		},
 
 		{
+			Name: "intSlice",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  "",
+			}),
+			Prompter: &PrompterMock{
+				InputFunc: NewInputFunc("1,2,3", nil),
+			},
+			Output: []int{1, 2, 3},
+			Err:    "",
+		},
+
+		{
 			Name: "string",
 			Value: (&Value{
 				DataType: "string",
@@ -448,6 +530,19 @@ func TestPrompt(t *testing.T) {
 				InputFunc: NewNoopInputFunc(),
 			},
 			Output: "Joey Ramone",
+			Err:    "",
+		},
+
+		{
+			Name: "stringSlice",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  "",
+			}),
+			Prompter: &PrompterMock{
+				InputFunc: NewInputFunc("foo,bar", nil),
+			},
+			Output: []string{"foo", "bar"},
 			Err:    "",
 		},
 	}

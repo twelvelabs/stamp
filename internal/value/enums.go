@@ -3,7 +3,7 @@ package value
 //go:generate go-enum -f=$GOFILE --marshal --names
 
 // DataType is the data type of a value.
-// ENUM(bool, int, intSlice, string)
+// ENUM(bool, int, intSlice, string, stringSlice)
 type DataType string
 
 // PromptConfig determines when a value should prompt.

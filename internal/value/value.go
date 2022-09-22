@@ -49,7 +49,7 @@ type Value struct {
 	// Note: have to use `DataType` because `Type()` is a pflag.Value method.
 	Name            string       `mapstructure:"name"                          validate:"required"`
 	Help            string       `mapstructure:"help"`
-	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string"`
+	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"`
 	Default         interface{}  `mapstructure:"default"`
 	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"`
 	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag"`
@@ -155,7 +155,7 @@ func (v *Value) Prompt(prompter Prompter) error {
 		} else {
 			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
 		}
-	case DataTypeIntSlice:
+	case DataTypeIntSlice, DataTypeStringSlice:
 		response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
 	default:
 		return ErrInvalidDataType
@@ -181,7 +181,7 @@ func (v *Value) Set(data string) error {
 // Required to implement the [pflag.Value] interface.
 func (v *Value) String() string {
 	switch v.DataType {
-	case DataTypeIntSlice:
+	case DataTypeIntSlice, DataTypeStringSlice:
 		return strings.Join(cast.ToStringSlice(v.Get()), ",")
 	default:
 		return cast.ToString(v.Get())
@@ -323,6 +323,8 @@ func (v *Value) cast(data any) (any, error) {
 		return cast.ToIntSliceE(coerceToSlice(data))
 	case DataTypeString:
 		return cast.ToStringE(data)
+	case DataTypeStringSlice:
+		return cast.ToStringSliceE(coerceToSlice(data))
 	default:
 		return data, ErrInvalidDataType
 	}
@@ -341,7 +343,7 @@ func (v *Value) validate(data any) error {
 		// Appends a rule like: "oneof=foo bar baz" to the end of any existing rules.
 		var rule string
 		switch v.DataType {
-		case DataTypeIntSlice:
+		case DataTypeIntSlice, DataTypeStringSlice:
 			rule = "dive,"
 		default:
 			rule = ""
