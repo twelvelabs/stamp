@@ -276,6 +276,7 @@ func TestPrompt(t *testing.T) {
 			Output: true,
 			Err:    "",
 		},
+
 		{
 			Name: "int",
 			Value: (&Value{
@@ -286,6 +287,19 @@ func TestPrompt(t *testing.T) {
 				InputFunc: NewInputFunc("12", nil),
 			},
 			Output: 12,
+			Err:    "",
+		},
+		{
+			Name: "int with options",
+			Value: (&Value{
+				DataType: "int",
+				Default:  1,
+				Options:  []any{1, 2, 3},
+			}),
+			Prompter: &PrompterMock{
+				SelectFunc: NewSelectFunc("3", nil),
+			},
+			Output: 3,
 			Err:    "",
 		},
 		{
@@ -317,6 +331,7 @@ func TestPrompt(t *testing.T) {
 			Output: nil,
 			Err:    "unable to cast",
 		},
+
 		{
 			Name: "string",
 			Value: (&Value{
@@ -327,6 +342,19 @@ func TestPrompt(t *testing.T) {
 				InputFunc: NewInputFunc("bar", nil),
 			},
 			Output: "bar",
+			Err:    "",
+		},
+		{
+			Name: "string with options",
+			Value: (&Value{
+				DataType: "string",
+				Default:  "foo",
+				Options:  []any{"foo", "bar", "baz"},
+			}),
+			Prompter: &PrompterMock{
+				SelectFunc: NewSelectFunc("baz", nil),
+			},
+			Output: "baz",
 			Err:    "",
 		},
 		{

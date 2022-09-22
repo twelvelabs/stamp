@@ -23,6 +23,9 @@ var _ Prompter = &PrompterMock{}
 //			InputFunc: func(prompt string, defaultValue string, help string, validationRules string) (string, error) {
 //				panic("mock out the Input method")
 //			},
+//			SelectFunc: func(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
+//				panic("mock out the Select method")
+//			},
 //		}
 //
 //		// use mockedPrompter in code that requires Prompter
@@ -35,6 +38,9 @@ type PrompterMock struct {
 
 	// InputFunc mocks the Input method.
 	InputFunc func(prompt string, defaultValue string, help string, validationRules string) (string, error)
+
+	// SelectFunc mocks the Select method.
+	SelectFunc func(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -60,9 +66,23 @@ type PrompterMock struct {
 			// ValidationRules is the validationRules argument value.
 			ValidationRules string
 		}
+		// Select holds details about calls to the Select method.
+		Select []struct {
+			// Prompt is the prompt argument value.
+			Prompt string
+			// Options is the options argument value.
+			Options []string
+			// DefaultValue is the defaultValue argument value.
+			DefaultValue string
+			// Help is the help argument value.
+			Help string
+			// ValidationRules is the validationRules argument value.
+			ValidationRules string
+		}
 	}
 	lockConfirm sync.RWMutex
 	lockInput   sync.RWMutex
+	lockSelect  sync.RWMutex
 }
 
 // Confirm calls ConfirmFunc.
@@ -150,5 +170,53 @@ func (mock *PrompterMock) InputCalls() []struct {
 	mock.lockInput.RLock()
 	calls = mock.calls.Input
 	mock.lockInput.RUnlock()
+	return calls
+}
+
+// Select calls SelectFunc.
+func (mock *PrompterMock) Select(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
+	if mock.SelectFunc == nil {
+		panic("PrompterMock.SelectFunc: method is nil but Prompter.Select was just called")
+	}
+	callInfo := struct {
+		Prompt          string
+		Options         []string
+		DefaultValue    string
+		Help            string
+		ValidationRules string
+	}{
+		Prompt:          prompt,
+		Options:         options,
+		DefaultValue:    defaultValue,
+		Help:            help,
+		ValidationRules: validationRules,
+	}
+	mock.lockSelect.Lock()
+	mock.calls.Select = append(mock.calls.Select, callInfo)
+	mock.lockSelect.Unlock()
+	return mock.SelectFunc(prompt, options, defaultValue, help, validationRules)
+}
+
+// SelectCalls gets all the calls that were made to Select.
+// Check the length with:
+//
+//	len(mockedPrompter.SelectCalls())
+func (mock *PrompterMock) SelectCalls() []struct {
+	Prompt          string
+	Options         []string
+	DefaultValue    string
+	Help            string
+	ValidationRules string
+} {
+	var calls []struct {
+		Prompt          string
+		Options         []string
+		DefaultValue    string
+		Help            string
+		ValidationRules string
+	}
+	mock.lockSelect.RLock()
+	calls = mock.calls.Select
+	mock.lockSelect.RUnlock()
 	return calls
 }

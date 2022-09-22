@@ -155,7 +155,12 @@ func (v *Value) Prompt(prompter Prompter) error {
 		response, err = prompter.Confirm(v.Name, defaultValue, v.Help, v.ValidationRules)
 	case DataTypeInt, DataTypeString:
 		defaultValue := cast.ToString(v.Get())
-		response, err = prompter.Input(v.Name, defaultValue, v.Help, v.ValidationRules)
+		if len(v.Options) > 0 {
+			options := cast.ToStringSlice(v.Options)
+			response, err = prompter.Select(v.Name, options, defaultValue, v.Help, v.ValidationRules)
+		} else {
+			response, err = prompter.Input(v.Name, defaultValue, v.Help, v.ValidationRules)
+		}
 	default:
 		return ErrInvalidDataType
 	}

@@ -67,6 +67,23 @@ func (p *surveyPrompter) Input(prompt string, defaultValue string, help string, 
 	return result, err
 }
 
+func (p *surveyPrompter) Select(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
+	var result string
+
+	opts := []survey.AskOpt{
+		survey.WithValidator(Validate(prompt, validationRules)),
+	}
+
+	err := p.ask(&survey.Select{
+		Message: prompt,
+		Help:    help,
+		Options: options,
+		Default: defaultValue,
+	}, &result, opts...)
+
+	return result, err
+}
+
 func (p *surveyPrompter) ask(q survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 	opts = append(opts, survey.WithStdio(p.stdin, p.stdout, p.stderr))
 	// survey.AskOne() doesn't allow passing in a transform func,
