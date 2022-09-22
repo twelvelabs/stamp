@@ -67,6 +67,23 @@ func (p *surveyPrompter) Input(prompt string, defaultValue string, help string, 
 	return result, err
 }
 
+func (p *surveyPrompter) MultiSelect(prompt string, options []string, defaultValues []string, help string, validationRules string) ([]string, error) {
+	var result []string
+
+	opts := []survey.AskOpt{
+		survey.WithValidator(Validate(prompt, validationRules)),
+	}
+
+	err := p.ask(&survey.MultiSelect{
+		Message: prompt,
+		Help:    help,
+		Options: options,
+		Default: defaultValues,
+	}, &result, opts...)
+
+	return result, err
+}
+
 func (p *surveyPrompter) Select(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
 	var result string
 

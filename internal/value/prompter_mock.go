@@ -23,6 +23,9 @@ var _ Prompter = &PrompterMock{}
 //			InputFunc: func(prompt string, defaultValue string, help string, validationRules string) (string, error) {
 //				panic("mock out the Input method")
 //			},
+//			MultiSelectFunc: func(prompt string, options []string, defaultValues []string, help string, validationRules string) ([]string, error) {
+//				panic("mock out the MultiSelect method")
+//			},
 //			SelectFunc: func(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
 //				panic("mock out the Select method")
 //			},
@@ -38,6 +41,9 @@ type PrompterMock struct {
 
 	// InputFunc mocks the Input method.
 	InputFunc func(prompt string, defaultValue string, help string, validationRules string) (string, error)
+
+	// MultiSelectFunc mocks the MultiSelect method.
+	MultiSelectFunc func(prompt string, options []string, defaultValues []string, help string, validationRules string) ([]string, error)
 
 	// SelectFunc mocks the Select method.
 	SelectFunc func(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error)
@@ -66,6 +72,19 @@ type PrompterMock struct {
 			// ValidationRules is the validationRules argument value.
 			ValidationRules string
 		}
+		// MultiSelect holds details about calls to the MultiSelect method.
+		MultiSelect []struct {
+			// Prompt is the prompt argument value.
+			Prompt string
+			// Options is the options argument value.
+			Options []string
+			// DefaultValues is the defaultValues argument value.
+			DefaultValues []string
+			// Help is the help argument value.
+			Help string
+			// ValidationRules is the validationRules argument value.
+			ValidationRules string
+		}
 		// Select holds details about calls to the Select method.
 		Select []struct {
 			// Prompt is the prompt argument value.
@@ -80,9 +99,10 @@ type PrompterMock struct {
 			ValidationRules string
 		}
 	}
-	lockConfirm sync.RWMutex
-	lockInput   sync.RWMutex
-	lockSelect  sync.RWMutex
+	lockConfirm     sync.RWMutex
+	lockInput       sync.RWMutex
+	lockMultiSelect sync.RWMutex
+	lockSelect      sync.RWMutex
 }
 
 // Confirm calls ConfirmFunc.
@@ -170,6 +190,54 @@ func (mock *PrompterMock) InputCalls() []struct {
 	mock.lockInput.RLock()
 	calls = mock.calls.Input
 	mock.lockInput.RUnlock()
+	return calls
+}
+
+// MultiSelect calls MultiSelectFunc.
+func (mock *PrompterMock) MultiSelect(prompt string, options []string, defaultValues []string, help string, validationRules string) ([]string, error) {
+	if mock.MultiSelectFunc == nil {
+		panic("PrompterMock.MultiSelectFunc: method is nil but Prompter.MultiSelect was just called")
+	}
+	callInfo := struct {
+		Prompt          string
+		Options         []string
+		DefaultValues   []string
+		Help            string
+		ValidationRules string
+	}{
+		Prompt:          prompt,
+		Options:         options,
+		DefaultValues:   defaultValues,
+		Help:            help,
+		ValidationRules: validationRules,
+	}
+	mock.lockMultiSelect.Lock()
+	mock.calls.MultiSelect = append(mock.calls.MultiSelect, callInfo)
+	mock.lockMultiSelect.Unlock()
+	return mock.MultiSelectFunc(prompt, options, defaultValues, help, validationRules)
+}
+
+// MultiSelectCalls gets all the calls that were made to MultiSelect.
+// Check the length with:
+//
+//	len(mockedPrompter.MultiSelectCalls())
+func (mock *PrompterMock) MultiSelectCalls() []struct {
+	Prompt          string
+	Options         []string
+	DefaultValues   []string
+	Help            string
+	ValidationRules string
+} {
+	var calls []struct {
+		Prompt          string
+		Options         []string
+		DefaultValues   []string
+		Help            string
+		ValidationRules string
+	}
+	mock.lockMultiSelect.RLock()
+	calls = mock.calls.MultiSelect
+	mock.lockMultiSelect.RUnlock()
 	return calls
 }
 

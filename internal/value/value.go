@@ -138,25 +138,31 @@ func (v *Value) ShouldPrompt() bool {
 
 // Prompt prompts the user for a value.
 func (v *Value) Prompt(prompter Prompter) error {
-	var response interface{}
-	var err error
-
 	if !v.ShouldPrompt() {
 		return nil
 	}
 
+	options := cast.ToStringSlice(v.Options)
+
+	var response interface{}
+	var err error
 	switch v.DataType {
 	case DataTypeBool:
-		response, err = prompter.Confirm(v.Name, cast.ToBool(v.Get()), v.Help, v.ValidationRules)
+		defVal := cast.ToBool(v.Get())
+		response, err = prompter.Confirm(v.Name, defVal, v.Help, v.ValidationRules)
 	case DataTypeInt, DataTypeString:
-		if len(v.Options) > 0 {
-			options := cast.ToStringSlice(v.Options)
+		if len(options) > 0 {
 			response, err = prompter.Select(v.Name, options, v.String(), v.Help, v.ValidationRules)
 		} else {
 			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
 		}
 	case DataTypeIntSlice, DataTypeStringSlice:
-		response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
+		if len(options) > 0 {
+			defVal := cast.ToStringSlice(v.Get())
+			response, err = prompter.MultiSelect(v.Name, options, defVal, v.Help, v.ValidationRules)
+		} else {
+			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
+		}
 	default:
 		return ErrInvalidDataType
 	}
