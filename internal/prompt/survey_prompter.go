@@ -35,14 +35,14 @@ type surveyPrompter struct {
 	stderr FileWriter
 }
 
-func (p *surveyPrompter) Input(prompt, help, defaultValue string, validationRules string) (string, error) {
-	var result string
+func (p *surveyPrompter) Confirm(prompt string, defaultValue bool, help string, validationRules string) (bool, error) {
+	var result bool
 
 	opts := []survey.AskOpt{
 		survey.WithValidator(Validate(prompt, validationRules)),
 	}
 
-	err := p.ask(&survey.Input{
+	err := p.ask(&survey.Confirm{
 		Message: prompt,
 		Help:    help,
 		Default: defaultValue,
@@ -51,14 +51,14 @@ func (p *surveyPrompter) Input(prompt, help, defaultValue string, validationRule
 	return result, err
 }
 
-func (p *surveyPrompter) Confirm(prompt, help string, defaultValue bool, validationRules string) (bool, error) {
-	var result bool
+func (p *surveyPrompter) Input(prompt string, defaultValue string, help string, validationRules string) (string, error) {
+	var result string
 
 	opts := []survey.AskOpt{
 		survey.WithValidator(Validate(prompt, validationRules)),
 	}
 
-	err := p.ask(&survey.Confirm{
+	err := p.ask(&survey.Input{
 		Message: prompt,
 		Help:    help,
 		Default: defaultValue,

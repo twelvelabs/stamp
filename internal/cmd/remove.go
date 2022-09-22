@@ -84,7 +84,7 @@ func (a *RemoveAction) Run() error {
 		fmt.Fprintln(a.IO.Out, " -", child.Name())
 	}
 
-	confirmed, err := a.Prompter.Confirm("Are you sure?", "", false, "")
+	confirmed, err := a.Prompter.Confirm("Are you sure?", false, "", "")
 	if err != nil {
 		return err
 	}

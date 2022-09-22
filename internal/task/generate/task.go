@@ -1,5 +1,7 @@
 package generate
 
+//cspell:words oneof
+
 import (
 	"fmt"
 	"os"
@@ -93,7 +95,7 @@ func (t *Task) prompt(values map[string]any, ios *iostreams.IOStreams, prompter 
 	dst, _ := t.renderPath(values, t.Dst)
 	t.LogWarning(ios, "conflict", fmt.Sprintf("%s already exists", dst))
 
-	overwrite, err := prompter.Confirm("Overwrite", "", false, "")
+	overwrite, err := prompter.Confirm("Overwrite", false, "", "")
 	if err != nil {
 		return err
 	}

@@ -17,10 +17,10 @@ var _ Prompter = &PrompterMock{}
 //
 //		// make and configure a mocked Prompter
 //		mockedPrompter := &PrompterMock{
-//			ConfirmFunc: func(prompt string, help string, defaultValue bool, validationRules string) (bool, error) {
+//			ConfirmFunc: func(prompt string, defaultValue bool, help string, validationRules string) (bool, error) {
 //				panic("mock out the Confirm method")
 //			},
-//			InputFunc: func(prompt string, help string, defaultValue string, validationRules string) (string, error) {
+//			InputFunc: func(prompt string, defaultValue string, help string, validationRules string) (string, error) {
 //				panic("mock out the Input method")
 //			},
 //		}
@@ -31,10 +31,10 @@ var _ Prompter = &PrompterMock{}
 //	}
 type PrompterMock struct {
 	// ConfirmFunc mocks the Confirm method.
-	ConfirmFunc func(prompt string, help string, defaultValue bool, validationRules string) (bool, error)
+	ConfirmFunc func(prompt string, defaultValue bool, help string, validationRules string) (bool, error)
 
 	// InputFunc mocks the Input method.
-	InputFunc func(prompt string, help string, defaultValue string, validationRules string) (string, error)
+	InputFunc func(prompt string, defaultValue string, help string, validationRules string) (string, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -42,10 +42,10 @@ type PrompterMock struct {
 		Confirm []struct {
 			// Prompt is the prompt argument value.
 			Prompt string
-			// Help is the help argument value.
-			Help string
 			// DefaultValue is the defaultValue argument value.
 			DefaultValue bool
+			// Help is the help argument value.
+			Help string
 			// ValidationRules is the validationRules argument value.
 			ValidationRules string
 		}
@@ -53,10 +53,10 @@ type PrompterMock struct {
 		Input []struct {
 			// Prompt is the prompt argument value.
 			Prompt string
-			// Help is the help argument value.
-			Help string
 			// DefaultValue is the defaultValue argument value.
 			DefaultValue string
+			// Help is the help argument value.
+			Help string
 			// ValidationRules is the validationRules argument value.
 			ValidationRules string
 		}
@@ -66,25 +66,25 @@ type PrompterMock struct {
 }
 
 // Confirm calls ConfirmFunc.
-func (mock *PrompterMock) Confirm(prompt string, help string, defaultValue bool, validationRules string) (bool, error) {
+func (mock *PrompterMock) Confirm(prompt string, defaultValue bool, help string, validationRules string) (bool, error) {
 	if mock.ConfirmFunc == nil {
 		panic("PrompterMock.ConfirmFunc: method is nil but Prompter.Confirm was just called")
 	}
 	callInfo := struct {
 		Prompt          string
-		Help            string
 		DefaultValue    bool
+		Help            string
 		ValidationRules string
 	}{
 		Prompt:          prompt,
-		Help:            help,
 		DefaultValue:    defaultValue,
+		Help:            help,
 		ValidationRules: validationRules,
 	}
 	mock.lockConfirm.Lock()
 	mock.calls.Confirm = append(mock.calls.Confirm, callInfo)
 	mock.lockConfirm.Unlock()
-	return mock.ConfirmFunc(prompt, help, defaultValue, validationRules)
+	return mock.ConfirmFunc(prompt, defaultValue, help, validationRules)
 }
 
 // ConfirmCalls gets all the calls that were made to Confirm.
@@ -93,14 +93,14 @@ func (mock *PrompterMock) Confirm(prompt string, help string, defaultValue bool,
 //	len(mockedPrompter.ConfirmCalls())
 func (mock *PrompterMock) ConfirmCalls() []struct {
 	Prompt          string
-	Help            string
 	DefaultValue    bool
+	Help            string
 	ValidationRules string
 } {
 	var calls []struct {
 		Prompt          string
-		Help            string
 		DefaultValue    bool
+		Help            string
 		ValidationRules string
 	}
 	mock.lockConfirm.RLock()
@@ -110,25 +110,25 @@ func (mock *PrompterMock) ConfirmCalls() []struct {
 }
 
 // Input calls InputFunc.
-func (mock *PrompterMock) Input(prompt string, help string, defaultValue string, validationRules string) (string, error) {
+func (mock *PrompterMock) Input(prompt string, defaultValue string, help string, validationRules string) (string, error) {
 	if mock.InputFunc == nil {
 		panic("PrompterMock.InputFunc: method is nil but Prompter.Input was just called")
 	}
 	callInfo := struct {
 		Prompt          string
-		Help            string
 		DefaultValue    string
+		Help            string
 		ValidationRules string
 	}{
 		Prompt:          prompt,
-		Help:            help,
 		DefaultValue:    defaultValue,
+		Help:            help,
 		ValidationRules: validationRules,
 	}
 	mock.lockInput.Lock()
 	mock.calls.Input = append(mock.calls.Input, callInfo)
 	mock.lockInput.Unlock()
-	return mock.InputFunc(prompt, help, defaultValue, validationRules)
+	return mock.InputFunc(prompt, defaultValue, help, validationRules)
 }
 
 // InputCalls gets all the calls that were made to Input.
@@ -137,14 +137,14 @@ func (mock *PrompterMock) Input(prompt string, help string, defaultValue string,
 //	len(mockedPrompter.InputCalls())
 func (mock *PrompterMock) InputCalls() []struct {
 	Prompt          string
-	Help            string
 	DefaultValue    string
+	Help            string
 	ValidationRules string
 } {
 	var calls []struct {
 		Prompt          string
-		Help            string
 		DefaultValue    string
+		Help            string
 		ValidationRules string
 	}
 	mock.lockInput.RLock()

@@ -152,10 +152,10 @@ func (v *Value) Prompt(prompter Prompter) error {
 	switch v.DataType {
 	case DataTypeBool:
 		defaultValue := cast.ToBool(v.Get())
-		response, err = prompter.Confirm(v.Name, v.Help, defaultValue, v.ValidationRules)
+		response, err = prompter.Confirm(v.Name, defaultValue, v.Help, v.ValidationRules)
 	case DataTypeInt, DataTypeString:
 		defaultValue := cast.ToString(v.Get())
-		response, err = prompter.Input(v.Name, v.Help, defaultValue, v.ValidationRules)
+		response, err = prompter.Input(v.Name, defaultValue, v.Help, v.ValidationRules)
 	default:
 		return ErrInvalidDataType
 	}
