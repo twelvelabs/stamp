@@ -57,7 +57,7 @@ func TestValueGetAndSet(t *testing.T) {
 		Err    string
 	}{
 		{
-			Name: "empty type",
+			Name: "raises when type is empty",
 			Value: (&Value{
 				DataType: "",
 			}),
@@ -66,7 +66,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "invalid data type",
 		},
 		{
-			Name: "invalid type",
+			Name: "raises when type is invalid",
 			Value: (&Value{
 				DataType: "wat",
 			}),
@@ -77,7 +77,7 @@ func TestValueGetAndSet(t *testing.T) {
 
 		// BOOL
 		{
-			Name: "bool",
+			Name: "[bool] accepts valid input",
 			Value: (&Value{
 				DataType: "bool",
 				Default:  true,
@@ -87,7 +87,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "bool default",
+			Name: "[bool] returns default value if no input given",
 			Value: (&Value{
 				DataType: "bool",
 				Default:  "{{.WannaDance}}",
@@ -102,7 +102,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "bool invalid",
+			Name: "[bool] errors on invalid value",
 			Value: (&Value{
 				DataType: "bool",
 				Default:  true,
@@ -114,7 +114,7 @@ func TestValueGetAndSet(t *testing.T) {
 
 		// INT
 		{
-			Name: "int",
+			Name: "[int] accepts valid input",
 			Value: (&Value{
 				DataType: "int",
 				Default:  10,
@@ -124,7 +124,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "int default",
+			Name: "[int] returns default value if no input given",
 			Value: (&Value{
 				DataType: "int",
 				Default:  "{{ add .Year 1 }}",
@@ -139,7 +139,18 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "int invalid",
+			Name: "[int] errors when value not in options",
+			Value: (&Value{
+				DataType: "int",
+				Default:  1,
+				Options:  []any{1, 2, 3},
+			}),
+			Input:  "25",
+			Output: 1,
+			Err:    "must be one of [1 2 3]",
+		},
+		{
+			Name: "[int] errors on invalid value",
 			Value: (&Value{
 				DataType: "int",
 				Default:  10,
@@ -151,7 +162,7 @@ func TestValueGetAndSet(t *testing.T) {
 
 		// STRING
 		{
-			Name: "string",
+			Name: "[string] accepts valid input",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "foo",
@@ -161,7 +172,18 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string default",
+			Name: "[string] errors when value not in options",
+			Value: (&Value{
+				DataType: "string",
+				Default:  "foo",
+				Options:  []any{"foo", "bar", "baz"},
+			}),
+			Input:  "nope",
+			Output: "foo",
+			Err:    "must be one of [foo bar baz]",
+		},
+		{
+			Name: "[string] renders default values",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
@@ -176,7 +198,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string rendered",
+			Name: "[string] renders submitted values",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
@@ -191,7 +213,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string transformed",
+			Name: "[string] transforms submitted values",
 			Value: (&Value{
 				DataType:       "string",
 				Default:        "",
@@ -202,7 +224,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string default transformed",
+			Name: "[string] transforms default values",
 			Value: (&Value{
 				DataType:       "string",
 				Default:        "{{.First}} {{.Last}}",

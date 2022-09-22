@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"reflect"
 	"strings"
 	"text/template"
@@ -194,7 +195,7 @@ func (v *Value) Type() string {
 
 // Validate evaluates the configured validation rules.
 func (v *Value) Validate() error {
-	return ValidateKeyVal(v.Name, v.Get(), v.ValidationRules)
+	return v.validate(v.Get())
 }
 
 func (v *Value) ValueSet() *ValueSet {
@@ -233,7 +234,7 @@ func (v *Value) set(data any) error {
 	if err != nil {
 		return err
 	}
-	if err := ValidateKeyVal(v.Name, processed, v.ValidationRules); err != nil {
+	if err := v.validate(processed); err != nil {
 		return err
 	}
 	v.data = processed
@@ -305,4 +306,23 @@ func (v *Value) cast(data any) (any, error) {
 // Passes data through any configured transform rules.
 func (v *Value) transform(data any) (any, error) {
 	return Transform(v.Name, data, v.TransformRules)
+}
+
+// Passes data through any configured validation rules.
+func (v *Value) validate(data any) error {
+	rules := v.ValidationRules
+	if len(v.Options) > 0 {
+		// Ensure a validation rule for options (saves people from having to do so manually).
+		// Appends a rule like: "oneof=foo bar baz" to the end of any existing rules.
+		opts := cast.ToStringSlice(v.Options)
+		rule := fmt.Sprintf("oneof=%s", strings.Join(opts, " "))
+		if rules == "" {
+			rules = rule
+		} else {
+			segments := strings.Split(rules, ",")
+			segments = append(segments, rule)
+			rules = strings.Join(segments, ",")
+		}
+	}
+	return ValidateKeyVal(v.Name, data, rules)
 }
