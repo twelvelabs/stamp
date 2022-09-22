@@ -1,0 +1,41 @@
+linters:
+  disable:
+    # obnoxious
+    - cyclop
+    - dupl
+    - err113
+    - exhaustivestruct
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gochecknoinits
+    - gochecknoglobals
+    - gocognit
+    - gocyclo
+    - godox
+    - gofumpt
+    - gomnd
+    - nlreturn
+    - paralleltest
+    - testpackage
+    - wsl
+    # deprecated
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - scopelint
+  enable-all: true
+
+linters-settings:
+  gci:
+    local-prefixes: github.com/twelvelabs
+
+  #gocritic:
+  #  disabled-checks:
+  #    - commentFormatting
+
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/twelvelabs/*
