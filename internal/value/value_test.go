@@ -1,6 +1,7 @@
 package value
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,99 @@ func TestNewValue(t *testing.T) {
 			} else {
 				assert.ErrorContains(t, err, test.Err)
 			}
+		})
+	}
+}
+
+func TestValueWithValueSet(t *testing.T) {
+	vs := NewValueSet()
+	v := &Value{}
+	assert.Equal(t, vs, v.WithValueSet(vs).ValueSet())
+}
+
+func TestValueIsBoolFlag(t *testing.T) {
+	assert.Equal(t, false, (&Value{DataType: DataTypeString}).IsBoolFlag())
+	assert.Equal(t, true, (&Value{DataType: DataTypeBool}).IsBoolFlag())
+}
+
+func TestValueIsEmpty(t *testing.T) {
+	tests := []struct {
+		Name    string
+		Value   *Value
+		IsEmpty bool
+	}{
+		{
+			Name: "[bool] false is empty",
+			Value: &Value{
+				DataType: DataTypeBool,
+				Default:  false,
+			},
+			IsEmpty: true,
+		},
+		{
+			Name: "[bool] true is non-empty",
+			Value: &Value{
+				DataType: DataTypeBool,
+				Default:  true,
+			},
+			IsEmpty: false,
+		},
+
+		{
+			Name: "[int] 0 is empty",
+			Value: &Value{
+				DataType: DataTypeInt,
+				Default:  0,
+			},
+			IsEmpty: true,
+		},
+		{
+			Name: "[int] gt 0 is non-empty",
+			Value: &Value{
+				DataType: DataTypeInt,
+				Default:  12,
+			},
+			IsEmpty: false,
+		},
+
+		{
+			Name: "[intSlice] empty slice is empty",
+			Value: &Value{
+				DataType: DataTypeIntSlice,
+				Default:  []int{},
+			},
+			IsEmpty: true,
+		},
+		{
+			Name: "[intSlice] non-empty slice is non-empty",
+			Value: &Value{
+				DataType: DataTypeIntSlice,
+				Default:  []int{1, 2, 3},
+			},
+			IsEmpty: false,
+		},
+
+		{
+			Name: "[string] empty string is empty",
+			Value: &Value{
+				DataType: DataTypeString,
+				Default:  "",
+			},
+			IsEmpty: true,
+		},
+		{
+			Name: "[string] non-empty string is non-empty",
+			Value: &Value{
+				DataType: DataTypeString,
+				Default:  "foo",
+			},
+			IsEmpty: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, test.IsEmpty, test.Value.IsEmpty())
 		})
 	}
 }
@@ -252,6 +346,19 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "must be one of [foo bar baz]",
 		},
 		{
+			Name: "[string] option validation does not interfere with other rules",
+			Value: (&Value{
+				DataType:        "string",
+				Default:         "foo",
+				Options:         []any{"foo", "bar", "baz"},
+				ValidationRules: "alpha",
+			}),
+			Input:  "123",
+			Output: "foo",
+			String: "foo",
+			Err:    "can only contain alphabetic characters",
+		},
+		{
 			Name: "[string] renders default values",
 			Value: (&Value{
 				DataType: "string",
@@ -393,7 +500,16 @@ func TestPrompt(t *testing.T) {
 		Err      string
 	}{
 		{
-			Name: "bool true",
+			Name: "invalid type",
+			Value: (&Value{
+				DataType: "not-a-type",
+			}),
+			Prompter: &PrompterMock{},
+			Output:   nil,
+			Err:      "invalid data type",
+		},
+		{
+			Name: "[bool] true",
 			Value: (&Value{
 				DataType: "bool",
 				Default:  false,
@@ -405,7 +521,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "bool default",
+			Name: "[bool] default",
 			Value: (&Value{
 				DataType: "bool",
 				Default:  "{{.WannaDance}}",
@@ -421,9 +537,34 @@ func TestPrompt(t *testing.T) {
 			Output: true,
 			Err:    "",
 		},
+		{
+			Name: "[bool] error",
+			Value: (&Value{
+				DataType: "bool",
+				Default:  false,
+			}),
+			Prompter: &PrompterMock{
+				ConfirmFunc: NewConfirmFunc(true, errors.New("boom")),
+			},
+			Output: false,
+			Err:    "boom",
+		},
+		{
+			Name: "[bool] prompt disabled",
+			Value: (&Value{
+				DataType:     "bool",
+				Default:      false,
+				PromptConfig: PromptConfigNever,
+			}),
+			Prompter: &PrompterMock{
+				ConfirmFunc: NewConfirmFunc(true, nil),
+			},
+			Output: false,
+			Err:    "",
+		},
 
 		{
-			Name: "int",
+			Name: "[int]",
 			Value: (&Value{
 				DataType: "int",
 				Default:  1,
@@ -435,7 +576,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "int with options",
+			Name: "[int] with options",
 			Value: (&Value{
 				DataType: "int",
 				Default:  1,
@@ -448,7 +589,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "int default",
+			Name: "[int] default",
 			Value: (&Value{
 				DataType: "int",
 				Default:  "{{ add .Year 1 }}",
@@ -465,7 +606,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "int invalid",
+			Name: "[int] invalid",
 			Value: (&Value{
 				DataType: "int",
 				Default:  1,
@@ -478,7 +619,7 @@ func TestPrompt(t *testing.T) {
 		},
 
 		{
-			Name: "intSlice",
+			Name: "[intSlice]",
 			Value: (&Value{
 				DataType: "intSlice",
 				Default:  "",
@@ -489,9 +630,22 @@ func TestPrompt(t *testing.T) {
 			Output: []int{1, 2, 3},
 			Err:    "",
 		},
+		{
+			Name: "[intSlice] with options",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  "",
+				Options:  []any{1, 2, 3},
+			}),
+			Prompter: &PrompterMock{
+				MultiSelectFunc: NewMultiSelectFunc([]string{"1", "2"}, nil),
+			},
+			Output: []int{1, 2},
+			Err:    "",
+		},
 
 		{
-			Name: "string",
+			Name: "[string]",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "foo",
@@ -503,7 +657,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string with options",
+			Name: "[string] with options",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "foo",
@@ -516,7 +670,7 @@ func TestPrompt(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Name: "string default",
+			Name: "[string] default",
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
@@ -534,7 +688,7 @@ func TestPrompt(t *testing.T) {
 		},
 
 		{
-			Name: "stringSlice",
+			Name: "[stringSlice]",
 			Value: (&Value{
 				DataType: "stringSlice",
 				Default:  "",
@@ -545,21 +699,85 @@ func TestPrompt(t *testing.T) {
 			Output: []string{"foo", "bar"},
 			Err:    "",
 		},
+		{
+			Name: "[stringSlice] with options",
+			Value: (&Value{
+				DataType: "stringSlice",
+				Default:  "",
+				Options:  []any{"foo", "bar", "baz"},
+			}),
+			Prompter: &PrompterMock{
+				MultiSelectFunc: NewMultiSelectFunc([]string{"foo", "bar"}, nil),
+			},
+			Output: []string{"foo", "bar"},
+			Err:    "",
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-
-			value := test.Value
-			err := value.Prompt(test.Prompter)
-
+			err := test.Value.Prompt(test.Prompter)
 			if test.Err == "" {
 				assert.NoError(t, err)
-				assert.Equal(t, test.Output, value.Get(), "Get() should match output")
+				assert.Equal(t, test.Output, test.Value.Get(), "Get() should match output")
 			} else {
 				assert.ErrorContains(t, err, test.Err)
-				assert.Equal(t, value.Default, value.Get(), "Get() should match default")
+				assert.Equal(t, test.Value.Default, test.Value.Get(), "Get() should match default")
 			}
+		})
+	}
+}
+
+func TestShouldPrompt(t *testing.T) {
+	tests := []struct {
+		Name         string
+		Value        *Value
+		Input        any
+		ShouldPrompt bool
+	}{
+		{
+			Name: "[never] never prompts - even if no value",
+			Value: (&Value{
+				DataType:     DataTypeString,
+				PromptConfig: PromptConfigNever,
+			}),
+			ShouldPrompt: false,
+		},
+		{
+			Name: "[always] always prompts - even if value present",
+			Value: (&Value{
+				DataType:     DataTypeString,
+				PromptConfig: PromptConfigAlways,
+			}),
+			Input:        "bar",
+			ShouldPrompt: true,
+		},
+		{
+			Name: "[on-empty] only prompts when value is empty",
+			Value: (&Value{
+				DataType:     DataTypeString,
+				PromptConfig: PromptConfigOnEmpty,
+			}),
+			Input:        "",
+			ShouldPrompt: true,
+		},
+		{
+			Name: "[on-empty] only prompts when value is not explicitly set by user",
+			Value: (&Value{
+				DataType:     DataTypeString,
+				Default:      "foo",
+				PromptConfig: PromptConfigOnUnset,
+			}),
+			ShouldPrompt: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			if test.Input != nil {
+				_ = test.Value.Set(test.Input.(string))
+			}
+			assert.Equal(t, test.ShouldPrompt, test.Value.ShouldPrompt())
 		})
 	}
 }
