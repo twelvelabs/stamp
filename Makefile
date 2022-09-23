@@ -1,6 +1,12 @@
+.PHONY: coverage
+coverage:
+	make test
+	go tool cover -html=coverage.tmp
+
 .PHONY: clean
 clean:
 	rm -Rf ./bin
+	rm coverage.tmp
 
 .PHONY: generate
 generate:
@@ -12,7 +18,7 @@ lint:
 
 .PHONY: test
 test:
-	go test ./...
+	go test -cover -coverprofile=coverage.tmp ./...
 
 .PHONY: bin/stamp
 bin/stamp:
