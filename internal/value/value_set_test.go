@@ -1,6 +1,7 @@
 package value
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -307,6 +308,116 @@ func TestValueSetAddArgs(t *testing.T) {
 			} else {
 				assert.ErrorContains(t, err, test.Err)
 			}
+		})
+	}
+}
+
+func TestValueSet_Validate(t *testing.T) {
+	tests := []struct {
+		name      string
+		values    []*Value
+		assertion assert.ErrorAssertionFunc
+	}{
+		{
+			name: "returns nil when all values are valid",
+			values: []*Value{
+				{
+					DataType:        DataTypeString,
+					Default:         "foo",
+					ValidationRules: "required",
+				},
+				{
+					DataType:        DataTypeString,
+					Default:         "bar",
+					ValidationRules: "required",
+				},
+			},
+			assertion: assert.NoError,
+		},
+		{
+			name: "returns an error when any values are invalid",
+			values: []*Value{
+				{
+					DataType:        DataTypeString,
+					Default:         "foo",
+					ValidationRules: "required",
+				},
+				{
+					DataType:        DataTypeString,
+					Default:         "",
+					ValidationRules: "required",
+				},
+			},
+			assertion: assert.Error,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := NewValueSet()
+			for _, v := range tt.values {
+				vs.AddValue(v)
+			}
+			tt.assertion(t, vs.Validate())
+		})
+	}
+}
+
+func TestValueSet_Prompt(t *testing.T) {
+	callCount := 0
+	tests := []struct {
+		name      string
+		values    []*Value
+		prompter  *PrompterMock
+		assertion assert.ErrorAssertionFunc
+	}{
+		{
+			name: "returns nil when all prompts succeed",
+			values: []*Value{
+				{
+					DataType: DataTypeBool,
+				},
+				{
+					DataType: DataTypeBool,
+				},
+			},
+			prompter: &PrompterMock{
+				ConfirmFunc: NewConfirmFunc(true, nil), // always succeeds
+			},
+			assertion: assert.NoError,
+		},
+		{
+			name: "returns an error when any prompts fail",
+			values: []*Value{
+				{
+					DataType: DataTypeBool,
+				},
+				{
+					DataType: DataTypeBool,
+				},
+			},
+			prompter: &PrompterMock{
+				// fails on second prompt
+				ConfirmFunc: func(prompt string, defaultValue bool, help, validationRules string) (bool, error) {
+					callCount++
+					if callCount >= 2 {
+						return false, errors.New("boom")
+					}
+					return true, nil
+				},
+			},
+			assertion: assert.Error,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			vs := NewValueSet()
+			for _, v := range tt.values {
+				vs.AddValue(v)
+			}
+			tt.assertion(t, vs.Prompt(tt.prompter))
+			assert.Equal(t, len(vs.GetValues()), len(tt.prompter.ConfirmCalls()))
 		})
 	}
 }

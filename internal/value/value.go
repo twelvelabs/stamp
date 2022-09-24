@@ -61,13 +61,8 @@ type Value struct {
 	values *ValueSet
 }
 
-// The camel-cased name of value.
-func (v *Value) CamelName() string {
-	return xstrings.ToCamelCase(v.Name)
-}
-
-// The kebab-cased name of value.
-func (v *Value) KebabName() string {
+// FlagName returns the kebab-cased flag name.
+func (v *Value) FlagName() string {
 	return xstrings.ToKebabCase(v.Name)
 }
 
@@ -107,8 +102,9 @@ func (v *Value) IsEmpty() bool {
 		return len(strings.TrimSpace(rv.String())) == 0
 	case reflect.Chan, reflect.Map, reflect.Slice, reflect.Array:
 		return rv.Len() == 0
-	case reflect.Ptr, reflect.Interface, reflect.Func:
-		return rv.IsNil()
+	// Uncomment if we ever support complex value types
+	// case reflect.Ptr, reflect.Interface, reflect.Func:
+	//	return rv.IsNil()
 	default:
 		return !rv.IsValid() || reflect.DeepEqual(rv.Interface(), reflect.Zero(rv.Type()).Interface())
 	}
@@ -117,7 +113,7 @@ func (v *Value) IsEmpty() bool {
 // Key returns the materialized data key for the value.
 func (v *Value) Key() string {
 	// TODO: use inflection lib to properly "modularize"
-	return v.CamelName()
+	return xstrings.ToCamelCase(v.Name)
 }
 
 // ShouldPrompt returns true if the user should be prompted for a value.

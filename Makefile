@@ -19,6 +19,8 @@ lint:
 .PHONY: test
 test:
 	go test -cover -coverprofile=coverage.tmp ./...
+	@cat coverage.tmp | grep -v "_mock.go" | grep -v "_enum.go" > coverage.tmp.new
+	@mv coverage.tmp.new coverage.tmp
 
 .PHONY: bin/stamp
 bin/stamp:

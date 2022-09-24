@@ -101,9 +101,9 @@ func (a *NewAction) Run() error {
 
 	// Add and parse the generator's flags
 	for _, val := range gen.Values.GetFlagValues() {
-		a.cmd.Flags().Var(val, val.KebabName(), val.Help)
+		a.cmd.Flags().Var(val, val.FlagName(), val.Help)
 		if val.IsBoolFlag() {
-			a.cmd.Flags().Lookup(val.KebabName()).NoOptDefVal = "true"
+			a.cmd.Flags().Lookup(val.FlagName()).NoOptDefVal = "true"
 		}
 	}
 	if err := a.cmd.ParseFlags(a.args); err != nil {

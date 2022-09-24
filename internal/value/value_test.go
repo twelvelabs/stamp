@@ -34,6 +34,14 @@ func TestNewValue(t *testing.T) {
 			Output: nil,
 			Err:    "Name is a required field",
 		},
+		{
+			Name: "returns an error invalid data types are in the map",
+			Data: map[string]any{
+				"name": 123,
+			},
+			Output: nil,
+			Err:    "'name' expected type 'string', got unconvertible type 'int'",
+		},
 	}
 
 	for _, test := range tests {
@@ -55,9 +63,45 @@ func TestValueWithValueSet(t *testing.T) {
 	assert.Equal(t, vs, v.WithValueSet(vs).ValueSet())
 }
 
+func TestValueFlagName(t *testing.T) {
+	tests := []struct {
+		Name     string
+		FlagName string
+	}{
+		{
+			Name:     "foo-bar",
+			FlagName: "foo-bar",
+		},
+		{
+			Name:     "Foo bar",
+			FlagName: "foo-bar",
+		},
+		{
+			Name:     "FooBar",
+			FlagName: "foo-bar",
+		},
+		{
+			Name:     "FOO_BAR",
+			FlagName: "foo-bar",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			value := &Value{Name: test.Name}
+			assert.Equal(t, test.FlagName, value.FlagName())
+		})
+	}
+}
+
 func TestValueIsBoolFlag(t *testing.T) {
 	assert.Equal(t, false, (&Value{DataType: DataTypeString}).IsBoolFlag())
 	assert.Equal(t, true, (&Value{DataType: DataTypeBool}).IsBoolFlag())
+}
+
+func TestValueType(t *testing.T) {
+	assert.Equal(t, "string", (&Value{DataType: DataTypeString}).Type())
+	assert.Equal(t, "bool", (&Value{DataType: DataTypeBool}).Type())
 }
 
 func TestValueIsEmpty(t *testing.T) {
@@ -143,6 +187,10 @@ func TestValueIsEmpty(t *testing.T) {
 }
 
 func TestValueGetAndSet(t *testing.T) {
+	RegisterTransformer("explode", func(a any) (any, error) {
+		return "lol", errors.New("boom")
+	})
+
 	tests := []struct {
 		Name   string
 		Value  *Value
@@ -285,6 +333,17 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
+			Name: "[intSlice] converts nil values to empty slice",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  nil,
+			}),
+			Input:  "",
+			Output: []int{},
+			String: "",
+			Err:    "",
+		},
+		{
 			Name: "[intSlice] returns default value if no input given",
 			Value: (&Value{
 				DataType: "intSlice",
@@ -391,6 +450,28 @@ func TestValueGetAndSet(t *testing.T) {
 			Err:    "",
 		},
 		{
+			Name: "[string] returns an empty value on template parse error",
+			Value: (&Value{
+				DataType: "string",
+				Default:  "{{.}",
+			}),
+			Input:  "",
+			Output: nil,
+			String: "",
+			Err:    "",
+		},
+		{
+			Name: "[string] returns an empty value on template render error",
+			Value: (&Value{
+				DataType: "string",
+				Default:  `{{ fail "boom" }}`,
+			}),
+			Input:  "",
+			Output: nil,
+			String: "",
+			Err:    "",
+		},
+		{
 			Name: "[string] transforms submitted values",
 			Value: (&Value{
 				DataType:       "string",
@@ -418,6 +499,18 @@ func TestValueGetAndSet(t *testing.T) {
 			Output: "JOEY RAMONE",
 			String: "JOEY RAMONE",
 			Err:    "",
+		},
+		{
+			Name: "[string] returns an empty value on transform error",
+			Value: (&Value{
+				DataType:       "string",
+				Default:        "",
+				TransformRules: "explode",
+			}),
+			Input:  "howdy",
+			Output: nil,
+			String: "",
+			Err:    "boom",
 		},
 
 		{
@@ -643,6 +736,19 @@ func TestPrompt(t *testing.T) {
 			Output: []int{1, 2},
 			Err:    "",
 		},
+		{
+			Name: "[intSlice] with options default",
+			Value: (&Value{
+				DataType: "intSlice",
+				Default:  []int{1, 2},
+				Options:  []any{1, 2, 3},
+			}),
+			Prompter: &PrompterMock{
+				MultiSelectFunc: NewNoopMultiSelectFunc(),
+			},
+			Output: []int{1, 2},
+			Err:    "",
+		},
 
 		{
 			Name: "[string]",
@@ -654,19 +760,6 @@ func TestPrompt(t *testing.T) {
 				InputFunc: NewInputFunc("bar", nil),
 			},
 			Output: "bar",
-			Err:    "",
-		},
-		{
-			Name: "[string] with options",
-			Value: (&Value{
-				DataType: "string",
-				Default:  "foo",
-				Options:  []any{"foo", "bar", "baz"},
-			}),
-			Prompter: &PrompterMock{
-				SelectFunc: NewSelectFunc("baz", nil),
-			},
-			Output: "baz",
 			Err:    "",
 		},
 		{
@@ -684,6 +777,32 @@ func TestPrompt(t *testing.T) {
 				InputFunc: NewNoopInputFunc(),
 			},
 			Output: "Joey Ramone",
+			Err:    "",
+		},
+		{
+			Name: "[string] with options",
+			Value: (&Value{
+				DataType: "string",
+				Default:  "foo",
+				Options:  []any{"foo", "bar", "baz"},
+			}),
+			Prompter: &PrompterMock{
+				SelectFunc: NewSelectFunc("baz", nil),
+			},
+			Output: "baz",
+			Err:    "",
+		},
+		{
+			Name: "[string] with options default",
+			Value: (&Value{
+				DataType: "string",
+				Default:  "foo",
+				Options:  []any{"foo", "bar", "baz"},
+			}),
+			Prompter: &PrompterMock{
+				SelectFunc: NewNoopSelectFunc(),
+			},
+			Output: "foo",
 			Err:    "",
 		},
 
