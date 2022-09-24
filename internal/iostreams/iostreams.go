@@ -1,5 +1,24 @@
 package iostreams
 
+/*
+This file started out as a copy of https://github.com/cli/cli/blob/trunk/pkg/iostreams/iostreams.go
+Original license:
+
+MIT License
+
+Copyright (c) 2019 GitHub Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
+
 import (
 	"bytes"
 	"io"
@@ -32,9 +51,19 @@ func (s *IOStreams) ColorEnabled() bool {
 	return s.colorEnabled
 }
 
-// ColorScheme returns a configured ColorScheme struct.
-func (s *IOStreams) ColorScheme() *ColorScheme {
-	return NewColorScheme(s.ColorEnabled())
+// Formatter returns a ANSI string formatter.
+func (s *IOStreams) Formatter() *Formatter {
+	return NewFormatter(s.ColorEnabled())
+}
+
+func EnvColorDisabled() bool {
+	// See: https://bixense.com/clicolors/
+	return os.Getenv("NO_COLOR") != "" || os.Getenv("CLICOLOR") == "0"
+}
+
+func EnvColorForced() bool {
+	// See: https://bixense.com/clicolors/
+	return os.Getenv("CLICOLOR_FORCE") != "" && os.Getenv("CLICOLOR_FORCE") != "0"
 }
 
 // Returns an IOStreams containing os.Stdin, os.Stdout, and os.Stderr

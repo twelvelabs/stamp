@@ -72,7 +72,7 @@ func (c *Common) LogFailure(ios *iostreams.IOStreams, action string, msg string)
 }
 
 func (c *Common) LogStatus(ios *iostreams.IOStreams, status Status, action string, msg string) {
-	cs := ios.ColorScheme()
+	cs := ios.Formatter()
 
 	var icon string
 	var color string
