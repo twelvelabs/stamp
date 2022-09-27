@@ -22,6 +22,17 @@ type Task interface {
 	Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error
 }
 
+type SetDefaultsFunc func(any) error
+
+var (
+	// DefaultSetDefaultsFunc is the default SetDefaults implementation.
+	// Delegates to [defaults.Set].
+	DefaultSetDefaultsFunc SetDefaultsFunc = defaults.Set
+
+	// SetDefaults sets the default values for the given task.
+	SetDefaults SetDefaultsFunc = DefaultSetDefaultsFunc
+)
+
 // NewTask returns a new Task struct for the given map of data.
 func NewTask(taskData map[string]any) (Task, error) {
 	taskType, ok := taskData["type"]
@@ -38,7 +49,7 @@ func NewTask(taskData map[string]any) (Task, error) {
 	}
 
 	// Set struct defaults, decode data map into the struct, and then validate
-	if err := defaults.Set(task); err != nil {
+	if err := SetDefaults(task); err != nil {
 		return nil, err
 	}
 	if err := mapstructure.Decode(taskData, task); err != nil {
