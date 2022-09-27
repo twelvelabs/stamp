@@ -17,9 +17,10 @@ import (
 
 // Task is the interface a generator task.
 type Task interface {
-	ShouldExecute(values map[string]any) bool
 	Iterator(values map[string]any) []any
 	Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error
+	SetDryRun(value bool)
+	ShouldExecute(values map[string]any) bool
 }
 
 type SetDefaultsFunc func(any) error

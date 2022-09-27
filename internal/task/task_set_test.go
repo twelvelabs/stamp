@@ -14,6 +14,7 @@ func NewTaskMock(exe bool, exeErr error, iter []any) *TaskMock {
 		IteratorFunc: func(values map[string]any) []any {
 			return iter
 		},
+		SetDryRunFunc: func(value bool) {},
 		ShouldExecuteFunc: func(values map[string]any) bool {
 			return exe
 		},

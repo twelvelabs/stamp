@@ -144,6 +144,14 @@ func TestCommonReport(t *testing.T) {
 	}
 }
 
+func TestCommonSetDryRun(t *testing.T) {
+	task := &Common{}
+	assert.Equal(t, false, task.DryRun)
+
+	task.SetDryRun(true)
+	assert.Equal(t, true, task.DryRun)
+}
+
 func TestCommonShouldExecute(t *testing.T) {
 	tests := []struct {
 		Name   string

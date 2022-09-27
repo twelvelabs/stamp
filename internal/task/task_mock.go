@@ -25,6 +25,9 @@ var _ Task = &TaskMock{}
 //			IteratorFunc: func(values map[string]any) []any {
 //				panic("mock out the Iterator method")
 //			},
+//			SetDryRunFunc: func(valueMoqParam bool)  {
+//				panic("mock out the SetDryRun method")
+//			},
 //			ShouldExecuteFunc: func(values map[string]any) bool {
 //				panic("mock out the ShouldExecute method")
 //			},
@@ -40,6 +43,9 @@ type TaskMock struct {
 
 	// IteratorFunc mocks the Iterator method.
 	IteratorFunc func(values map[string]any) []any
+
+	// SetDryRunFunc mocks the SetDryRun method.
+	SetDryRunFunc func(valueMoqParam bool)
 
 	// ShouldExecuteFunc mocks the ShouldExecute method.
 	ShouldExecuteFunc func(values map[string]any) bool
@@ -62,6 +68,11 @@ type TaskMock struct {
 			// Values is the values argument value.
 			Values map[string]any
 		}
+		// SetDryRun holds details about calls to the SetDryRun method.
+		SetDryRun []struct {
+			// ValueMoqParam is the valueMoqParam argument value.
+			ValueMoqParam bool
+		}
 		// ShouldExecute holds details about calls to the ShouldExecute method.
 		ShouldExecute []struct {
 			// Values is the values argument value.
@@ -70,6 +81,7 @@ type TaskMock struct {
 	}
 	lockExecute       sync.RWMutex
 	lockIterator      sync.RWMutex
+	lockSetDryRun     sync.RWMutex
 	lockShouldExecute sync.RWMutex
 }
 
@@ -146,6 +158,38 @@ func (mock *TaskMock) IteratorCalls() []struct {
 	mock.lockIterator.RLock()
 	calls = mock.calls.Iterator
 	mock.lockIterator.RUnlock()
+	return calls
+}
+
+// SetDryRun calls SetDryRunFunc.
+func (mock *TaskMock) SetDryRun(valueMoqParam bool) {
+	if mock.SetDryRunFunc == nil {
+		panic("TaskMock.SetDryRunFunc: method is nil but Task.SetDryRun was just called")
+	}
+	callInfo := struct {
+		ValueMoqParam bool
+	}{
+		ValueMoqParam: valueMoqParam,
+	}
+	mock.lockSetDryRun.Lock()
+	mock.calls.SetDryRun = append(mock.calls.SetDryRun, callInfo)
+	mock.lockSetDryRun.Unlock()
+	mock.SetDryRunFunc(valueMoqParam)
+}
+
+// SetDryRunCalls gets all the calls that were made to SetDryRun.
+// Check the length with:
+//
+//	len(mockedTask.SetDryRunCalls())
+func (mock *TaskMock) SetDryRunCalls() []struct {
+	ValueMoqParam bool
+} {
+	var calls []struct {
+		ValueMoqParam bool
+	}
+	mock.lockSetDryRun.RLock()
+	calls = mock.calls.SetDryRun
+	mock.lockSetDryRun.RUnlock()
 	return calls
 }
 

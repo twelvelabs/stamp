@@ -98,6 +98,10 @@ func (c *Common) LogStatus(ios *iostreams.IOStreams, status Status, action strin
 	fmt.Fprintf(ios.Err, "%s[%s]: %s\n", prefix, action, msg)
 }
 
+func (c *Common) SetDryRun(value bool) {
+	c.DryRun = value
+}
+
 func (c *Common) ShouldExecute(values map[string]any) bool {
 	rendered := c.Render(c.If, values)
 	return cast.ToBool(rendered)

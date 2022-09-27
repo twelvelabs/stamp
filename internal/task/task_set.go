@@ -39,6 +39,7 @@ func (ts *TaskSet) Add(t Task) {
 // per item in the slice.
 func (ts *TaskSet) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
 	for _, t := range ts.All() {
+		t.SetDryRun(dryRun)
 		if !t.ShouldExecute(values) {
 			continue
 		}
