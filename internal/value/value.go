@@ -46,6 +46,8 @@ func NewValue(valueData map[string]any) (*Value, error) {
 type Value struct {
 	// Note: have to use `DataType` because `Type()` is a pflag.Value method.
 	Key             string       `mapstructure:"key"                           validate:"required"`
+	Name            string       `mapstructure:"name"`
+	Flag            string       `mapstructure:"flag"`
 	Help            string       `mapstructure:"help"`
 	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"`
 	Default         interface{}  `mapstructure:"default"`
@@ -61,11 +63,17 @@ type Value struct {
 
 // DisplayName returns the human friendly display name.
 func (v *Value) DisplayName() string {
+	if v.Name != "" {
+		return v.Name
+	}
 	return flect.Humanize(v.Key)
 }
 
 // FlagName returns the kebab-cased flag name.
 func (v *Value) FlagName() string {
+	if v.Flag != "" {
+		return flect.Dasherize(v.Flag)
+	}
 	return flect.Dasherize(v.Key)
 }
 

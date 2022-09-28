@@ -63,37 +63,70 @@ func TestValue_WithValueSet(t *testing.T) {
 	assert.Equal(t, vs, v.WithValueSet(vs).ValueSet())
 }
 
-func TestValue_FlagName(t *testing.T) {
+func TestValue_DisplayName(t *testing.T) {
 	tests := []struct {
-		Key      string
-		FlagName string
+		Desc   string
+		Key    string
+		Name   string
+		Output string
 	}{
 		{
-			Key:      "foo-bar",
-			FlagName: "foo-bar",
+			Desc:   "should return a humanized version of key if no name provided",
+			Key:    "FooBar",
+			Output: "Foo Bar",
 		},
 		{
-			Key:      "Foo bar",
-			FlagName: "foo-bar",
-		},
-		{
-			Key:      "FooBar",
-			FlagName: "foo-bar",
-		},
-		{
-			Key:      "FOO_BAR",
-			FlagName: "foo-bar",
-		},
-		{
-			Key:      "HTML Client",
-			FlagName: "html-client",
+			Desc:   "should return name if provided",
+			Key:    "FooBar",
+			Name:   "Something else",
+			Output: "Something else",
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.Key, func(t *testing.T) {
-			value := &Value{Key: test.Key}
-			assert.Equal(t, test.FlagName, value.FlagName())
+	for _, tt := range tests {
+		t.Run(tt.Desc, func(t *testing.T) {
+			value := &Value{
+				Key:  tt.Key,
+				Name: tt.Name,
+			}
+			assert.Equal(t, tt.Output, value.DisplayName())
+		})
+	}
+}
+
+func TestValue_FlagName(t *testing.T) {
+	tests := []struct {
+		Desc   string
+		Key    string
+		Flag   string
+		Output string
+	}{
+		{
+			Desc:   "should return a kebabcase version of key if no flag name provided",
+			Key:    "FooBar",
+			Output: "foo-bar",
+		},
+		{
+			Desc:   "should return flag name if provided",
+			Key:    "FooBar",
+			Flag:   "something-else",
+			Output: "something-else",
+		},
+		{
+			Desc:   "should ensure flag name is kebabcase even if provided",
+			Key:    "FooBar",
+			Flag:   "Something Wrong",
+			Output: "something-wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Desc, func(t *testing.T) {
+			value := &Value{
+				Key:  tt.Key,
+				Flag: tt.Flag,
+			}
+			assert.Equal(t, tt.Output, value.FlagName())
 		})
 	}
 }

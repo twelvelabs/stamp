@@ -4,6 +4,6 @@
   - [x] tests to ensure `FooBar` is handled properly in Key()
   - [x] add inflection functions to transforms
   - [x] add inflection functions to templates
-- [ ] ability to override key and flag names
+- [x] ability to override key and flag names
 - [ ] hidden flags
 - [ ] ability to set defaults in config
