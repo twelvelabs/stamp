@@ -13,7 +13,7 @@ func TestNewValueSet(t *testing.T) {
 	assert.IsType(t, &ValueSet{}, vs)
 }
 
-func TestValueSetAddAndGetValue(t *testing.T) {
+func TestValueSet_AddAndGetValue(t *testing.T) {
 	tests := []struct {
 		Name  string
 		Value *Value
@@ -22,14 +22,14 @@ func TestValueSetAddAndGetValue(t *testing.T) {
 	}{
 		{
 			Name:  "value is found",
-			Value: &Value{Name: "foo bar"},
-			Key:   "FooBar",
+			Value: &Value{Key: "Foo"},
+			Key:   "Foo",
 			Err:   "",
 		},
 		{
 			Name:  "value not found",
 			Value: nil,
-			Key:   "FooBar",
+			Key:   "Foo",
 			Err:   "",
 		},
 	}
@@ -45,17 +45,17 @@ func TestValueSetAddAndGetValue(t *testing.T) {
 	}
 }
 
-func TestValueSetValuesMethods(t *testing.T) {
+func TestValueSet_ValuesMethods(t *testing.T) {
 	none := []*Value{}
 	args := []*Value{
-		{Name: "arg1", InputMode: InputModeArg},
-		{Name: "arg2", InputMode: InputModeArg},
-		{Name: "arg3", InputMode: InputModeArg},
+		{Key: "arg1", InputMode: InputModeArg},
+		{Key: "arg2", InputMode: InputModeArg},
+		{Key: "arg3", InputMode: InputModeArg},
 	}
 	flags := []*Value{
-		{Name: "flag1", InputMode: InputModeFlag},
-		{Name: "flag2", InputMode: InputModeFlag},
-		{Name: "flag3", InputMode: InputModeFlag},
+		{Key: "flag1", InputMode: InputModeFlag},
+		{Key: "flag2", InputMode: InputModeFlag},
+		{Key: "flag3", InputMode: InputModeFlag},
 	}
 	all := append(none, args...)
 	all = append(all, flags...)
@@ -118,7 +118,7 @@ func TestValueSetValuesMethods(t *testing.T) {
 	}
 }
 
-func TestValueSetCacheMethods(t *testing.T) {
+func TestValueSet_CacheMethods(t *testing.T) {
 	vs := NewValueSet()
 	assert.Equal(t, DataMap{}, vs.Cache())
 
@@ -137,7 +137,7 @@ func TestValueSetCacheMethods(t *testing.T) {
 	assert.Equal(t, DataMap{}, vs.Cache())
 }
 
-func TestValueSetAddArgs(t *testing.T) {
+func TestValueSet_AddArgs(t *testing.T) {
 	tests := []struct {
 		Name    string
 		Values  []*Value
@@ -158,19 +158,19 @@ func TestValueSetAddArgs(t *testing.T) {
 			Name: "values no input",
 			Values: []*Value{
 				{
-					Name:      "Arg1",
+					Key:       "Arg1",
 					Default:   "Arg1",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
 				},
 				{
-					Name:      "Flag1",
+					Key:       "Flag1",
 					Default:   "Flag1",
 					DataType:  DataTypeString,
 					InputMode: InputModeFlag,
 				},
 				{
-					Name:      "Arg2",
+					Key:       "Arg2",
 					Default:   "Arg2",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
@@ -189,19 +189,19 @@ func TestValueSetAddArgs(t *testing.T) {
 			Name: "values with partial input",
 			Values: []*Value{
 				{
-					Name:      "Arg1",
+					Key:       "Arg1",
 					Default:   "Arg1",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
 				},
 				{
-					Name:      "Flag1",
+					Key:       "Flag1",
 					Default:   "Flag1",
 					DataType:  DataTypeString,
 					InputMode: InputModeFlag,
 				},
 				{
-					Name:      "Arg2",
+					Key:       "Arg2",
 					Default:   "Arg2",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
@@ -220,19 +220,19 @@ func TestValueSetAddArgs(t *testing.T) {
 			Name: "values with excess input",
 			Values: []*Value{
 				{
-					Name:      "Arg1",
+					Key:       "Arg1",
 					Default:   "Arg1",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
 				},
 				{
-					Name:      "Flag1",
+					Key:       "Flag1",
 					Default:   "Flag1",
 					DataType:  DataTypeString,
 					InputMode: InputModeFlag,
 				},
 				{
-					Name:      "Arg2",
+					Key:       "Arg2",
 					Default:   "Arg2",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
@@ -251,13 +251,13 @@ func TestValueSetAddArgs(t *testing.T) {
 			Name: "values with invalid input",
 			Values: []*Value{
 				{
-					Name:      "Arg1",
+					Key:       "Arg1",
 					Default:   "Arg1",
 					DataType:  DataTypeString,
 					InputMode: InputModeArg,
 				},
 				{
-					Name:      "Arg2",
+					Key:       "Arg2",
 					Default:   "Arg2",
 					DataType:  DataTypeBool,
 					InputMode: InputModeArg,
@@ -297,17 +297,17 @@ func TestValueSetAddArgs(t *testing.T) {
 func TestValueSet_CacheInvalidation(t *testing.T) {
 	vs := NewValueSet().
 		Add(&Value{
-			Name:     "Dst Path",
+			Key:      "DstPath",
 			DataType: DataTypeString,
 			Default:  "~/src/untitled",
 		}).
 		Add(&Value{
-			Name:     "Project Slug",
+			Key:      "ProjectSlug",
 			DataType: DataTypeString,
 			Default:  "{{ .DstPath | base }}", // depends on DstPath
 		}).
 		Add(&Value{
-			Name:     "Package Name",
+			Key:      "PackageName",
 			DataType: DataTypeString,
 			Default:  "{{ .ProjectSlug | underscore }}", // depends on ProjectSlug
 		})
@@ -344,7 +344,7 @@ func TestValueSet_GetAndSet(t *testing.T) {
 	assert.Equal(t, "aaa", vs.Cache().Get("Foo"))
 
 	value := &Value{
-		Name:     "Foo",
+		Key:      "Foo",
 		DataType: DataTypeString,
 		Default:  "bbb",
 	}
@@ -367,12 +367,12 @@ func TestValueSet_GetAll(t *testing.T) {
 	})
 
 	vs.Add(&Value{
-		Name:     "Project Name",
+		Key:      "ProjectName",
 		DataType: DataTypeString,
 		Default:  "Example",
 	})
 	vs.Add(&Value{
-		Name:     "Project Slug",
+		Key:      "ProjectSlug",
 		DataType: DataTypeString,
 		Default:  "{{ .ProjectName | underscore }}",
 	})

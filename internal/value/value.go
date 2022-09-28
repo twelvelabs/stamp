@@ -45,7 +45,7 @@ func NewValue(valueData map[string]any) (*Value, error) {
 
 type Value struct {
 	// Note: have to use `DataType` because `Type()` is a pflag.Value method.
-	Name            string       `mapstructure:"name"                          validate:"required"`
+	Key             string       `mapstructure:"key"                           validate:"required"`
 	Help            string       `mapstructure:"help"`
 	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"`
 	Default         interface{}  `mapstructure:"default"`
@@ -59,9 +59,14 @@ type Value struct {
 	values *ValueSet
 }
 
+// DisplayName returns the human friendly display name.
+func (v *Value) DisplayName() string {
+	return flect.Humanize(v.Key)
+}
+
 // FlagName returns the kebab-cased flag name.
 func (v *Value) FlagName() string {
-	return flect.Dasherize(v.Name)
+	return flect.Dasherize(v.Key)
 }
 
 // Get returns the rendered, casted value.
@@ -108,11 +113,6 @@ func (v *Value) IsEmpty() bool {
 	}
 }
 
-// Key returns the materialized data key for the value.
-func (v *Value) Key() string {
-	return flect.Pascalize(v.Name)
-}
-
 // ShouldPrompt returns true if the user should be prompted for a value.
 func (v *Value) ShouldPrompt() bool {
 	switch v.PromptConfig {
@@ -142,19 +142,19 @@ func (v *Value) Prompt(prompter Prompter) error {
 	switch v.DataType {
 	case DataTypeBool:
 		defVal := cast.ToBool(v.Get())
-		response, err = prompter.Confirm(v.Name, defVal, v.Help, v.ValidationRules)
+		response, err = prompter.Confirm(v.DisplayName(), defVal, v.Help, v.ValidationRules)
 	case DataTypeInt, DataTypeString:
 		if len(options) > 0 {
-			response, err = prompter.Select(v.Name, options, v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Select(v.DisplayName(), options, v.String(), v.Help, v.ValidationRules)
 		} else {
-			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Input(v.DisplayName(), v.String(), v.Help, v.ValidationRules)
 		}
 	case DataTypeIntSlice, DataTypeStringSlice:
 		if len(options) > 0 {
 			defVal := cast.ToStringSlice(v.Get())
-			response, err = prompter.MultiSelect(v.Name, options, defVal, v.Help, v.ValidationRules)
+			response, err = prompter.MultiSelect(v.DisplayName(), options, defVal, v.Help, v.ValidationRules)
 		} else {
-			response, err = prompter.Input(v.Name, v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Input(v.DisplayName(), v.String(), v.Help, v.ValidationRules)
 		}
 	default:
 		return ErrInvalidDataType
@@ -229,7 +229,7 @@ func (v *Value) get() (any, error) {
 	// Updating the cache (even on get) to help maintain freshness.
 	// There are some corner cases where could render stale data,
 	// and this prevents _most_ of them :grimacing:.
-	v.ValueSet().Cache().Set(v.Key(), processed)
+	v.ValueSet().Cache().Set(v.Key, processed)
 	return processed, nil
 }
 
@@ -242,7 +242,7 @@ func (v *Value) set(data any) error {
 		return err
 	}
 	v.data = processed
-	v.ValueSet().Cache().Set(v.Key(), processed)
+	v.ValueSet().Cache().Set(v.Key, processed)
 	return nil
 }
 
@@ -328,7 +328,7 @@ func (v *Value) cast(data any) (any, error) {
 
 // Passes data through any configured transform rules.
 func (v *Value) transform(data any) (any, error) {
-	return Transform(v.Name, data, v.TransformRules)
+	return Transform(v.Key, data, v.TransformRules)
 }
 
 // Passes data through any configured validation rules.
@@ -354,5 +354,5 @@ func (v *Value) validate(data any) error {
 			rules = strings.Join(segments, ",")
 		}
 	}
-	return ValidateKeyVal(v.Name, data, rules)
+	return ValidateKeyVal(v.Key, data, rules)
 }

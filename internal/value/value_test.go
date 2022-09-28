@@ -17,10 +17,10 @@ func TestNewValue(t *testing.T) {
 		{
 			Name: "only requires a name and sets correct default values for other fields",
 			Data: map[string]any{
-				"name": "foo",
+				"key": "foo",
 			},
 			Output: &Value{
-				Name:         "foo",
+				Key:          "foo",
 				DataType:     DataTypeString,
 				PromptConfig: PromptConfigOnUnset,
 				InputMode:    InputModeFlag,
@@ -32,15 +32,15 @@ func TestNewValue(t *testing.T) {
 			Name:   "returns an error when name is missing from the data map",
 			Data:   map[string]any{},
 			Output: nil,
-			Err:    "Name is a required field",
+			Err:    "Key is a required field",
 		},
 		{
 			Name: "returns an error invalid data types are in the map",
 			Data: map[string]any{
-				"name": 123,
+				"key": 123,
 			},
 			Output: nil,
-			Err:    "'name' expected type 'string', got unconvertible type 'int'",
+			Err:    "'key' expected type 'string', got unconvertible type 'int'",
 		},
 	}
 
@@ -57,7 +57,7 @@ func TestNewValue(t *testing.T) {
 	}
 }
 
-func TestValueWithValueSet(t *testing.T) {
+func TestValue_WithValueSet(t *testing.T) {
 	vs := NewValueSet()
 	v := &Value{}
 	assert.Equal(t, vs, v.WithValueSet(vs).ValueSet())
@@ -65,66 +65,35 @@ func TestValueWithValueSet(t *testing.T) {
 
 func TestValue_FlagName(t *testing.T) {
 	tests := []struct {
-		Name     string
+		Key      string
 		FlagName string
 	}{
 		{
-			Name:     "foo-bar",
+			Key:      "foo-bar",
 			FlagName: "foo-bar",
 		},
 		{
-			Name:     "Foo bar",
+			Key:      "Foo bar",
 			FlagName: "foo-bar",
 		},
 		{
-			Name:     "FooBar",
+			Key:      "FooBar",
 			FlagName: "foo-bar",
 		},
 		{
-			Name:     "FOO_BAR",
+			Key:      "FOO_BAR",
 			FlagName: "foo-bar",
 		},
 		{
-			Name:     "HTML Client",
+			Key:      "HTML Client",
 			FlagName: "html-client",
 		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			value := &Value{Name: test.Name}
+		t.Run(test.Key, func(t *testing.T) {
+			value := &Value{Key: test.Key}
 			assert.Equal(t, test.FlagName, value.FlagName())
-		})
-	}
-}
-
-func TestValue_KeyName(t *testing.T) {
-	tests := []struct {
-		Name    string
-		KeyName string
-	}{
-		{
-			Name:    "foo-bar",
-			KeyName: "FooBar",
-		},
-		{
-			Name:    "Foo bar",
-			KeyName: "FooBar",
-		},
-		{
-			Name:    "FooBar",
-			KeyName: "FooBar",
-		},
-		{
-			Name:    "HTML Client",
-			KeyName: "HTMLClient", // inflection lib should be smart about acronyms
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			value := &Value{Name: test.Name}
-			assert.Equal(t, test.KeyName, value.Key())
 		})
 	}
 }
@@ -221,7 +190,7 @@ func TestValue_IsEmpty(t *testing.T) {
 	}
 }
 
-func TestValueGetAndSet(t *testing.T) {
+func TestValue_GetAndSet(t *testing.T) {
 	RegisterTransformer("explode", func(a any) (any, error) {
 		return "lol", errors.New("boom")
 	})
@@ -619,7 +588,7 @@ func TestValueGetAndSet(t *testing.T) {
 	}
 }
 
-func TestPrompt(t *testing.T) {
+func TestValue_Prompt(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Value    *Value
@@ -882,7 +851,7 @@ func TestPrompt(t *testing.T) {
 	}
 }
 
-func TestShouldPrompt(t *testing.T) {
+func TestValue_ShouldPrompt(t *testing.T) {
 	tests := []struct {
 		Name         string
 		Value        *Value

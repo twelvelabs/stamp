@@ -49,7 +49,7 @@ func (vs *ValueSet) Partition() ([]*Value, []*Value) {
 func (vs *ValueSet) Add(val *Value) *ValueSet {
 	if val != nil {
 		vs.values = append(vs.values, val.WithValueSet(vs))
-		vs.Cache().Set(val.Key(), val.Get())
+		vs.Cache().Set(val.Key, val.Get())
 	}
 	return vs
 }
@@ -57,7 +57,7 @@ func (vs *ValueSet) Add(val *Value) *ValueSet {
 // Value returns the value for key.
 func (vs *ValueSet) Value(key string) *Value {
 	for _, val := range vs.All() {
-		if val.Key() == key {
+		if val.Key == key {
 			return val
 		}
 	}
@@ -99,7 +99,7 @@ func (vs *ValueSet) GetAll() map[string]any {
 	// and if so then may have default values that need to be rendered w/
 	// the latest set of data.
 	for _, val := range vs.All() {
-		data[val.Key()] = val.Get()
+		data[val.Key] = val.Get()
 	}
 
 	return data
