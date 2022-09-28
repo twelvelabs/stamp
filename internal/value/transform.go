@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	//cspell:disable
-	"github.com/huandu/xstrings"
+	"github.com/gobuffalo/flect"
 	"github.com/spf13/cast"
 	"github.com/twelvelabs/stamp/internal/fsutil"
 	//cspell:enable
@@ -19,9 +19,9 @@ func init() {
 	RegisterTransformer("trim", StringTransformer(strings.TrimSpace))
 	RegisterTransformer("uppercase", StringTransformer(strings.ToUpper))
 	RegisterTransformer("lowercase", StringTransformer(strings.ToLower))
-	RegisterTransformer("kebabcase", StringTransformer(xstrings.ToKebabCase))
-	RegisterTransformer("camelcase", StringTransformer(xstrings.ToCamelCase))
-	RegisterTransformer("snakecase", StringTransformer(xstrings.ToSnakeCase))
+	RegisterTransformer("dasherize", StringTransformer(flect.Dasherize))
+	RegisterTransformer("pascalize", StringTransformer(flect.Pascalize))
+	RegisterTransformer("underscore", StringTransformer(flect.Underscore))
 	RegisterTransformer("expand-path", ExpandPath)
 }
 

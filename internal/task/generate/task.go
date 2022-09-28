@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/stamp/internal/render"
 	"github.com/twelvelabs/stamp/internal/task/common"
 	"github.com/twelvelabs/stamp/internal/value"
 )
@@ -151,8 +151,8 @@ func (t *Task) createDst(values map[string]any, src string, dst string) error {
 		return err
 	}
 
-	// parse the template
-	template, err := template.ParseFiles(src)
+	// render the src template
+	rendered, err := render.RenderFile(src, values)
 	if err != nil {
 		return err
 	}
@@ -168,6 +168,10 @@ func (t *Task) createDst(values map[string]any, src string, dst string) error {
 		return err
 	}
 	defer f.Close()
+	_, err = f.WriteString(rendered)
+	if err != nil {
+		return err
+	}
 
 	// set perms
 	err = os.Chmod(dst, mode)
@@ -175,14 +179,9 @@ func (t *Task) createDst(values map[string]any, src string, dst string) error {
 		return err
 	}
 
-	// render template
-	err = template.Execute(f, values)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
+
 func (t *Task) deleteDst(dst string) error {
 	if t.DryRun {
 		return nil

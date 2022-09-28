@@ -1,22 +1,20 @@
 package value
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"reflect"
 	"strings"
-	"text/template"
 
-	//cspell:words pflag xstrings oneof
+	//cspell:words pflag oneof
 	//cspell:disable
-	"github.com/Masterminds/sprig/v3"
 	"github.com/creasty/defaults"
-	"github.com/huandu/xstrings"
+	"github.com/gobuffalo/flect"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/pflag"
+	"github.com/twelvelabs/stamp/internal/render"
 	//cspell:enable
 )
 
@@ -63,7 +61,7 @@ type Value struct {
 
 // FlagName returns the kebab-cased flag name.
 func (v *Value) FlagName() string {
-	return xstrings.ToKebabCase(v.Name)
+	return flect.Dasherize(v.Name)
 }
 
 // Get returns the rendered, casted value.
@@ -112,8 +110,7 @@ func (v *Value) IsEmpty() bool {
 
 // Key returns the materialized data key for the value.
 func (v *Value) Key() string {
-	// TODO: use inflection lib to properly "modularize"
-	return xstrings.ToCamelCase(v.Name)
+	return flect.Pascalize(v.Name)
 }
 
 // ShouldPrompt returns true if the user should be prompted for a value.
@@ -269,23 +266,15 @@ func (v *Value) process(data any) (any, error) {
 // Attempts to render the data as a [text/template].
 // If data is not renderable, returns it as-is.
 func (v *Value) render(data any) (any, error) {
-	rawStr, ok := data.(string)
+	str, ok := data.(string)
 	if !ok {
 		return data, nil
 	}
-
-	tmp, err := template.New("render").Funcs(sprig.FuncMap()).Parse(rawStr)
+	rendered, err := render.RenderString(str, v.ValueSet().Cache())
 	if err != nil {
 		return data, err
 	}
-
-	buf := &bytes.Buffer{}
-	err = tmp.Execute(buf, v.ValueSet().Cache())
-	if err != nil {
-		return data, err
-	}
-
-	return buf.String(), nil
+	return rendered, nil
 }
 
 // cast converts data to the values type.

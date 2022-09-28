@@ -63,7 +63,7 @@ func TestValueWithValueSet(t *testing.T) {
 	assert.Equal(t, vs, v.WithValueSet(vs).ValueSet())
 }
 
-func TestValueFlagName(t *testing.T) {
+func TestValue_FlagName(t *testing.T) {
 	tests := []struct {
 		Name     string
 		FlagName string
@@ -84,6 +84,10 @@ func TestValueFlagName(t *testing.T) {
 			Name:     "FOO_BAR",
 			FlagName: "foo-bar",
 		},
+		{
+			Name:     "HTML Client",
+			FlagName: "html-client",
+		},
 	}
 
 	for _, test := range tests {
@@ -94,17 +98,48 @@ func TestValueFlagName(t *testing.T) {
 	}
 }
 
-func TestValueIsBoolFlag(t *testing.T) {
+func TestValue_KeyName(t *testing.T) {
+	tests := []struct {
+		Name    string
+		KeyName string
+	}{
+		{
+			Name:    "foo-bar",
+			KeyName: "FooBar",
+		},
+		{
+			Name:    "Foo bar",
+			KeyName: "FooBar",
+		},
+		{
+			Name:    "FooBar",
+			KeyName: "FooBar",
+		},
+		{
+			Name:    "HTML Client",
+			KeyName: "HTMLClient", // inflection lib should be smart about acronyms
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			value := &Value{Name: test.Name}
+			assert.Equal(t, test.KeyName, value.Key())
+		})
+	}
+}
+
+func TestValue_IsBoolFlag(t *testing.T) {
 	assert.Equal(t, false, (&Value{DataType: DataTypeString}).IsBoolFlag())
 	assert.Equal(t, true, (&Value{DataType: DataTypeBool}).IsBoolFlag())
 }
 
-func TestValueType(t *testing.T) {
+func TestValue_Type(t *testing.T) {
 	assert.Equal(t, "string", (&Value{DataType: DataTypeString}).Type())
 	assert.Equal(t, "bool", (&Value{DataType: DataTypeBool}).Type())
 }
 
-func TestValueIsEmpty(t *testing.T) {
+func TestValue_IsEmpty(t *testing.T) {
 	tests := []struct {
 		Name    string
 		Value   *Value
@@ -476,7 +511,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType:       "string",
 				Default:        "",
-				TransformRules: "trim, kebabcase, uppercase",
+				TransformRules: "trim, dasherize, uppercase",
 			}),
 			Input:  "     hello world     ",
 			Output: "HELLO-WORLD",

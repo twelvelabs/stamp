@@ -45,13 +45,13 @@ func TestTransform(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Rule:   "kebabcase",
+			Rule:   "dasherize",
 			Input:  "FOO_BAR",
 			Output: "foo-bar",
 			Err:    "",
 		},
 		{
-			Rule:   "camelcase",
+			Rule:   "pascalize",
 			Input:  "foo bar",
 			Output: "FooBar",
 			Err:    "",
@@ -63,7 +63,7 @@ func TestTransform(t *testing.T) {
 			Err:    "",
 		},
 		{
-			Rule:   "trim, kebabcase, uppercase", // should be able to combine rules
+			Rule:   "trim, dasherize, uppercase", // should be able to combine rules
 			Input:  "  foo bar  ",
 			Output: "FOO-BAR",
 			Err:    "",

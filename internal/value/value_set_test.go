@@ -309,7 +309,7 @@ func TestValueSet_CacheInvalidation(t *testing.T) {
 		Add(&Value{
 			Name:     "Package Name",
 			DataType: DataTypeString,
-			Default:  "{{ .ProjectSlug | snakecase }}", // depends on ProjectSlug
+			Default:  "{{ .ProjectSlug | underscore }}", // depends on ProjectSlug
 		})
 
 	assert.Equal(t, map[string]any{
@@ -374,7 +374,7 @@ func TestValueSet_GetAll(t *testing.T) {
 	vs.Add(&Value{
 		Name:     "Project Slug",
 		DataType: DataTypeString,
-		Default:  "{{ .ProjectName | snakecase }}",
+		Default:  "{{ .ProjectName | underscore }}",
 	})
 
 	vs.Set("ProjectName", "My Proj")

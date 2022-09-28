@@ -1,9 +1,9 @@
 {
     "cSpell.words": [
-        "afero",
-        "camelcase",
         "containedctx",
+        "Dasherize",
         "errcheck",
+        "flect",
         "fsutil",
         "fsutils",
         "giturls",
@@ -15,17 +15,18 @@
         "mapstructure",
         "nilerr",
         "nolint",
+        "Ordinalize",
+        "Pascalize",
         "pflag",
         "promptui",
         "Ramone",
         "renderable",
-        "snakecase",
         "stretchr",
         "symwalk",
         "testdata",
+        "Titleize",
         "whilp",
         "wrapcheck",
-        "xstrings",
         "yolo"
     ]
 }

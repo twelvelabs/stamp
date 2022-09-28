@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	// cspell:disable
-	"github.com/huandu/xstrings"
+	"github.com/gobuffalo/flect"
 
 	// cspell:enable
 
@@ -120,7 +120,8 @@ func (g *Generator) metadataLookup(key string) any {
 	if val, ok := g.Metadata[key]; ok {
 		return val
 	}
-	if val, ok := g.Metadata[xstrings.ToCamelCase(key)]; ok {
+
+	if val, ok := g.Metadata[flect.Pascalize(key)]; ok {
 		return val
 	}
 	return nil

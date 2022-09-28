@@ -1,15 +1,12 @@
 package common
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
-	"github.com/huandu/xstrings"
 	"github.com/spf13/cast"
 	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/stamp/internal/render"
 )
 
 const (
@@ -47,16 +44,11 @@ func (c *Common) Iterator(values map[string]any) []any {
 }
 
 func (c *Common) Render(tpl string, values map[string]any) string {
-	parsed, err := template.New("render").Funcs(sprig.FuncMap()).Parse(tpl)
+	rendered, err := render.RenderString(tpl, values)
 	if err != nil {
 		return tpl
 	}
-	buf := &bytes.Buffer{}
-	err = parsed.Execute(buf, values)
-	if err != nil {
-		return tpl
-	}
-	return buf.String()
+	return rendered
 }
 
 func (c *Common) LogSuccess(ios *iostreams.IOStreams, action string, msg string) {
@@ -93,7 +85,7 @@ func (c *Common) LogStatus(ios *iostreams.IOStreams, status Status, action strin
 		prefix = prefix + "[DRY RUN]"
 	}
 	// need to justify _before_ adding color codes
-	action = xstrings.RightJustify(action, ACTION_WIDTH, " ")
+	action = fmt.Sprintf("%*s", ACTION_WIDTH, action)
 	action = cs.ColorFromString(color)(action)
 	fmt.Fprintf(ios.Err, "%s[%s]: %s\n", prefix, action, msg)
 }
