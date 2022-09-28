@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	Debug     bool   `mapstructure:"debug"`
-	StorePath string `mapstructure:"store_path" default:"~/.stamp/packages"`
+	Debug     bool           `mapstructure:"debug"`
+	Defaults  map[string]any `mapstructure:"defaults"   default:"{}"`
+	StorePath string         `mapstructure:"store_path" default:"~/.stamp/packages"`
 }
 
 func NewConfig(in string) *Config {

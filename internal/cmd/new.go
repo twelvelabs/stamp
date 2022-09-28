@@ -16,13 +16,14 @@ import (
 
 func NewNewCmd(app *core.App) *cobra.Command {
 	action := &NewAction{
+		Config:   app.Config,
 		IO:       app.IO,
 		Prompter: app.Prompter,
 		Store:    app.Store,
 	}
 
 	cmd := &cobra.Command{
-		Use:   "new [name]",
+		Use:   "new <name>",
 		Short: "Run the named generator",
 		Long:  "TODO",
 		Args:  cobra.ArbitraryArgs,
@@ -51,6 +52,7 @@ func NewNewCmd(app *core.App) *cobra.Command {
 }
 
 type NewAction struct {
+	Config   *core.Config
 	IO       *iostreams.IOStreams
 	Prompter value.Prompter
 	Store    *gen.Store
@@ -95,8 +97,20 @@ func (a *NewAction) Run() error {
 		return err
 	}
 
+	for _, val := range gen.Values.All() {
+		// viper forces all config keys to lowercase,
+		// so users have to store defaults by flag name :shrug:
+		// See: https://github.com/spf13/viper/issues/1014
+		if def, ok := a.Config.Defaults[val.FlagName()]; ok {
+			val.Default = def
+		}
+	}
+
 	// Re-configure the command (now that we have the generator)
-	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "[name]", gen.Name())
+	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "<name>", gen.Name())
+	for _, v := range gen.Values.Args() {
+		a.cmd.Use += fmt.Sprintf(" [<%s>]", v.FlagName())
+	}
 	a.cmd.DisableFlagParsing = false
 
 	// Add and parse the generator's flags

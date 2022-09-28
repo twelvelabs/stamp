@@ -6,4 +6,4 @@
   - [x] add inflection functions to templates
 - [x] ability to override key and flag names
 - [ ] hidden flags
-- [ ] ability to set defaults in config
+- [x] ability to set defaults in config
