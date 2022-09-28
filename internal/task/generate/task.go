@@ -4,9 +4,11 @@ package generate
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/twelvelabs/stamp/internal/iostreams"
@@ -36,8 +38,8 @@ type Task struct {
 func (t *Task) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
 	t.DryRun = dryRun
 
-	// validate both paths now so we don't have to everywhere else
-	if _, err := t.renderPath(values, t.Src); err != nil {
+	src, err := t.renderPath(values, t.Src)
+	if err != nil {
 		return err
 	}
 	dst, err := t.renderPath(values, t.Dst)
@@ -45,25 +47,52 @@ func (t *Task) Execute(values map[string]any, ios *iostreams.IOStreams, prompter
 		return err
 	}
 
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		src = strings.TrimSuffix(src, "/")
+		// src is a dir; walk and call dispatch on each file
+		return filepath.Walk(src, func(srcPath string, srcPathInfo fs.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			dstPath := filepath.Join(dst, strings.TrimPrefix(srcPath, src))
+			if srcPathInfo.IsDir() {
+				return t.createDstDir(dstPath)
+			} else {
+				return t.dispatch(values, ios, prompter, srcPath, dstPath)
+			}
+		})
+	} else {
+		// src is a single file
+		return t.dispatch(values, ios, prompter, src, dst)
+	}
+}
+
+// dispatch looks for conflicts and delegates to the correct generation method.
+func (t *Task) dispatch(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
-		return t.generate(values, ios, prompter)
+		return t.generate(values, ios, prompter, src, dst)
 	} else {
 		switch t.Conflict {
 		case ConflictPrompt:
-			return t.prompt(values, ios, prompter)
+			return t.prompt(values, ios, prompter, src, dst)
 		case ConflictKeep:
-			return t.keep(values, ios, prompter)
+			return t.keep(values, ios, prompter, src, dst)
 		case ConflictReplace:
-			return t.replace(values, ios, prompter)
+			return t.replace(values, ios, prompter, src, dst)
 		default:
 			return fmt.Errorf("unknown conflict type: %v", t.Conflict)
 		}
 	}
 }
 
-func (t *Task) generate(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter) error {
-	dst, _ := t.renderPath(values, t.Dst)
-	if err := t.createDst(values, ios); err != nil {
+// generate is called to generate a non-existing dst file.
+func (t *Task) generate(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+	if err := t.createDst(values, src, dst); err != nil {
 		t.LogFailure(ios, "fail", dst)
 		return err
 	}
@@ -71,19 +100,19 @@ func (t *Task) generate(values map[string]any, ios *iostreams.IOStreams, prompte
 	return nil
 }
 
-func (t *Task) keep(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter) error {
-	dst, _ := t.renderPath(values, t.Dst)
+// keep is called when keeping an existing dst file.
+func (t *Task) keep(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	t.LogSuccess(ios, "keep", dst)
 	return nil
 }
 
-func (t *Task) replace(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter) error {
-	dst, _ := t.renderPath(values, t.Dst)
-	if err := t.deleteDst(values, ios); err != nil {
+// replace is called when replacing an existing dst file.
+func (t *Task) replace(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+	if err := t.deleteDst(dst); err != nil {
 		t.LogFailure(ios, "fail", dst)
 		return err
 	}
-	if err := t.createDst(values, ios); err != nil {
+	if err := t.createDst(values, src, dst); err != nil {
 		t.LogFailure(ios, "fail", dst)
 		return err
 	}
@@ -91,28 +120,32 @@ func (t *Task) replace(values map[string]any, ios *iostreams.IOStreams, prompter
 	return nil
 }
 
-func (t *Task) prompt(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter) error {
-	dst, _ := t.renderPath(values, t.Dst)
+// prompt is called to prompt the user for how to resolve a dst file conflict.
+// delegates to keep or replace depending on their response.
+func (t *Task) prompt(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	t.LogWarning(ios, "conflict", fmt.Sprintf("%s already exists", dst))
-
 	overwrite, err := prompter.Confirm("Overwrite", false, "", "")
 	if err != nil {
 		return err
 	}
-
 	if overwrite {
-		return t.replace(values, ios, prompter)
+		return t.replace(values, ios, prompter, src, dst)
 	} else {
-		return t.keep(values, ios, prompter)
+		return t.keep(values, ios, prompter, src, dst)
 	}
 }
 
-func (t *Task) createDst(values map[string]any, ios *iostreams.IOStreams) error {
+func (t *Task) createDstDir(dst string) error {
 	if t.DryRun {
 		return nil
 	}
-	src, _ := t.renderPath(values, t.Src)
-	dst, _ := t.renderPath(values, t.Dst)
+	return os.MkdirAll(dst, DST_DIR_MODE)
+}
+
+func (t *Task) createDst(values map[string]any, src string, dst string) error {
+	if t.DryRun {
+		return nil
+	}
 	mode, err := t.renderMode(values, t.Mode)
 	if err != nil {
 		return err
@@ -150,11 +183,10 @@ func (t *Task) createDst(values map[string]any, ios *iostreams.IOStreams) error 
 
 	return nil
 }
-func (t *Task) deleteDst(values map[string]any, ios *iostreams.IOStreams) error {
+func (t *Task) deleteDst(dst string) error {
 	if t.DryRun {
 		return nil
 	}
-	dst, _ := t.renderPath(values, t.Dst)
 	if err := os.Remove(dst); err != nil {
 		return err
 	}

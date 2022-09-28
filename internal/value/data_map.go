@@ -9,3 +9,11 @@ type DataMap map[string]any
 func NewDataMap() DataMap {
 	return make(DataMap)
 }
+
+func (dm DataMap) Get(key string) any {
+	return dm[key]
+}
+
+func (dm DataMap) Set(key string, value any) {
+	dm[key] = value
+}

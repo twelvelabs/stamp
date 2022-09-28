@@ -235,7 +235,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "bool",
 				Default:  "{{.WannaDance}}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -275,7 +275,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "int",
 				Default:  "{{ add .Year 1 }}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -348,7 +348,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "intSlice",
 				Default:  "{{ add .Year 1 }},{{ add .Year 2 }}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"Year": 1977,
 			}),
 			Input:  "",
@@ -422,7 +422,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -438,7 +438,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -489,7 +489,7 @@ func TestValueGetAndSet(t *testing.T) {
 				DataType:       "string",
 				Default:        "{{.First}} {{.Last}}",
 				TransformRules: "uppercase",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -540,7 +540,7 @@ func TestValueGetAndSet(t *testing.T) {
 			Value: (&Value{
 				DataType: "stringSlice",
 				Default:  "{{ .First }},{{ .Last }}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First": "Joey",
 				"Last":  "Ramone",
 			}),
@@ -618,7 +618,7 @@ func TestPrompt(t *testing.T) {
 			Value: (&Value{
 				DataType: "bool",
 				Default:  "{{.WannaDance}}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -686,7 +686,7 @@ func TestPrompt(t *testing.T) {
 			Value: (&Value{
 				DataType: "int",
 				Default:  "{{ add .Year 1 }}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,
@@ -767,7 +767,7 @@ func TestPrompt(t *testing.T) {
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
-			}).WithDataMap(DataMap{
+			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
 				"Year":       1977,

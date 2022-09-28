@@ -35,15 +35,15 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	gen.Values.SetData("SrcPath", gen.Path())
-	gen.Values.SetData("DstPath", dstPath)
+	gen.Values.Set("SrcPath", gen.Path())
+	gen.Values.Set("DstPath", dstPath)
 
 	for _, vm := range gen.valueMetadata() {
 		v, err := value.NewValue(vm)
 		if err != nil {
 			return nil, fmt.Errorf("generator metadata invalid: %w", err)
 		}
-		gen.Values.AddValue(v)
+		gen.Values.Add(v)
 	}
 
 	for _, tm := range gen.taskMetadata() {

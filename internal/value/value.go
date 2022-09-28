@@ -207,9 +207,10 @@ func (v *Value) ValueSet() *ValueSet {
 	return v.values
 }
 
-// WithDataMap sets dm and returns the receiver.
-func (v *Value) WithDataMap(dm DataMap) *Value {
-	v.ValueSet().SetDataMap(dm)
+// WithValueCache sets dm and returns the receiver.
+// Should only be used in tests.
+func (v *Value) WithValueCache(dm DataMap) *Value {
+	v.ValueSet().SetCache(dm)
 	return v
 }
 
@@ -228,6 +229,10 @@ func (v *Value) get() (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Updating the cache (even on get) to help maintain freshness.
+	// There are some corner cases where could render stale data,
+	// and this prevents _most_ of them :grimacing:.
+	v.ValueSet().Cache().Set(v.Key(), processed)
 	return processed, nil
 }
 
@@ -240,7 +245,7 @@ func (v *Value) set(data any) error {
 		return err
 	}
 	v.data = processed
-	v.ValueSet().SetData(v.Key(), processed)
+	v.ValueSet().Cache().Set(v.Key(), processed)
 	return nil
 }
 
@@ -275,7 +280,7 @@ func (v *Value) render(data any) (any, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	err = tmp.Execute(buf, v.ValueSet().GetDataMap())
+	err = tmp.Execute(buf, v.ValueSet().Cache())
 	if err != nil {
 		return data, err
 	}

@@ -3,6 +3,7 @@ package generate_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -94,7 +95,7 @@ func TestExecute(t *testing.T) {
 		Err        string
 	}{
 		{
-			Desc: "happy path",
+			Desc: "generates individual files",
 			TaskData: map[string]any{
 				"type": "generate",
 				"src":  "{{ .SrcPath }}/README.md",
@@ -107,6 +108,27 @@ func TestExecute(t *testing.T) {
 			},
 			EndFiles: map[string]string{
 				"README.md": "# My Project\n",
+			},
+			Err: "",
+		},
+
+		{
+			Desc: "generates entire directories of files",
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/nested/",
+				"dst":  "{{ .DstPath }}/nested/",
+			},
+			Values: map[string]any{
+				"ProjectName": "My Project",
+				"SrcPath":     templatesDir,
+				"DstPath":     "TBD",
+			},
+			EndFiles: map[string]string{
+				"nested/README.md":  "# My Project\n",
+				"nested/bin/aaa.sh": "#!/bin/bash\necho \"Hi from aaa in My Project\"\n",
+				"nested/bin/bbb.sh": "#!/bin/bash\necho \"Hi from bbb in My Project\"\n",
+				"nested/docs/":      "",
 			},
 			Err: "",
 		},
@@ -232,10 +254,13 @@ func TestExecute(t *testing.T) {
 			if tt.EndFiles != nil {
 				for path, content := range tt.EndFiles {
 					path = tmpDir + "/" + path
-					buf, _ := os.ReadFile(path)
-
-					assert.FileExists(t, path)
-					assert.Equal(t, content, string(buf))
+					if strings.HasSuffix(path, "/") {
+						assert.DirExists(t, path)
+					} else {
+						assert.FileExists(t, path)
+						buf, _ := os.ReadFile(path)
+						assert.Equal(t, content, string(buf))
+					}
 				}
 			}
 

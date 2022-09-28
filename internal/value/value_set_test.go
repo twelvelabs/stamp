@@ -39,8 +39,8 @@ func TestValueSetAddAndGetValue(t *testing.T) {
 			vs := NewValueSet()
 			// AddValue() should be chainable,
 			// and adding nil should be a noop
-			vs.AddValue(nil).AddValue(test.Value)
-			assert.Equal(t, test.Value, vs.GetValue(test.Key))
+			vs.Add(nil).Add(test.Value)
+			assert.Equal(t, test.Value, vs.Value(test.Key))
 		})
 	}
 }
@@ -106,53 +106,35 @@ func TestValueSetValuesMethods(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			vs := NewValueSet()
 			for _, v := range test.All {
-				vs.AddValue(v)
+				vs.Add(v)
 			}
-			assert.Equal(t, test.All, vs.GetValues())
-			assert.Equal(t, test.Args, vs.GetArgValues())
-			assert.Equal(t, test.Flags, vs.GetFlagValues())
-			args, flags := vs.PartitionValues()
+			assert.Equal(t, test.All, vs.All())
+			assert.Equal(t, test.Args, vs.Args())
+			assert.Equal(t, test.Flags, vs.Flags())
+			args, flags := vs.Partition()
 			assert.Equal(t, test.Args, args)
 			assert.Equal(t, test.Flags, flags)
 		})
 	}
 }
 
-func TestValueSetDataMapMethods(t *testing.T) {
+func TestValueSetCacheMethods(t *testing.T) {
 	vs := NewValueSet()
+	assert.Equal(t, DataMap{}, vs.Cache())
 
-	// Data map should be empty
-	assert.Equal(t, DataMap{}, vs.GetDataMap())
-	// Keys should show as unset
-	assert.Equal(t, false, vs.HasData("string-var"))
+	vs.Cache().Set("string-var", "hi")
+	vs.Cache().Set("int-var", 1234)
 
-	// SetData should be chainable
-	vs.SetData("string-var", "hi").
-		SetData("int-var", 1234).
-		SetData("bool-var", true)
+	assert.Equal(t, "hi", vs.Cache().Get("string-var"))
+	assert.Equal(t, 1234, vs.Cache().Get("int-var"))
 
-	// GetData should return data or nil
-	assert.Equal(t, "hi", vs.GetData("string-var"))
-	assert.Equal(t, 1234, vs.GetData("int-var"))
-	assert.Equal(t, true, vs.GetData("bool-var"))
-	assert.Equal(t, nil, vs.GetData("not-found"))
-
-	// Keys should show as set
-	assert.Equal(t, true, vs.HasData("string-var"))
-
-	// Data map should be populated
 	assert.Equal(t, DataMap{
 		"string-var": "hi",
 		"int-var":    1234,
-		"bool-var":   true,
-	}, vs.GetDataMap())
+	}, vs.Cache())
 
-	// Data map should be reset
-	vs.SetDataMap(DataMap{})
-	assert.Equal(t, DataMap{}, vs.GetDataMap())
-
-	// Keys should show as unset again
-	assert.Equal(t, false, vs.HasData("string-var"))
+	vs.SetCache(DataMap{})
+	assert.Equal(t, DataMap{}, vs.Cache())
 }
 
 func TestValueSetAddArgs(t *testing.T) {
@@ -294,14 +276,14 @@ func TestValueSetAddArgs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			vs := NewValueSet().SetDataMap(test.DataMap)
+			vs := NewValueSet().SetCache(test.DataMap)
 			for _, v := range test.Values {
-				vs.AddValue(v)
+				vs.Add(v)
 			}
 			remaining, err := vs.SetArgs(test.Input)
 
 			assert.Equal(t, test.Output, remaining)
-			assert.Equal(t, test.DataMap, vs.GetDataMap())
+			assert.Equal(t, test.DataMap, vs.Cache())
 
 			if test.Err == "" {
 				assert.NoError(t, err)
@@ -310,6 +292,98 @@ func TestValueSetAddArgs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValueSet_CacheInvalidation(t *testing.T) {
+	vs := NewValueSet().
+		Add(&Value{
+			Name:     "Dst Path",
+			DataType: DataTypeString,
+			Default:  "~/src/untitled",
+		}).
+		Add(&Value{
+			Name:     "Project Slug",
+			DataType: DataTypeString,
+			Default:  "{{ .DstPath | base }}", // depends on DstPath
+		}).
+		Add(&Value{
+			Name:     "Package Name",
+			DataType: DataTypeString,
+			Default:  "{{ .ProjectSlug | snakecase }}", // depends on ProjectSlug
+		})
+
+	assert.Equal(t, map[string]any{
+		"DstPath":     "~/src/untitled",
+		"ProjectSlug": "untitled",
+		"PackageName": "untitled",
+	}, vs.GetAll())
+
+	// Setting DstPath should cause other keys to be re-evaluated
+	vs.Set("DstPath", "~/src/my-project")
+
+	assert.Equal(t, map[string]any{
+		"DstPath":     "~/src/my-project",
+		"ProjectSlug": "my-project",
+		"PackageName": "my_project",
+	}, vs.GetAll())
+}
+
+func TestValueSet_GetAndSet(t *testing.T) {
+	dm := DataMap{
+		"NonValue": 123,
+	}
+	vs := NewValueSet().SetCache(dm)
+
+	// Should only know about the cache
+	assert.Equal(t, 123, vs.Get("NonValue"))
+	assert.Equal(t, nil, vs.Get("Foo"))
+
+	// "foo" isn't a Value, so setting it sets it in the cache
+	vs.Set("Foo", "aaa")
+	assert.Equal(t, "aaa", vs.Get("Foo"))
+	assert.Equal(t, "aaa", vs.Cache().Get("Foo"))
+
+	value := &Value{
+		Name:     "Foo",
+		DataType: DataTypeString,
+		Default:  "bbb",
+	}
+	// Now it's added as a Value, so that should take precedence.
+	vs.Add(value)
+	assert.Equal(t, "bbb", value.Get())
+	assert.Equal(t, "bbb", vs.Get("Foo"))
+	assert.Equal(t, "bbb", vs.Cache().Get("Foo"))
+
+	// And setting it, should set the underlying value (as well as the cache)
+	vs.Set("Foo", "ccc")
+	assert.Equal(t, "ccc", value.Get())
+	assert.Equal(t, "ccc", vs.Get("Foo"))
+	assert.Equal(t, "ccc", vs.Cache().Get("Foo"))
+}
+
+func TestValueSet_GetAll(t *testing.T) {
+	vs := NewValueSet().SetCache(DataMap{
+		"NonValue": 123,
+	})
+
+	vs.Add(&Value{
+		Name:     "Project Name",
+		DataType: DataTypeString,
+		Default:  "Example",
+	})
+	vs.Add(&Value{
+		Name:     "Project Slug",
+		DataType: DataTypeString,
+		Default:  "{{ .ProjectName | snakecase }}",
+	})
+
+	vs.Set("ProjectName", "My Proj")
+
+	assert.Equal(t, map[string]any{
+		"NonValue":    123,
+		"ProjectName": "My Proj",
+		"ProjectSlug": "my_proj",
+	}, vs.GetAll())
 }
 
 func TestValueSet_Validate(t *testing.T) {
@@ -356,7 +430,7 @@ func TestValueSet_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			vs := NewValueSet()
 			for _, v := range tt.values {
-				vs.AddValue(v)
+				vs.Add(v)
 			}
 			tt.assertion(t, vs.Validate())
 		})
@@ -414,10 +488,10 @@ func TestValueSet_Prompt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			vs := NewValueSet()
 			for _, v := range tt.values {
-				vs.AddValue(v)
+				vs.Add(v)
 			}
 			tt.assertion(t, vs.Prompt(tt.prompter))
-			assert.Equal(t, len(vs.GetValues()), len(tt.prompter.ConfirmCalls()))
+			assert.Equal(t, len(vs.All()), len(tt.prompter.ConfirmCalls()))
 		})
 	}
 }

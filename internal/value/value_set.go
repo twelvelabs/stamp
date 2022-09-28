@@ -13,28 +13,28 @@ func NewValueSet() *ValueSet {
 	}
 }
 
-// GetValues returns all values in the set.
-func (vs *ValueSet) GetValues() []*Value {
+// All returns all values in the set.
+func (vs *ValueSet) All() []*Value {
 	return vs.values
 }
 
-// GetArgValues returns only the arg values.
-func (vs *ValueSet) GetArgValues() []*Value {
-	args, _ := vs.PartitionValues()
+// Args returns only the arg values.
+func (vs *ValueSet) Args() []*Value {
+	args, _ := vs.Partition()
 	return args
 }
 
-// GetFlagValues returns only the flag values.
-func (vs *ValueSet) GetFlagValues() []*Value {
-	_, flags := vs.PartitionValues()
+// Flags returns only the flag values.
+func (vs *ValueSet) Flags() []*Value {
+	_, flags := vs.Partition()
 	return flags
 }
 
-// PartitionValues partitions values into args and flags.
-func (vs *ValueSet) PartitionValues() ([]*Value, []*Value) {
+// Partition partitions values into args and flags.
+func (vs *ValueSet) Partition() ([]*Value, []*Value) {
 	args := []*Value{}
 	flags := []*Value{}
-	for _, v := range vs.GetValues() {
+	for _, v := range vs.All() {
 		if v.IsArg() {
 			args = append(args, v)
 		}
@@ -45,18 +45,18 @@ func (vs *ValueSet) PartitionValues() ([]*Value, []*Value) {
 	return args, flags
 }
 
-// AddValue adds val to the set.
-func (vs *ValueSet) AddValue(val *Value) *ValueSet {
+// Add adds val to the set.
+func (vs *ValueSet) Add(val *Value) *ValueSet {
 	if val != nil {
 		vs.values = append(vs.values, val.WithValueSet(vs))
-		vs.SetData(val.Key(), val.Get())
+		vs.Cache().Set(val.Key(), val.Get())
 	}
 	return vs
 }
 
-// GetValue returns the value for key.
-func (vs *ValueSet) GetValue(key string) *Value {
-	for _, val := range vs.GetValues() {
+// Value returns the value for key.
+func (vs *ValueSet) Value(key string) *Value {
+	for _, val := range vs.All() {
 		if val.Key() == key {
 			return val
 		}
@@ -64,36 +64,62 @@ func (vs *ValueSet) GetValue(key string) *Value {
 	return nil
 }
 
-// GetDataMap returns the materialized data map.
-func (vs *ValueSet) GetDataMap() DataMap {
+// Cache returns the materialized data map.
+func (vs *ValueSet) Cache() DataMap {
 	return vs.dataMap
 }
 
-// SetDataMap replaces the materialized data map.
-func (vs *ValueSet) SetDataMap(dataMap DataMap) *ValueSet {
+// SetCache replaces the materialized data map.
+func (vs *ValueSet) SetCache(dataMap DataMap) *ValueSet {
 	vs.dataMap = dataMap
 	return vs
 }
 
-// HasData returns true if key exists in the materialized data map.
-func (vs *ValueSet) HasData(key string) bool {
-	_, ok := vs.dataMap[key]
-	return ok
+// Get returns the value data for key.
+// If key is not found, then returns the data for key
+// from the cache.
+func (vs *ValueSet) Get(key string) any {
+	if v := vs.Value(key); v != nil {
+		return v.Get()
+	} else {
+		return vs.Cache().Get(key)
+	}
 }
 
-// GetData returns the materialized data for key.
-func (vs *ValueSet) GetData(key string) any {
-	return vs.dataMap[key]
+func (vs *ValueSet) GetAll() map[string]any {
+	data := map[string]any{}
+
+	// Start w/ the cached values (so we get non-value data)
+	for k, v := range vs.Cache() {
+		data[k] = v
+	}
+
+	// Then do an explicit get on each value.
+	// Doing this so because some values may have opted out of prompting,
+	// and if so then may have default values that need to be rendered w/
+	// the latest set of data.
+	for _, val := range vs.All() {
+		data[val.Key()] = val.Get()
+	}
+
+	return data
 }
 
-// SetData sets the materialized data for key.
-func (vs *ValueSet) SetData(key string, data any) *ValueSet {
-	vs.dataMap[key] = data
-	return vs
+// Set sets the value data for key.
+// If key is not found, then sets the data in the cache
+// so that it can be used by other values
+// (see SrcPath and DstPath in gen.Generator).
+func (vs *ValueSet) Set(key string, value any) error {
+	if v := vs.Value(key); v != nil {
+		return v.set(value)
+	} else {
+		vs.Cache().Set(key, value)
+		return nil
+	}
 }
 
 func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
-	for _, val := range vs.GetArgValues() {
+	for _, val := range vs.Args() {
 		if len(args) == 0 {
 			continue
 		}
@@ -112,7 +138,7 @@ func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
 }
 
 func (vs *ValueSet) Prompt(prompter Prompter) error {
-	for _, val := range vs.GetValues() {
+	for _, val := range vs.All() {
 		if err := val.Prompt(prompter); err != nil {
 			return err
 		}
@@ -121,7 +147,7 @@ func (vs *ValueSet) Prompt(prompter Prompter) error {
 }
 
 func (vs *ValueSet) Validate() error {
-	for _, val := range vs.GetValues() {
+	for _, val := range vs.All() {
 		if err := val.Validate(); err != nil {
 			return err
 		}

@@ -100,7 +100,7 @@ func (a *NewAction) Run() error {
 	a.cmd.DisableFlagParsing = false
 
 	// Add and parse the generator's flags
-	for _, val := range gen.Values.GetFlagValues() {
+	for _, val := range gen.Values.Flags() {
 		a.cmd.Flags().Var(val, val.FlagName(), val.Help)
 		if val.IsBoolFlag() {
 			a.cmd.Flags().Lookup(val.FlagName()).NoOptDefVal = "true"
@@ -136,7 +136,7 @@ func (a *NewAction) Run() error {
 		return err
 	}
 
-	values := gen.Values.GetDataMap()
+	values := gen.Values.GetAll()
 	// for k, v := range values {
 	// 	fmt.Fprintln(a.IO.Out, " -", k, ":", v)
 	// }
