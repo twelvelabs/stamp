@@ -11,5 +11,5 @@ type DataType string
 type PromptConfig string
 
 // InputMode determines whether the value is a flag or positional argument.
-// ENUM(arg, flag)
+// ENUM(arg, flag, hidden)
 type InputMode string

@@ -5,5 +5,5 @@
   - [x] add inflection functions to transforms
   - [x] add inflection functions to templates
 - [x] ability to override key and flag names
-- [ ] hidden flags
+- [x] hidden flags
 - [x] ability to set defaults in config

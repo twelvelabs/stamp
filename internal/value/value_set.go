@@ -138,6 +138,7 @@ func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
 }
 
 func (vs *ValueSet) Prompt(prompter Prompter) error {
+	_ = vs.GetAll() // workaround for cache invalidation issue
 	for _, val := range vs.All() {
 		if err := val.Prompt(prompter); err != nil {
 			return err

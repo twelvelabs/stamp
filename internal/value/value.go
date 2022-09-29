@@ -52,7 +52,7 @@ type Value struct {
 	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"`
 	Default         interface{}  `mapstructure:"default"`
 	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"`
-	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag"`
+	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag hidden"`
 	TransformRules  string       `mapstructure:"transform"`
 	ValidationRules string       `mapstructure:"validate"`
 	Options         []any        `mapstructure:"options"   default:"[]"`
@@ -100,6 +100,11 @@ func (v *Value) IsFlag() bool {
 	return v.InputMode == InputModeFlag
 }
 
+// IsHidden returns true if InputMode is "hidden".
+func (v *Value) IsHidden() bool {
+	return v.InputMode == InputModeHidden
+}
+
 // IsUnset returns true if a value has not been explicitly set.
 func (v *Value) IsUnset() bool {
 	return v.data == nil
@@ -129,11 +134,11 @@ func (v *Value) ShouldPrompt() bool {
 	case PromptConfigNever:
 		return false
 	case PromptConfigOnEmpty:
-		return v.IsEmpty()
+		return v.IsEmpty() && !v.IsHidden()
 	case PromptConfigOnUnset:
-		return v.IsUnset()
+		return v.IsUnset() && !v.IsHidden()
 	default:
-		return v.IsUnset()
+		return v.IsUnset() && !v.IsHidden()
 	}
 }
 

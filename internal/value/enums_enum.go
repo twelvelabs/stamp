@@ -86,11 +86,14 @@ const (
 	InputModeArg InputMode = "arg"
 	// InputModeFlag is a InputMode of type flag.
 	InputModeFlag InputMode = "flag"
+	// InputModeHidden is a InputMode of type hidden.
+	InputModeHidden InputMode = "hidden"
 )
 
 var _InputModeNames = []string{
 	string(InputModeArg),
 	string(InputModeFlag),
+	string(InputModeHidden),
 }
 
 // InputModeNames returns a list of possible string values of InputMode.
@@ -112,8 +115,9 @@ func (x InputMode) IsValid() bool {
 }
 
 var _InputModeValue = map[string]InputMode{
-	"arg":  InputModeArg,
-	"flag": InputModeFlag,
+	"arg":    InputModeArg,
+	"flag":   InputModeFlag,
+	"hidden": InputModeHidden,
 }
 
 // ParseInputMode attempts to convert a string to a InputMode.
