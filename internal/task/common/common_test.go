@@ -10,7 +10,7 @@ import (
 	//cspell: enable
 )
 
-func TestCommonDefaults(t *testing.T) {
+func TestCommon_Defaults(t *testing.T) {
 	// empty struct should have defaults set
 	task := &Common{}
 	defaults.Set(task)
@@ -27,7 +27,7 @@ func TestCommonDefaults(t *testing.T) {
 	assert.Equal(t, "{{ .SomeList }}", task.Each)
 }
 
-func TestCommonIterator(t *testing.T) {
+func TestCommon_Iterator(t *testing.T) {
 	tests := []struct {
 		Name   string
 		Each   string
@@ -66,7 +66,7 @@ func TestCommonIterator(t *testing.T) {
 	}
 }
 
-func TestCommonRender(t *testing.T) {
+func TestCommon_Render(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Template string
@@ -107,7 +107,7 @@ func TestCommonRender(t *testing.T) {
 	}
 }
 
-func TestCommonReport(t *testing.T) {
+func TestCommon_Report(t *testing.T) {
 	tests := []struct {
 		Name    string
 		Action  string
@@ -144,15 +144,17 @@ func TestCommonReport(t *testing.T) {
 	}
 }
 
-func TestCommonSetDryRun(t *testing.T) {
+func TestCommon_DryRunMethods(t *testing.T) {
 	task := &Common{}
-	assert.Equal(t, false, task.DryRun)
-
+	assert.Equal(t, false, task.IsDryRun())
 	task.SetDryRun(true)
-	assert.Equal(t, true, task.DryRun)
+	assert.Equal(t, true, task.IsDryRun())
+
+	task = &Common{DryRun: true}
+	assert.Equal(t, true, task.IsDryRun())
 }
 
-func TestCommonShouldExecute(t *testing.T) {
+func TestCommon_ShouldExecute(t *testing.T) {
 	tests := []struct {
 		Name   string
 		Values map[string]any

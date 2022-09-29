@@ -22,6 +22,9 @@ var _ Task = &TaskMock{}
 //			ExecuteFunc: func(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
 //				panic("mock out the Execute method")
 //			},
+//			IsDryRunFunc: func() bool {
+//				panic("mock out the IsDryRun method")
+//			},
 //			IteratorFunc: func(values map[string]any) []any {
 //				panic("mock out the Iterator method")
 //			},
@@ -40,6 +43,9 @@ var _ Task = &TaskMock{}
 type TaskMock struct {
 	// ExecuteFunc mocks the Execute method.
 	ExecuteFunc func(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error
+
+	// IsDryRunFunc mocks the IsDryRun method.
+	IsDryRunFunc func() bool
 
 	// IteratorFunc mocks the Iterator method.
 	IteratorFunc func(values map[string]any) []any
@@ -63,6 +69,9 @@ type TaskMock struct {
 			// DryRun is the dryRun argument value.
 			DryRun bool
 		}
+		// IsDryRun holds details about calls to the IsDryRun method.
+		IsDryRun []struct {
+		}
 		// Iterator holds details about calls to the Iterator method.
 		Iterator []struct {
 			// Values is the values argument value.
@@ -80,6 +89,7 @@ type TaskMock struct {
 		}
 	}
 	lockExecute       sync.RWMutex
+	lockIsDryRun      sync.RWMutex
 	lockIterator      sync.RWMutex
 	lockSetDryRun     sync.RWMutex
 	lockShouldExecute sync.RWMutex
@@ -126,6 +136,33 @@ func (mock *TaskMock) ExecuteCalls() []struct {
 	mock.lockExecute.RLock()
 	calls = mock.calls.Execute
 	mock.lockExecute.RUnlock()
+	return calls
+}
+
+// IsDryRun calls IsDryRunFunc.
+func (mock *TaskMock) IsDryRun() bool {
+	if mock.IsDryRunFunc == nil {
+		panic("TaskMock.IsDryRunFunc: method is nil but Task.IsDryRun was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockIsDryRun.Lock()
+	mock.calls.IsDryRun = append(mock.calls.IsDryRun, callInfo)
+	mock.lockIsDryRun.Unlock()
+	return mock.IsDryRunFunc()
+}
+
+// IsDryRunCalls gets all the calls that were made to IsDryRun.
+// Check the length with:
+//
+//	len(mockedTask.IsDryRunCalls())
+func (mock *TaskMock) IsDryRunCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockIsDryRun.RLock()
+	calls = mock.calls.IsDryRun
+	mock.lockIsDryRun.RUnlock()
 	return calls
 }
 

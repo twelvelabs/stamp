@@ -29,6 +29,10 @@ type Common struct {
 	DryRun bool
 }
 
+func (c *Common) IsDryRun() bool {
+	return c.DryRun
+}
+
 func (c *Common) Iterator(values map[string]any) []any {
 	if c.Each == "" {
 		return nil
