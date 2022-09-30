@@ -80,7 +80,7 @@ func TestGenerateTask(t *testing.T) {
 	}
 }
 
-func TestExecute(t *testing.T) {
+func TestGenerateTask_Execute(t *testing.T) {
 	templatesDir := filepath.Join("..", "..", "testdata", "templates")
 	tests := []struct {
 		Desc       string
@@ -244,8 +244,10 @@ func TestExecute(t *testing.T) {
 			// Create a new task and execute it
 			task, err := NewTask(tt.TaskData)
 			assert.NoError(t, err)
+
 			ios, _, _, _ := iostreams.Test()
-			err = task.Execute(tt.Values, ios, tt.Prompter, false)
+			ctx := NewTaskContext(ios, tt.Prompter, nil)
+			err = task.Execute(ctx, tt.Values)
 
 			// Ensure the expected files were generated
 			if tt.EndFiles != nil {

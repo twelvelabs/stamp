@@ -10,9 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/render"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 //go:generate go-enum -f=$GOFILE --marshal --names
@@ -34,9 +32,7 @@ type GenerateTask struct {
 	Conflict Conflict `validate:"required,oneof=keep replace prompt" default:"prompt"`
 }
 
-func (t *GenerateTask) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
-	t.DryRun = dryRun
-
+func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	src, err := t.renderPath(values, t.Src)
 	if err != nil {
 		return err
@@ -62,27 +58,27 @@ func (t *GenerateTask) Execute(values map[string]any, ios *iostreams.IOStreams, 
 			if srcPathInfo.IsDir() {
 				return t.createDstDir(dstPath)
 			} else {
-				return t.dispatch(values, ios, prompter, srcPath, dstPath)
+				return t.dispatch(ctx, values, srcPath, dstPath)
 			}
 		})
 	} else {
 		// src is a single file
-		return t.dispatch(values, ios, prompter, src, dst)
+		return t.dispatch(ctx, values, src, dst)
 	}
 }
 
 // dispatch looks for conflicts and delegates to the correct generation method.
-func (t *GenerateTask) dispatch(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
-		return t.generate(values, ios, prompter, src, dst)
+		return t.generate(ctx, values, src, dst)
 	} else {
 		switch t.Conflict {
 		case ConflictPrompt:
-			return t.prompt(values, ios, prompter, src, dst)
+			return t.prompt(ctx, values, src, dst)
 		case ConflictKeep:
-			return t.keep(values, ios, prompter, src, dst)
+			return t.keep(ctx, values, src, dst)
 		case ConflictReplace:
-			return t.replace(values, ios, prompter, src, dst)
+			return t.replace(ctx, values, src, dst)
 		default:
 			return fmt.Errorf("unknown conflict type: %v", t.Conflict)
 		}
@@ -90,47 +86,47 @@ func (t *GenerateTask) dispatch(values map[string]any, ios *iostreams.IOStreams,
 }
 
 // generate is called to generate a non-existing dst file.
-func (t *GenerateTask) generate(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) generate(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.createDst(values, src, dst); err != nil {
-		t.LogFailure(ios, "fail", dst)
+		t.LogFailure(ctx.IO, "fail", dst)
 		return err
 	}
-	t.LogSuccess(ios, "generate", dst)
+	t.LogSuccess(ctx.IO, "generate", dst)
 	return nil
 }
 
 // keep is called when keeping an existing dst file.
-func (t *GenerateTask) keep(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
-	t.LogSuccess(ios, "keep", dst)
+func (t *GenerateTask) keep(ctx *TaskContext, values map[string]any, src string, dst string) error {
+	t.LogSuccess(ctx.IO, "keep", dst)
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
-func (t *GenerateTask) replace(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) replace(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.deleteDst(dst); err != nil {
-		t.LogFailure(ios, "fail", dst)
+		t.LogFailure(ctx.IO, "fail", dst)
 		return err
 	}
 	if err := t.createDst(values, src, dst); err != nil {
-		t.LogFailure(ios, "fail", dst)
+		t.LogFailure(ctx.IO, "fail", dst)
 		return err
 	}
-	t.LogSuccess(ios, "replace", dst)
+	t.LogSuccess(ctx.IO, "replace", dst)
 	return nil
 }
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
-func (t *GenerateTask) prompt(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
-	t.LogWarning(ios, "conflict", fmt.Sprintf("%s already exists", dst))
-	overwrite, err := prompter.Confirm("Overwrite", false, "", "")
+func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
+	t.LogWarning(ctx.IO, "conflict", fmt.Sprintf("%s already exists", dst))
+	overwrite, err := ctx.Prompter.Confirm("Overwrite", false, "", "")
 	if err != nil {
 		return err
 	}
 	if overwrite {
-		return t.replace(values, ios, prompter, src, dst)
+		return t.replace(ctx, values, src, dst)
 	} else {
-		return t.keep(values, ios, prompter, src, dst)
+		return t.keep(ctx, values, src, dst)
 	}
 }
 

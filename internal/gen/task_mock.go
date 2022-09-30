@@ -4,8 +4,6 @@
 package gen
 
 import (
-	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/value"
 	"sync"
 )
 
@@ -19,7 +17,7 @@ var _ Task = &TaskMock{}
 //
 //		// make and configure a mocked Task
 //		mockedTask := &TaskMock{
-//			ExecuteFunc: func(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
+//			ExecuteFunc: func(context *TaskContext, values map[string]any) error {
 //				panic("mock out the Execute method")
 //			},
 //			IsDryRunFunc: func() bool {
@@ -28,7 +26,7 @@ var _ Task = &TaskMock{}
 //			IteratorFunc: func(values map[string]any) []any {
 //				panic("mock out the Iterator method")
 //			},
-//			SetDryRunFunc: func(valueMoqParam bool)  {
+//			SetDryRunFunc: func(value bool)  {
 //				panic("mock out the SetDryRun method")
 //			},
 //			ShouldExecuteFunc: func(values map[string]any) bool {
@@ -42,7 +40,7 @@ var _ Task = &TaskMock{}
 //	}
 type TaskMock struct {
 	// ExecuteFunc mocks the Execute method.
-	ExecuteFunc func(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error
+	ExecuteFunc func(context *TaskContext, values map[string]any) error
 
 	// IsDryRunFunc mocks the IsDryRun method.
 	IsDryRunFunc func() bool
@@ -51,7 +49,7 @@ type TaskMock struct {
 	IteratorFunc func(values map[string]any) []any
 
 	// SetDryRunFunc mocks the SetDryRun method.
-	SetDryRunFunc func(valueMoqParam bool)
+	SetDryRunFunc func(value bool)
 
 	// ShouldExecuteFunc mocks the ShouldExecute method.
 	ShouldExecuteFunc func(values map[string]any) bool
@@ -60,14 +58,10 @@ type TaskMock struct {
 	calls struct {
 		// Execute holds details about calls to the Execute method.
 		Execute []struct {
+			// Context is the context argument value.
+			Context *TaskContext
 			// Values is the values argument value.
 			Values map[string]any
-			// Ios is the ios argument value.
-			Ios *iostreams.IOStreams
-			// Prompter is the prompter argument value.
-			Prompter value.Prompter
-			// DryRun is the dryRun argument value.
-			DryRun bool
 		}
 		// IsDryRun holds details about calls to the IsDryRun method.
 		IsDryRun []struct {
@@ -79,8 +73,8 @@ type TaskMock struct {
 		}
 		// SetDryRun holds details about calls to the SetDryRun method.
 		SetDryRun []struct {
-			// ValueMoqParam is the valueMoqParam argument value.
-			ValueMoqParam bool
+			// Value is the value argument value.
+			Value bool
 		}
 		// ShouldExecute holds details about calls to the ShouldExecute method.
 		ShouldExecute []struct {
@@ -96,25 +90,21 @@ type TaskMock struct {
 }
 
 // Execute calls ExecuteFunc.
-func (mock *TaskMock) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
+func (mock *TaskMock) Execute(context *TaskContext, values map[string]any) error {
 	if mock.ExecuteFunc == nil {
 		panic("TaskMock.ExecuteFunc: method is nil but Task.Execute was just called")
 	}
 	callInfo := struct {
-		Values   map[string]any
-		Ios      *iostreams.IOStreams
-		Prompter value.Prompter
-		DryRun   bool
+		Context *TaskContext
+		Values  map[string]any
 	}{
-		Values:   values,
-		Ios:      ios,
-		Prompter: prompter,
-		DryRun:   dryRun,
+		Context: context,
+		Values:  values,
 	}
 	mock.lockExecute.Lock()
 	mock.calls.Execute = append(mock.calls.Execute, callInfo)
 	mock.lockExecute.Unlock()
-	return mock.ExecuteFunc(values, ios, prompter, dryRun)
+	return mock.ExecuteFunc(context, values)
 }
 
 // ExecuteCalls gets all the calls that were made to Execute.
@@ -122,16 +112,12 @@ func (mock *TaskMock) Execute(values map[string]any, ios *iostreams.IOStreams, p
 //
 //	len(mockedTask.ExecuteCalls())
 func (mock *TaskMock) ExecuteCalls() []struct {
-	Values   map[string]any
-	Ios      *iostreams.IOStreams
-	Prompter value.Prompter
-	DryRun   bool
+	Context *TaskContext
+	Values  map[string]any
 } {
 	var calls []struct {
-		Values   map[string]any
-		Ios      *iostreams.IOStreams
-		Prompter value.Prompter
-		DryRun   bool
+		Context *TaskContext
+		Values  map[string]any
 	}
 	mock.lockExecute.RLock()
 	calls = mock.calls.Execute
@@ -199,19 +185,19 @@ func (mock *TaskMock) IteratorCalls() []struct {
 }
 
 // SetDryRun calls SetDryRunFunc.
-func (mock *TaskMock) SetDryRun(valueMoqParam bool) {
+func (mock *TaskMock) SetDryRun(value bool) {
 	if mock.SetDryRunFunc == nil {
 		panic("TaskMock.SetDryRunFunc: method is nil but Task.SetDryRun was just called")
 	}
 	callInfo := struct {
-		ValueMoqParam bool
+		Value bool
 	}{
-		ValueMoqParam: valueMoqParam,
+		Value: value,
 	}
 	mock.lockSetDryRun.Lock()
 	mock.calls.SetDryRun = append(mock.calls.SetDryRun, callInfo)
 	mock.lockSetDryRun.Unlock()
-	mock.SetDryRunFunc(valueMoqParam)
+	mock.SetDryRunFunc(value)
 }
 
 // SetDryRunCalls gets all the calls that were made to SetDryRun.
@@ -219,10 +205,10 @@ func (mock *TaskMock) SetDryRun(valueMoqParam bool) {
 //
 //	len(mockedTask.SetDryRunCalls())
 func (mock *TaskMock) SetDryRunCalls() []struct {
-	ValueMoqParam bool
+	Value bool
 } {
 	var calls []struct {
-		ValueMoqParam bool
+		Value bool
 	}
 	mock.lockSetDryRun.RLock()
 	calls = mock.calls.SetDryRun

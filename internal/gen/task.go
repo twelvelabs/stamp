@@ -7,7 +7,6 @@ import (
 	//cspell: disable
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/value"
 	//cspell: enable
 )
@@ -17,7 +16,7 @@ import (
 // Task is the interface a generator task.
 type Task interface {
 	Iterator(values map[string]any) []any
-	Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error
+	Execute(context *TaskContext, values map[string]any) error
 	IsDryRun() bool
 	SetDryRun(value bool)
 	ShouldExecute(values map[string]any) bool

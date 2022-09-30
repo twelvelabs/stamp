@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 func NewTaskMock(exe bool, exeErr error, iter []any) *TaskMock {
@@ -18,13 +17,13 @@ func NewTaskMock(exe bool, exeErr error, iter []any) *TaskMock {
 		ShouldExecuteFunc: func(values map[string]any) bool {
 			return exe
 		},
-		ExecuteFunc: func(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
+		ExecuteFunc: func(ctx *TaskContext, values map[string]any) error {
 			return exeErr
 		},
 	}
 }
 
-func TestTaskSetAdd(t *testing.T) {
+func TestTaskSet_Add(t *testing.T) {
 	task1 := &TaskMock{}
 	task2 := &TaskMock{}
 	ts := NewTaskSet()
@@ -35,7 +34,7 @@ func TestTaskSetAdd(t *testing.T) {
 	assert.Equal(t, []Task{task1, task2}, ts.All())
 }
 
-func TestTaskSetOnlyExecutesTasksThatWantToBe(t *testing.T) {
+func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
 	ios, _, _, _ := iostreams.Test()
 	values := map[string]any{}
 
@@ -45,7 +44,9 @@ func TestTaskSetOnlyExecutesTasksThatWantToBe(t *testing.T) {
 	ts := NewTaskSet()
 	ts.Add(task1)
 	ts.Add(task2)
-	err := ts.Execute(values, ios, nil, false)
+
+	ctx := NewTaskContext(ios, nil, nil)
+	err := ts.Execute(ctx, values)
 
 	assert.NoError(t, err)
 	assert.Len(t, task1.ExecuteCalls(), 1, "task1.Execute() should have been called.")
@@ -53,7 +54,7 @@ func TestTaskSetOnlyExecutesTasksThatWantToBe(t *testing.T) {
 	assert.Len(t, task2.ExecuteCalls(), 0, "task2.Execute() should NOT have been called.")
 }
 
-func TestTaskSetCanExecuteTasksMultipleTimes(t *testing.T) {
+func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 	ios, _, _, _ := iostreams.Test()
 	values := map[string]any{}
 
@@ -62,7 +63,9 @@ func TestTaskSetCanExecuteTasksMultipleTimes(t *testing.T) {
 
 	ts := NewTaskSet()
 	ts.Add(task1)
-	err := ts.Execute(values, ios, nil, false)
+
+	ctx := NewTaskContext(ios, nil, nil)
+	err := ts.Execute(ctx, values)
 
 	assert.NoError(t, err)
 	assert.Len(t, task1.ExecuteCalls(), 3, "task1.Execute() should have been called 3 times.")
@@ -78,7 +81,7 @@ func TestTaskSetCanExecuteTasksMultipleTimes(t *testing.T) {
 	assert.Equal(t, "baz", calls[2].Values["_Item"])
 }
 
-func TestTaskSetHaltsExecutionAtTheFirstError(t *testing.T) {
+func TestTaskSet_HaltsExecutionAtTheFirstError(t *testing.T) {
 	ios, _, _, _ := iostreams.Test()
 	values := map[string]any{}
 
@@ -90,7 +93,9 @@ func TestTaskSetHaltsExecutionAtTheFirstError(t *testing.T) {
 	ts.Add(task1)
 	ts.Add(task2)
 	ts.Add(task3)
-	err := ts.Execute(values, ios, nil, false)
+
+	ctx := NewTaskContext(ios, nil, nil)
+	err := ts.Execute(ctx, values)
 
 	assert.ErrorContains(t, err, "boom")
 	assert.Len(t, task1.ExecuteCalls(), 1, "task1.Execute() should have been called.")

@@ -6,9 +6,6 @@ import (
 	//cspell: disable
 	"github.com/mitchellh/copystructure"
 	//cspell: enable
-
-	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 // NewTaskSet returns a new TaskSet.
@@ -37,9 +34,9 @@ func (ts *TaskSet) Add(t Task) {
 // Tasks that return false from `ShouldExecute()` are skipped.
 // Tasks that return a slice from `Iterator()` will be executed once
 // per item in the slice.
-func (ts *TaskSet) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
+func (ts *TaskSet) Execute(ctx *TaskContext, values map[string]any) error {
 	for _, t := range ts.All() {
-		t.SetDryRun(dryRun)
+		t.SetDryRun(ctx.DryRun)
 		if !t.ShouldExecute(values) {
 			continue
 		}
@@ -55,13 +52,13 @@ func (ts *TaskSet) Execute(values map[string]any, ios *iostreams.IOStreams, prom
 				casted["_Index"] = i
 				casted["_Item"] = item
 
-				err = t.Execute(casted, ios, prompter, dryRun)
+				err = t.Execute(ctx, casted)
 				if err != nil {
 					return err
 				}
 			}
 		} else {
-			err := t.Execute(values, ios, prompter, dryRun)
+			err := t.Execute(ctx, values)
 			if err != nil {
 				return err
 			}

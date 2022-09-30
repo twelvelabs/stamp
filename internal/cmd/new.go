@@ -91,13 +91,13 @@ func (a *NewAction) Validate() error {
 }
 
 func (a *NewAction) Run() error {
-	// Load the gen
-	gen, err := a.Store.Load(a.Name)
+	// Load the generator
+	generator, err := a.Store.Load(a.Name)
 	if err != nil {
 		return err
 	}
 
-	for _, val := range gen.Values.All() {
+	for _, val := range generator.Values.All() {
 		// viper forces all config keys to lowercase,
 		// so users have to store defaults by flag name :shrug:
 		// See: https://github.com/spf13/viper/issues/1014
@@ -107,14 +107,14 @@ func (a *NewAction) Run() error {
 	}
 
 	// Re-configure the command (now that we have the generator)
-	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "<name>", gen.Name())
-	for _, v := range gen.Values.Args() {
+	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "<name>", generator.Name())
+	for _, v := range generator.Values.Args() {
 		a.cmd.Use += fmt.Sprintf(" [<%s>]", v.FlagName())
 	}
 	a.cmd.DisableFlagParsing = false
 
 	// Add and parse the generator's flags
-	for _, val := range gen.Values.Flags() {
+	for _, val := range generator.Values.Flags() {
 		a.cmd.Flags().Var(val, val.FlagName(), val.Help)
 		if val.IsBoolFlag() {
 			a.cmd.Flags().Lookup(val.FlagName()).NoOptDefVal = "true"
@@ -136,30 +136,29 @@ func (a *NewAction) Run() error {
 
 	// Set the positional args
 	nonFlagArgs := a.cmd.Flags().Args()
-	remaining, err := gen.Values.SetArgs(nonFlagArgs)
+	remaining, err := generator.Values.SetArgs(nonFlagArgs)
 	if err != nil {
 		return err
 	}
 	a.args = remaining
 	// TODO: should we error or warn if there are extra pos args left over?
 
-	if err := gen.Values.Prompt(a.Prompter); err != nil {
+	if err := generator.Values.Prompt(a.Prompter); err != nil {
 		return err
 	}
-	if err := gen.Values.Validate(); err != nil {
+	if err := generator.Values.Validate(); err != nil {
 		return err
 	}
 
-	values := gen.Values.GetAll()
-	// for k, v := range values {
-	// 	fmt.Fprintln(a.IO.Out, " -", k, ":", v)
-	// }
-
 	fmt.Fprintln(a.IO.Err, "")
-	fmt.Fprintln(a.IO.Err, "Running:", gen.Name())
+	fmt.Fprintln(a.IO.Err, "Running:", generator.Name())
 	fmt.Fprintln(a.IO.Err, "")
 
-	if err := gen.Tasks.Execute(values, a.IO, a.Prompter, dryRun); err != nil {
+	ctx := gen.NewTaskContext(a.IO, a.Prompter, a.Store)
+	ctx.DryRun = dryRun
+	values := generator.Values.GetAll()
+
+	if err := generator.Tasks.Execute(ctx, values); err != nil {
 		return err
 	}
 
