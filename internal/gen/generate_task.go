@@ -1,4 +1,4 @@
-package generate
+package gen
 
 //cspell:words oneof
 
@@ -12,7 +12,6 @@ import (
 
 	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/render"
-	"github.com/twelvelabs/stamp/internal/task/common"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -26,8 +25,8 @@ const (
 	DST_DIR_MODE os.FileMode = 0755
 )
 
-type Task struct {
-	common.Common `mapstructure:",squash"`
+type GenerateTask struct {
+	Common `mapstructure:",squash"`
 
 	Src      string   `validate:"required"`
 	Dst      string   `validate:"required"`
@@ -35,7 +34,7 @@ type Task struct {
 	Conflict Conflict `validate:"required,oneof=keep replace prompt" default:"prompt"`
 }
 
-func (t *Task) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
+func (t *GenerateTask) Execute(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, dryRun bool) error {
 	t.DryRun = dryRun
 
 	src, err := t.renderPath(values, t.Src)
@@ -73,7 +72,7 @@ func (t *Task) Execute(values map[string]any, ios *iostreams.IOStreams, prompter
 }
 
 // dispatch looks for conflicts and delegates to the correct generation method.
-func (t *Task) dispatch(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) dispatch(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) {
 		return t.generate(values, ios, prompter, src, dst)
 	} else {
@@ -91,7 +90,7 @@ func (t *Task) dispatch(values map[string]any, ios *iostreams.IOStreams, prompte
 }
 
 // generate is called to generate a non-existing dst file.
-func (t *Task) generate(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) generate(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	if err := t.createDst(values, src, dst); err != nil {
 		t.LogFailure(ios, "fail", dst)
 		return err
@@ -101,13 +100,13 @@ func (t *Task) generate(values map[string]any, ios *iostreams.IOStreams, prompte
 }
 
 // keep is called when keeping an existing dst file.
-func (t *Task) keep(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) keep(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	t.LogSuccess(ios, "keep", dst)
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
-func (t *Task) replace(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) replace(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	if err := t.deleteDst(dst); err != nil {
 		t.LogFailure(ios, "fail", dst)
 		return err
@@ -122,7 +121,7 @@ func (t *Task) replace(values map[string]any, ios *iostreams.IOStreams, prompter
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
-func (t *Task) prompt(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
+func (t *GenerateTask) prompt(values map[string]any, ios *iostreams.IOStreams, prompter value.Prompter, src string, dst string) error {
 	t.LogWarning(ios, "conflict", fmt.Sprintf("%s already exists", dst))
 	overwrite, err := prompter.Confirm("Overwrite", false, "", "")
 	if err != nil {
@@ -135,14 +134,14 @@ func (t *Task) prompt(values map[string]any, ios *iostreams.IOStreams, prompter 
 	}
 }
 
-func (t *Task) createDstDir(dst string) error {
+func (t *GenerateTask) createDstDir(dst string) error {
 	if t.DryRun {
 		return nil
 	}
 	return os.MkdirAll(dst, DST_DIR_MODE)
 }
 
-func (t *Task) createDst(values map[string]any, src string, dst string) error {
+func (t *GenerateTask) createDst(values map[string]any, src string, dst string) error {
 	if t.DryRun {
 		return nil
 	}
@@ -182,7 +181,7 @@ func (t *Task) createDst(values map[string]any, src string, dst string) error {
 	return nil
 }
 
-func (t *Task) deleteDst(dst string) error {
+func (t *GenerateTask) deleteDst(dst string) error {
 	if t.DryRun {
 		return nil
 	}
@@ -192,7 +191,7 @@ func (t *Task) deleteDst(dst string) error {
 	return nil
 }
 
-func (t *Task) renderPath(values map[string]any, path string) (string, error) {
+func (t *GenerateTask) renderPath(values map[string]any, path string) (string, error) {
 	rendered := t.Common.Render(path, values)
 	if rendered == "" {
 		return "", fmt.Errorf("src or dst path '%s' evaluated to an empty string", path)
@@ -200,7 +199,7 @@ func (t *Task) renderPath(values map[string]any, path string) (string, error) {
 	return rendered, nil
 }
 
-func (t *Task) renderMode(values map[string]any, mode string) (os.FileMode, error) {
+func (t *GenerateTask) renderMode(values map[string]any, mode string) (os.FileMode, error) {
 	rendered := t.Common.Render(mode, values)
 	if rendered == "" {
 		return 0, fmt.Errorf("mode '%s' evaluated to an empty string", mode)

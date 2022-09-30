@@ -1,4 +1,4 @@
-package task
+package gen
 
 import (
 	"errors"
@@ -8,7 +8,6 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/task/generate"
 	"github.com/twelvelabs/stamp/internal/value"
 	//cspell: enable
 )
@@ -45,7 +44,7 @@ func NewTask(taskData map[string]any) (Task, error) {
 	var task Task
 	switch taskType {
 	case "generate":
-		task = &generate.Task{}
+		task = &GenerateTask{}
 	default:
 		return nil, fmt.Errorf("unknown task type: %v", taskType)
 	}

@@ -1,13 +1,10 @@
-package task
+package gen
 
 import (
 	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/twelvelabs/stamp/internal/task/common"
-	"github.com/twelvelabs/stamp/internal/task/generate"
 )
 
 func TestNewTask(t *testing.T) {
@@ -70,8 +67,8 @@ func TestNewTask(t *testing.T) {
 				"src":  "/some/src/path",
 				"dst":  "/some/dst/path",
 			},
-			Task: &generate.Task{
-				Common: common.Common{
+			Task: &GenerateTask{
+				Common: Common{
 					If:     "true",
 					Each:   "",
 					DryRun: false,

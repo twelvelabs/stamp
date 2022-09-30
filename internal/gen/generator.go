@@ -12,7 +12,6 @@ import (
 	// cspell:enable
 
 	"github.com/twelvelabs/stamp/internal/pkg"
-	"github.com/twelvelabs/stamp/internal/task"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -28,7 +27,7 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 	gen := &Generator{
 		Package: pkg,
 		Values:  value.NewValueSet(),
-		Tasks:   task.NewTaskSet(),
+		Tasks:   NewTaskSet(),
 	}
 
 	dstPath, err := filepath.Abs(".")
@@ -47,7 +46,7 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 	}
 
 	for _, tm := range gen.taskMetadata() {
-		t, err := task.NewTask(tm)
+		t, err := NewTask(tm)
 		if err != nil {
 			return nil, fmt.Errorf("generator metadata invalid: %w", err)
 		}
@@ -73,7 +72,7 @@ type Generator struct {
 	*pkg.Package
 
 	Values *value.ValueSet
-	Tasks  *task.TaskSet
+	Tasks  *TaskSet
 }
 
 func (g *Generator) taskMetadata() []map[string]any {

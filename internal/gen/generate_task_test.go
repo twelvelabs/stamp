@@ -1,4 +1,4 @@
-package generate_test
+package gen
 
 import (
 	"os"
@@ -8,9 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/task"
-	"github.com/twelvelabs/stamp/internal/task/common"
-	"github.com/twelvelabs/stamp/internal/task/generate"
 	"github.com/twelvelabs/stamp/internal/test_util"
 	"github.com/twelvelabs/stamp/internal/value"
 )
@@ -55,8 +52,8 @@ func TestGenerateTask(t *testing.T) {
 				"src":  "example.tpl",
 				"dst":  "example.txt",
 			},
-			Output: &generate.Task{
-				Common: common.Common{
+			Output: &GenerateTask{
+				Common: Common{
 					If:   "true",
 					Each: "",
 				},
@@ -71,7 +68,7 @@ func TestGenerateTask(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			actual, err := task.NewTask(test.Input)
+			actual, err := NewTask(test.Input)
 
 			assert.Equal(t, test.Output, actual)
 			if test.Err == "" {
@@ -84,7 +81,7 @@ func TestGenerateTask(t *testing.T) {
 }
 
 func TestExecute(t *testing.T) {
-	templatesDir := filepath.Join("..", "..", "..", "testdata", "templates")
+	templatesDir := filepath.Join("..", "..", "testdata", "templates")
 	tests := []struct {
 		Desc       string
 		TaskData   map[string]any
@@ -245,7 +242,7 @@ func TestExecute(t *testing.T) {
 			}
 
 			// Create a new task and execute it
-			task, err := task.NewTask(tt.TaskData)
+			task, err := NewTask(tt.TaskData)
 			assert.NoError(t, err)
 			ios, _, _, _ := iostreams.Test()
 			err = task.Execute(tt.Values, ios, tt.Prompter, false)

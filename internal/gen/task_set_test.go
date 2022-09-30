@@ -1,4 +1,4 @@
-package task
+package gen
 
 import (
 	"errors"

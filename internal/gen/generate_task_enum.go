@@ -4,7 +4,7 @@
 // Build Date:
 // Built By:
 
-package generate
+package gen
 
 import (
 	"fmt"

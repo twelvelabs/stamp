@@ -1,4 +1,4 @@
-package task
+package gen
 
 //cspell: words copystructure
 
