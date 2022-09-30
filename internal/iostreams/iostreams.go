@@ -25,13 +25,9 @@ import (
 	"os"
 )
 
-type FileReader interface {
+// IOStream represents an input or output stream.
+type IOStream interface {
 	io.Reader
-	Fd() uintptr
-	String() string
-}
-
-type FileWriter interface {
 	io.Writer
 	Fd() uintptr
 	String() string
@@ -40,11 +36,11 @@ type FileWriter interface {
 // Container for the three main CLI I/O streams.
 type IOStreams struct {
 	// os.Stdin (or mock when unit testing)
-	In FileReader
+	In IOStream
 	// os.Stdout (or mock when unit testing)
-	Out FileWriter
+	Out IOStream
 	// os.Stderr (or mock when unit testing)
-	Err FileWriter
+	Err IOStream
 
 	colorEnabled bool
 }
@@ -58,54 +54,48 @@ func (s *IOStreams) Formatter() *Formatter {
 	return NewFormatter(s.ColorEnabled())
 }
 
-func EnvColorDisabled() bool {
-	// See: https://bixense.com/clicolors/
-	return os.Getenv("NO_COLOR") != "" || os.Getenv("CLICOLOR") == "0"
-}
-
-func EnvColorForced() bool {
-	// See: https://bixense.com/clicolors/
-	return os.Getenv("CLICOLOR_FORCE") != "" && os.Getenv("CLICOLOR_FORCE") != "0"
-}
-
 // Returns an IOStreams containing os.Stdin, os.Stdout, and os.Stderr
 func System() *IOStreams {
 	return &IOStreams{
-		In:  &file{File: os.Stdin},
-		Out: &file{File: os.Stdout},
-		Err: &file{File: os.Stderr},
+		In:  &systemIOStream{File: os.Stdin},
+		Out: &systemIOStream{File: os.Stdout},
+		Err: &systemIOStream{File: os.Stderr},
 		// TODO: check isTTY
-		colorEnabled: EnvColorForced() || (!EnvColorDisabled()),
+		colorEnabled: IsColorEnabled(),
 	}
 }
 
 // Returns an IOStreams with mock in/out/err values.
 func Test() *IOStreams {
 	return &IOStreams{
-		In:           &mockFile{Buffer: &bytes.Buffer{}, fd: 0},
-		Out:          &mockFile{Buffer: &bytes.Buffer{}, fd: 1},
-		Err:          &mockFile{Buffer: &bytes.Buffer{}, fd: 2},
+		In:           &mockIOStream{Buffer: &bytes.Buffer{}, fd: 0},
+		Out:          &mockIOStream{Buffer: &bytes.Buffer{}, fd: 1},
+		Err:          &mockIOStream{Buffer: &bytes.Buffer{}, fd: 2},
 		colorEnabled: false,
 	}
 }
 
-type file struct {
+var (
+	_ IOStream = &systemIOStream{}
+	_ IOStream = &mockIOStream{}
+)
+
+// Wrapper so we can make os.Stdin and friends fulfill IOStream.
+type systemIOStream struct {
 	*os.File
 }
 
-func (f *file) String() string {
-	buf, err := io.ReadAll(f)
-	if err != nil {
-		panic(err)
-	}
+func (f *systemIOStream) String() string {
+	buf, _ := io.ReadAll(f)
 	return string(buf)
 }
 
-type mockFile struct {
+// Wrapper so we can make bytes.Buffer fulfill IOStream.
+type mockIOStream struct {
 	*bytes.Buffer
 	fd uintptr
 }
 
-func (m *mockFile) Fd() uintptr {
+func (m *mockIOStream) Fd() uintptr {
 	return m.fd
 }
