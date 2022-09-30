@@ -14,13 +14,29 @@ import (
 )
 
 var (
-	ErrPkgNotFound    = errors.New("package not found")
 	ErrPkgExists      = errors.New("package already installed")
 	ErrPkgNameInvalid = errors.New("invalid package name")
 	ErrUnknown        = errors.New("unexpected error")
 
 	pkgNameRegexp = regexp.MustCompile(`^[\w\-.:]+$`)
 )
+
+func NewNotFoundError(metaFile string) NotFoundError {
+	return NotFoundError{
+		metaFile: metaFile,
+	}
+}
+
+type NotFoundError struct {
+	metaFile string
+}
+
+func (e NotFoundError) Error() string {
+	// This assumes that the meta filename describes what the package is.
+	// i.e. if your package is a "widget", then name the file widget.yaml
+	kind := strings.TrimSuffix(e.metaFile, filepath.Ext(e.metaFile))
+	return fmt.Sprintf("%s not found", kind)
+}
 
 // PackagePath returns the absolute path to a package.
 // Returns an error if `name` is empty or invalid.
@@ -49,7 +65,7 @@ func PackagePath(root string, name string) (string, error) {
 func LoadPackage(pkgPath string, metaFile string) (*Package, error) {
 	// Ensure package path exists.
 	if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-		return nil, ErrPkgNotFound
+		return nil, NewNotFoundError(metaFile)
 	}
 
 	// Read the package metadata file.
@@ -165,5 +181,5 @@ func RemovePackage(pkg *Package) error {
 	if _, err := os.Stat(pkg.Path()); !os.IsNotExist(err) {
 		return os.RemoveAll(pkg.Path())
 	}
-	return ErrPkgNotFound
+	return NewNotFoundError(pkg.MetaFile())
 }

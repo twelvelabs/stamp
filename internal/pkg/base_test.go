@@ -169,7 +169,7 @@ func TestRemovePackage(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = RemovePackage(pkg)
-	assert.ErrorIs(t, err, ErrPkgNotFound)
+	assert.ErrorContains(t, err, "package not found")
 
 	_, err = os.Stat(pkgPath)
 	assert.ErrorIs(t, err, os.ErrNotExist)
