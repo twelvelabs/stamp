@@ -35,7 +35,7 @@ func TestTaskSet_Add(t *testing.T) {
 }
 
 func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
-	ios, _, _, _ := iostreams.Test()
+	ios := iostreams.Test()
 	values := map[string]any{}
 
 	task1 := NewTaskMock(true, nil, nil)
@@ -55,7 +55,7 @@ func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
 }
 
 func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
-	ios, _, _, _ := iostreams.Test()
+	ios := iostreams.Test()
 	values := map[string]any{}
 
 	iter := []any{"foo", "bar", "baz"}
@@ -82,7 +82,7 @@ func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 }
 
 func TestTaskSet_HaltsExecutionAtTheFirstError(t *testing.T) {
-	ios, _, _, _ := iostreams.Test()
+	ios := iostreams.Test()
 	values := map[string]any{}
 
 	task1 := NewTaskMock(true, nil, nil)

@@ -47,12 +47,12 @@ func TestActionLogger_Info(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewActionLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Info(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -98,12 +98,12 @@ func TestActionLogger_Success(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewActionLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Success(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -149,12 +149,12 @@ func TestActionLogger_Warning(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewActionLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Warning(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -200,12 +200,12 @@ func TestActionLogger_Failure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewActionLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Failure(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -232,12 +232,12 @@ func TestIconLogger_Info(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewIconLogger(ios, ios.Formatter())
 			logger.Info(tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -264,12 +264,12 @@ func TestIconLogger_Success(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewIconLogger(ios, ios.Formatter())
 			logger.Success(tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -296,12 +296,12 @@ func TestIconLogger_Warning(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewIconLogger(ios, ios.Formatter())
 			logger.Warning(tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }
@@ -328,12 +328,12 @@ func TestIconLogger_Failure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios, _, _, stderr := Test()
+			ios := Test()
 
 			logger := NewIconLogger(ios, ios.Formatter())
 			logger.Failure(tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, stderr.String())
+			assert.Equal(t, tt.expected, ios.Err.String())
 		})
 	}
 }

@@ -16,10 +16,15 @@ type TaskContext struct {
 
 // NewTaskContext returns a configured TaskContext.
 func NewTaskContext(ios *iostreams.IOStreams, prompter value.Prompter, store *Store, dryRun bool) *TaskContext {
+	var logger *iostreams.ActionLogger
+	// some tests need a context but not any of it's content, and so may pass in nil args.
+	if ios != nil {
+		logger = iostreams.NewActionLogger(ios, ios.Formatter(), dryRun)
+	}
 	return &TaskContext{
 		DryRun:   dryRun,
 		IO:       ios,
-		Logger:   iostreams.NewActionLogger(ios, ios.Formatter(), dryRun),
+		Logger:   logger,
 		Prompter: prompter,
 		Store:    store,
 	}

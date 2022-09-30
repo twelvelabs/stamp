@@ -28,11 +28,13 @@ import (
 type FileReader interface {
 	io.Reader
 	Fd() uintptr
+	String() string
 }
 
 type FileWriter interface {
 	io.Writer
 	Fd() uintptr
+	String() string
 }
 
 // Container for the three main CLI I/O streams.
@@ -69,43 +71,41 @@ func EnvColorForced() bool {
 // Returns an IOStreams containing os.Stdin, os.Stdout, and os.Stderr
 func System() *IOStreams {
 	return &IOStreams{
-		In:  os.Stdin,
-		Out: os.Stdout,
-		Err: os.Stderr,
+		In:  &file{File: os.Stdin},
+		Out: &file{File: os.Stdout},
+		Err: &file{File: os.Stderr},
 		// TODO: check isTTY
 		colorEnabled: EnvColorForced() || (!EnvColorDisabled()),
 	}
 }
 
-// Returns an IOStreams with mock bytes.Buffer values.
-// Also returns the raw in/out/err buffers for ease of use in tests.
-func Test() (*IOStreams, *bytes.Buffer, *bytes.Buffer, *bytes.Buffer) {
-	in := &bytes.Buffer{}
-	out := &bytes.Buffer{}
-	err := &bytes.Buffer{}
-
+// Returns an IOStreams with mock in/out/err values.
+func Test() *IOStreams {
 	return &IOStreams{
-		In:           &fdReader{Reader: in, fd: 0},
-		Out:          &fdWriter{Writer: out, fd: 1},
-		Err:          &fdWriter{Writer: err, fd: 2},
+		In:           &mockFile{Buffer: &bytes.Buffer{}, fd: 0},
+		Out:          &mockFile{Buffer: &bytes.Buffer{}, fd: 1},
+		Err:          &mockFile{Buffer: &bytes.Buffer{}, fd: 2},
 		colorEnabled: false,
-	}, in, out, err
+	}
 }
 
-type fdReader struct {
-	io.Reader
+type file struct {
+	*os.File
+}
+
+func (f *file) String() string {
+	buf, err := io.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+	return string(buf)
+}
+
+type mockFile struct {
+	*bytes.Buffer
 	fd uintptr
 }
 
-func (r *fdReader) Fd() uintptr {
-	return r.fd
-}
-
-type fdWriter struct {
-	io.Writer
-	fd uintptr
-}
-
-func (w *fdWriter) Fd() uintptr {
-	return w.fd
+func (m *mockFile) Fd() uintptr {
+	return m.fd
 }

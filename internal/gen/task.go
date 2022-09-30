@@ -40,7 +40,7 @@ func NewTask(taskData map[string]any) (Task, error) {
 		return nil, errors.New("undefined task type")
 	}
 
-	var task Task
+	var task Task // these should all be pointers
 	switch taskType {
 	case "generate":
 		task = &GenerateTask{}
@@ -48,11 +48,20 @@ func NewTask(taskData map[string]any) (Task, error) {
 		return nil, fmt.Errorf("unknown task type: %v", taskType)
 	}
 
+	// Using a custom mapstructure setup so that we can leverage the
+	// built in validation of our enum types (based on encoding.TextMarshaler).
+	decoderConfig := &mapstructure.DecoderConfig{
+		DecodeHook: mapstructure.TextUnmarshallerHookFunc(),
+		Result:     task,
+	}
+	decoder, _ := mapstructure.NewDecoder(decoderConfig)
+
 	// Set struct defaults, decode data map into the struct, and then validate
 	if err := SetDefaults(task); err != nil {
 		return nil, err
 	}
-	if err := mapstructure.Decode(taskData, task); err != nil {
+	// if err := mapstructure.Decode(taskData, task); err != nil {
+	if err := decoder.Decode(taskData); err != nil {
 		return nil, err
 	}
 	if err := value.ValidateStruct(task); err != nil {

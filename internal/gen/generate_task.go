@@ -23,10 +23,12 @@ type GenerateTask struct {
 	Src      string   `validate:"required"`
 	Dst      string   `validate:"required"`
 	Mode     string   `validate:"required,posix-mode" default:"0666"`
-	Conflict Conflict `validate:"required,oneof=keep replace prompt" default:"prompt"`
+	Conflict Conflict `validate:"required" default:"prompt"`
 }
 
 func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
+	t.DryRun = ctx.DryRun
+
 	src, err := t.renderPath(values, t.Src)
 	if err != nil {
 		return err
@@ -63,7 +65,7 @@ func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
 
 // dispatch looks for conflicts and delegates to the correct generation method.
 func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	if _, err := os.Stat(dst); os.IsNotExist(err) {
+	if _, err := os.Stat(dst); os.IsNotExist(err) && dst != "" {
 		return t.generate(ctx, values, src, dst)
 	} else {
 		switch t.Conflict {
@@ -135,7 +137,7 @@ func (t *GenerateTask) createDst(values map[string]any, src string, dst string) 
 	if t.DryRun {
 		return nil
 	}
-	mode, err := t.renderMode(values, t.Mode)
+	mode, err := t.parseMode(values, t.Mode)
 	if err != nil {
 		return err
 	}
@@ -184,17 +186,13 @@ func (t *GenerateTask) deleteDst(dst string) error {
 func (t *GenerateTask) renderPath(values map[string]any, path string) (string, error) {
 	rendered := t.Common.Render(path, values)
 	if rendered == "" {
-		return "", fmt.Errorf("src or dst path '%s' evaluated to an empty string", path)
+		return "", fmt.Errorf("path '%s' evaluated to an empty string", path)
 	}
 	return rendered, nil
 }
 
-func (t *GenerateTask) renderMode(values map[string]any, mode string) (os.FileMode, error) {
-	rendered := t.Common.Render(mode, values)
-	if rendered == "" {
-		return 0, fmt.Errorf("mode '%s' evaluated to an empty string", mode)
-	}
-	parsed, err := strconv.ParseInt(rendered, 8, 64)
+func (t *GenerateTask) parseMode(values map[string]any, mode string) (os.FileMode, error) {
+	parsed, err := strconv.ParseInt(mode, 8, 64)
 	if err != nil {
 		return 0, err
 	}

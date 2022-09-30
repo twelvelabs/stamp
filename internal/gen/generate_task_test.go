@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
-func TestGenerateTask(t *testing.T) {
+func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 	tests := []struct {
 		Name   string
 		Input  map[string]any
@@ -20,7 +21,7 @@ func TestGenerateTask(t *testing.T) {
 		Err    string
 	}{
 		{
-			Name: "empty",
+			Name: "returns an error when both src and dst are missing",
 			Input: map[string]any{
 				"type": "generate",
 			},
@@ -28,7 +29,7 @@ func TestGenerateTask(t *testing.T) {
 			Err:    "Src is a required field, Dst is a required field",
 		},
 		{
-			Name: "only src",
+			Name: "returns an error when dst is missing",
 			Input: map[string]any{
 				"type": "generate",
 				"src":  "example.tpl",
@@ -37,7 +38,7 @@ func TestGenerateTask(t *testing.T) {
 			Err:    "Dst is a required field",
 		},
 		{
-			Name: "only dst",
+			Name: "returns an error when src is missing",
 			Input: map[string]any{
 				"type": "generate",
 				"dst":  "example.txt",
@@ -46,7 +47,29 @@ func TestGenerateTask(t *testing.T) {
 			Err:    "Src is a required field",
 		},
 		{
-			Name: "valid",
+			Name: "returns an error when mode is invalid",
+			Input: map[string]any{
+				"type": "generate",
+				"src":  "example.tpl",
+				"dst":  "example.txt",
+				"mode": "not a posix-mode",
+			},
+			Output: nil,
+			Err:    "Mode must be a valid posix file mode",
+		},
+		{
+			Name: "returns an error when conflict is invalid",
+			Input: map[string]any{
+				"type":     "generate",
+				"src":      "example.tpl",
+				"dst":      "example.txt",
+				"conflict": "unknown",
+			},
+			Output: nil,
+			Err:    "unknown is not a valid Conflict",
+		},
+		{
+			Name: "returns the task when all fields are valid",
 			Input: map[string]any{
 				"type": "generate",
 				"src":  "example.tpl",
@@ -84,15 +107,57 @@ func TestGenerateTask_Execute(t *testing.T) {
 	templatesDir := filepath.Join("..", "..", "testdata", "templates")
 	tests := []struct {
 		Desc       string
+		DryRun     bool
 		TaskData   map[string]any
 		Values     map[string]any
 		Prompter   *value.PrompterMock
 		StartFiles map[string]string
-		EndFiles   map[string]string
+		EndFiles   map[string]any
 		Err        string
 	}{
 		{
-			Desc: "generates individual files",
+			Desc: "returns an error if src evaluates to empty string",
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .Empty }}",
+				"dst":  "{{ .DstPath }}/README.md",
+			},
+			Values: map[string]any{
+				"DstPath": "TBD",
+				"Empty":   "",
+			},
+			Err: "path '{{ .Empty }}' evaluated to an empty string",
+		},
+		{
+			Desc: "returns an error if dst evaluates to empty string",
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/README.md",
+				"dst":  "{{ .Empty }}",
+			},
+			Values: map[string]any{
+				"SrcPath": templatesDir,
+				"Empty":   "",
+			},
+			Err: "path '{{ .Empty }}' evaluated to an empty string",
+		},
+		{
+			Desc: "returns an error if src does not exist",
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/missing.md",
+				"dst":  "{{ .DstPath }}/README.md",
+			},
+			Values: map[string]any{
+				"SrcPath": templatesDir,
+				"DstPath": "TBD",
+				"Empty":   "",
+			},
+			Err: "missing.md: no such file or directory",
+		},
+
+		{
+			Desc: "generates a single file",
 			TaskData: map[string]any{
 				"type": "generate",
 				"src":  "{{ .SrcPath }}/README.md",
@@ -103,8 +168,44 @@ func TestGenerateTask_Execute(t *testing.T) {
 				"SrcPath":     templatesDir,
 				"DstPath":     "TBD",
 			},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
+			},
+			Err: "",
+		},
+		{
+			Desc: "generates a single file with custom permissions",
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/README.md",
+				"dst":  "{{ .DstPath }}/README.md",
+				"mode": "0755",
+			},
+			Values: map[string]any{
+				"ProjectName": "My Project",
+				"SrcPath":     templatesDir,
+				"DstPath":     "TBD",
+			},
+			EndFiles: map[string]any{
+				"README.md": 0o755,
+			},
+			Err: "",
+		},
+		{
+			Desc:   "does not generate a file during a dry run",
+			DryRun: true,
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/README.md",
+				"dst":  "{{ .DstPath }}/README.md",
+			},
+			Values: map[string]any{
+				"ProjectName": "My Project",
+				"SrcPath":     templatesDir,
+				"DstPath":     "TBD",
+			},
+			EndFiles: map[string]any{
+				"README.md": false,
 			},
 			Err: "",
 		},
@@ -121,11 +222,32 @@ func TestGenerateTask_Execute(t *testing.T) {
 				"SrcPath":     templatesDir,
 				"DstPath":     "TBD",
 			},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"nested/README.md":  "# My Project\n",
 				"nested/bin/aaa.sh": "#!/bin/bash\necho \"Hi from aaa in My Project\"\n",
 				"nested/bin/bbb.sh": "#!/bin/bash\necho \"Hi from bbb in My Project\"\n",
 				"nested/docs/":      "",
+			},
+			Err: "",
+		},
+		{
+			Desc:   "does not generate files or directories during a dry run",
+			DryRun: true,
+			TaskData: map[string]any{
+				"type": "generate",
+				"src":  "{{ .SrcPath }}/nested/",
+				"dst":  "{{ .DstPath }}/nested/",
+			},
+			Values: map[string]any{
+				"ProjectName": "My Project",
+				"SrcPath":     templatesDir,
+				"DstPath":     "TBD",
+			},
+			EndFiles: map[string]any{
+				"nested/README.md":  false,
+				"nested/bin/aaa.sh": false,
+				"nested/bin/bbb.sh": false,
+				"nested/docs/":      false,
 			},
 			Err: "",
 		},
@@ -147,7 +269,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 				"DstPath":     "TBD",
 			},
 			Prompter: &value.PrompterMock{},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			Err: "",
@@ -170,7 +292,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 				"DstPath":     "TBD",
 			},
 			Prompter: &value.PrompterMock{},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
 			},
 			Err: "",
@@ -195,7 +317,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Prompter: &value.PrompterMock{
 				ConfirmFunc: value.NewConfirmFunc(true, nil),
 			},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
 			},
 			Err: "",
@@ -219,10 +341,34 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Prompter: &value.PrompterMock{
 				ConfirmFunc: value.NewConfirmFunc(false, nil),
 			},
-			EndFiles: map[string]string{
+			EndFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			Err: "",
+		},
+		{
+			Desc: "[conflict:prompt] will return any prompter errors",
+			StartFiles: map[string]string{
+				"README.md": "Pre-existing content",
+			},
+			TaskData: map[string]any{
+				"type":     "generate",
+				"src":      "{{ .SrcPath }}/README.md",
+				"dst":      "{{ .DstPath }}/README.md",
+				"conflict": "prompt",
+			},
+			Values: map[string]any{
+				"ProjectName": "My Project",
+				"SrcPath":     templatesDir,
+				"DstPath":     "TBD",
+			},
+			Prompter: &value.PrompterMock{
+				ConfirmFunc: value.NewConfirmFunc(false, errors.New("boom")),
+			},
+			EndFiles: map[string]any{
+				"README.md": "Pre-existing content",
+			},
+			Err: "boom",
 		},
 	}
 	for _, tt := range tests {
@@ -245,20 +391,43 @@ func TestGenerateTask_Execute(t *testing.T) {
 			task, err := NewTask(tt.TaskData)
 			assert.NoError(t, err)
 
-			ios, _, _, _ := iostreams.Test()
-			ctx := NewTaskContext(ios, tt.Prompter, nil, false)
+			ios := iostreams.Test()
+			ctx := NewTaskContext(ios, tt.Prompter, nil, tt.DryRun)
 			err = task.Execute(ctx, tt.Values)
 
 			// Ensure the expected files were generated
 			if tt.EndFiles != nil {
-				for path, content := range tt.EndFiles {
+				for path, value := range tt.EndFiles {
+					// prepend the temp dir to the path
 					path = tmpDir + "/" + path
 					if strings.HasSuffix(path, "/") {
-						assert.DirExists(t, path)
+						// path refers to a directory
+						if exists, ok := value.(bool); ok && !exists {
+							// value is `false`, dir _should not_ be there
+							assert.NoDirExists(t, path)
+						} else {
+							// dir _should_ be there
+							assert.DirExists(t, path)
+						}
 					} else {
-						assert.FileExists(t, path)
-						buf, _ := os.ReadFile(path)
-						assert.Equal(t, content, string(buf))
+						// path is file
+						if exists, ok := value.(bool); ok && !exists {
+							// value is `false`, file _should not_ be there
+							assert.NoFileExists(t, path)
+						} else {
+							// file _should_ be there
+							assert.FileExists(t, path)
+							if content, ok := value.(string); ok {
+								// value is a string, file content should match
+								buf, _ := os.ReadFile(path)
+								assert.Equal(t, content, string(buf))
+							}
+							if perm, ok := value.(int); ok {
+								// value is an int, file permissions should match
+								info, _ := os.Stat(path)
+								assert.Equal(t, perm, int(info.Mode().Perm()))
+							}
+						}
 					}
 				}
 			}
@@ -270,4 +439,32 @@ func TestGenerateTask_Execute(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
+	// invalid conflicts should always be caught by `NewTask`,
+	// but testing here for full coverage.
+	task := &GenerateTask{
+		Conflict: "unknown",
+	}
+	ctx := NewTaskContext(nil, nil, nil, false)
+	values := map[string]any{}
+
+	err := task.dispatch(ctx, values, "", "")
+	assert.ErrorContains(t, err, "unknown conflict type")
+}
+
+func TestGenerateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
+	// invalid modes should always be caught by `NewTask`,
+	// but testing here for full coverage.
+	task := &GenerateTask{
+		Mode: "unknown",
+	}
+	ios := iostreams.Test()
+	ctx := NewTaskContext(ios, nil, nil, false)
+	values := map[string]any{}
+
+	err := task.dispatch(ctx, values, "", "/do-not-generate")
+	assert.NoFileExists(t, "/do-not-generate")
+	assert.ErrorContains(t, err, "invalid syntax")
 }

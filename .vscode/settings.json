@@ -26,6 +26,7 @@
         "symwalk",
         "testdata",
         "Titleize",
+        "Unmarshaller",
         "whilp",
         "wrapcheck",
         "yolo"
