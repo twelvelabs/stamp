@@ -106,16 +106,6 @@ func TestCommon_Render(t *testing.T) {
 	}
 }
 
-func TestCommon_DryRunMethods(t *testing.T) {
-	task := &Common{}
-	assert.Equal(t, false, task.IsDryRun())
-	task.SetDryRun(true)
-	assert.Equal(t, true, task.IsDryRun())
-
-	task = &Common{DryRun: true}
-	assert.Equal(t, true, task.IsDryRun())
-}
-
 func TestCommon_ShouldExecute(t *testing.T) {
 	tests := []struct {
 		Name   string

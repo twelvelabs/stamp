@@ -17,8 +17,6 @@ import (
 type Task interface {
 	Iterator(values map[string]any) []any
 	Execute(context *TaskContext, values map[string]any) error
-	IsDryRun() bool
-	SetDryRun(value bool)
 	ShouldExecute(values map[string]any) bool
 }
 

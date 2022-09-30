@@ -20,14 +20,8 @@ var _ Task = &TaskMock{}
 //			ExecuteFunc: func(context *TaskContext, values map[string]any) error {
 //				panic("mock out the Execute method")
 //			},
-//			IsDryRunFunc: func() bool {
-//				panic("mock out the IsDryRun method")
-//			},
 //			IteratorFunc: func(values map[string]any) []any {
 //				panic("mock out the Iterator method")
-//			},
-//			SetDryRunFunc: func(value bool)  {
-//				panic("mock out the SetDryRun method")
 //			},
 //			ShouldExecuteFunc: func(values map[string]any) bool {
 //				panic("mock out the ShouldExecute method")
@@ -42,14 +36,8 @@ type TaskMock struct {
 	// ExecuteFunc mocks the Execute method.
 	ExecuteFunc func(context *TaskContext, values map[string]any) error
 
-	// IsDryRunFunc mocks the IsDryRun method.
-	IsDryRunFunc func() bool
-
 	// IteratorFunc mocks the Iterator method.
 	IteratorFunc func(values map[string]any) []any
-
-	// SetDryRunFunc mocks the SetDryRun method.
-	SetDryRunFunc func(value bool)
 
 	// ShouldExecuteFunc mocks the ShouldExecute method.
 	ShouldExecuteFunc func(values map[string]any) bool
@@ -63,18 +51,10 @@ type TaskMock struct {
 			// Values is the values argument value.
 			Values map[string]any
 		}
-		// IsDryRun holds details about calls to the IsDryRun method.
-		IsDryRun []struct {
-		}
 		// Iterator holds details about calls to the Iterator method.
 		Iterator []struct {
 			// Values is the values argument value.
 			Values map[string]any
-		}
-		// SetDryRun holds details about calls to the SetDryRun method.
-		SetDryRun []struct {
-			// Value is the value argument value.
-			Value bool
 		}
 		// ShouldExecute holds details about calls to the ShouldExecute method.
 		ShouldExecute []struct {
@@ -83,9 +63,7 @@ type TaskMock struct {
 		}
 	}
 	lockExecute       sync.RWMutex
-	lockIsDryRun      sync.RWMutex
 	lockIterator      sync.RWMutex
-	lockSetDryRun     sync.RWMutex
 	lockShouldExecute sync.RWMutex
 }
 
@@ -125,33 +103,6 @@ func (mock *TaskMock) ExecuteCalls() []struct {
 	return calls
 }
 
-// IsDryRun calls IsDryRunFunc.
-func (mock *TaskMock) IsDryRun() bool {
-	if mock.IsDryRunFunc == nil {
-		panic("TaskMock.IsDryRunFunc: method is nil but Task.IsDryRun was just called")
-	}
-	callInfo := struct {
-	}{}
-	mock.lockIsDryRun.Lock()
-	mock.calls.IsDryRun = append(mock.calls.IsDryRun, callInfo)
-	mock.lockIsDryRun.Unlock()
-	return mock.IsDryRunFunc()
-}
-
-// IsDryRunCalls gets all the calls that were made to IsDryRun.
-// Check the length with:
-//
-//	len(mockedTask.IsDryRunCalls())
-func (mock *TaskMock) IsDryRunCalls() []struct {
-} {
-	var calls []struct {
-	}
-	mock.lockIsDryRun.RLock()
-	calls = mock.calls.IsDryRun
-	mock.lockIsDryRun.RUnlock()
-	return calls
-}
-
 // Iterator calls IteratorFunc.
 func (mock *TaskMock) Iterator(values map[string]any) []any {
 	if mock.IteratorFunc == nil {
@@ -181,38 +132,6 @@ func (mock *TaskMock) IteratorCalls() []struct {
 	mock.lockIterator.RLock()
 	calls = mock.calls.Iterator
 	mock.lockIterator.RUnlock()
-	return calls
-}
-
-// SetDryRun calls SetDryRunFunc.
-func (mock *TaskMock) SetDryRun(value bool) {
-	if mock.SetDryRunFunc == nil {
-		panic("TaskMock.SetDryRunFunc: method is nil but Task.SetDryRun was just called")
-	}
-	callInfo := struct {
-		Value bool
-	}{
-		Value: value,
-	}
-	mock.lockSetDryRun.Lock()
-	mock.calls.SetDryRun = append(mock.calls.SetDryRun, callInfo)
-	mock.lockSetDryRun.Unlock()
-	mock.SetDryRunFunc(value)
-}
-
-// SetDryRunCalls gets all the calls that were made to SetDryRun.
-// Check the length with:
-//
-//	len(mockedTask.SetDryRunCalls())
-func (mock *TaskMock) SetDryRunCalls() []struct {
-	Value bool
-} {
-	var calls []struct {
-		Value bool
-	}
-	mock.lockSetDryRun.RLock()
-	calls = mock.calls.SetDryRun
-	mock.lockSetDryRun.RUnlock()
 	return calls
 }
 

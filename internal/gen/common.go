@@ -36,14 +36,6 @@ func (c *Common) Render(tpl string, values map[string]any) string {
 	return rendered
 }
 
-func (c *Common) IsDryRun() bool {
-	return c.DryRun
-}
-
-func (c *Common) SetDryRun(value bool) {
-	c.DryRun = value
-}
-
 func (c *Common) ShouldExecute(values map[string]any) bool {
 	rendered := c.Render(c.If, values)
 	return cast.ToBool(rendered)

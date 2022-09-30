@@ -36,7 +36,6 @@ func (ts *TaskSet) Add(t Task) {
 // per item in the slice.
 func (ts *TaskSet) Execute(ctx *TaskContext, values map[string]any) error {
 	for _, t := range ts.All() {
-		t.SetDryRun(ctx.DryRun)
 		if !t.ShouldExecute(values) {
 			continue
 		}
