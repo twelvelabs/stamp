@@ -13,12 +13,6 @@ import (
 	"github.com/twelvelabs/stamp/internal/render"
 )
 
-//go:generate go-enum -f=$GOFILE --marshal --names
-
-// Conflict determines what to do when Dst path already exists.
-// ENUM(keep, replace, prompt)
-type Conflict string
-
 const (
 	DST_DIR_MODE os.FileMode = 0755
 )
