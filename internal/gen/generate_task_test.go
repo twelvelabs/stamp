@@ -246,7 +246,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			assert.NoError(t, err)
 
 			ios, _, _, _ := iostreams.Test()
-			ctx := NewTaskContext(ios, tt.Prompter, nil)
+			ctx := NewTaskContext(ios, tt.Prompter, nil, false)
 			err = task.Execute(ctx, tt.Values)
 
 			// Ensure the expected files were generated

@@ -154,10 +154,8 @@ func (a *NewAction) Run() error {
 	fmt.Fprintln(a.IO.Err, "Running:", generator.Name())
 	fmt.Fprintln(a.IO.Err, "")
 
-	ctx := gen.NewTaskContext(a.IO, a.Prompter, a.Store)
-	ctx.DryRun = dryRun
+	ctx := gen.NewTaskContext(a.IO, a.Prompter, a.Store, dryRun)
 	values := generator.Values.GetAll()
-
 	if err := generator.Tasks.Execute(ctx, values); err != nil {
 		return err
 	}

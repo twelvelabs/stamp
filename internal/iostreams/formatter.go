@@ -136,20 +136,36 @@ func (f *Formatter) Bluef(t string, args ...interface{}) string {
 	return f.Blue(fmt.Sprintf(t, args...))
 }
 
+func (f *Formatter) Info(t string) string {
+	return f.Gray(t)
+}
+
 func (f *Formatter) InfoIcon() string {
-	return f.Gray("•")
+	return f.Info("•")
+}
+
+func (f *Formatter) Success(t string) string {
+	return f.Green(t)
 }
 
 func (f *Formatter) SuccessIcon() string {
-	return f.Green("✓")
+	return f.Success("✓")
+}
+
+func (f *Formatter) Warning(t string) string {
+	return f.Yellow(t)
 }
 
 func (f *Formatter) WarningIcon() string {
-	return f.Yellow("!")
+	return f.Warning("!")
+}
+
+func (f *Formatter) Failure(t string) string {
+	return f.Red(t)
 }
 
 func (f *Formatter) FailureIcon() string {
-	return f.Red("✖")
+	return f.Failure("✖")
 }
 
 type ColorFunc func(string) string

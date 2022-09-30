@@ -6,7 +6,6 @@ import (
 	//cspell: disable
 	"github.com/creasty/defaults"
 	"github.com/stretchr/testify/assert"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	//cspell: enable
 )
 
@@ -103,43 +102,6 @@ func TestCommon_Render(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			task := &Common{}
 			assert.Equal(t, test.Output, task.Render(test.Template, test.Values))
-		})
-	}
-}
-
-func TestCommon_Report(t *testing.T) {
-	tests := []struct {
-		Name    string
-		Action  string
-		Message string
-		DryRun  bool
-		Output  string
-	}{
-		{
-			Name:    "writes a formatted log line",
-			Action:  "create",
-			Message: "/something",
-			DryRun:  false,
-			Output:  "✓ [    create]: /something\n",
-		},
-		{
-			Name:    "adds a DRY RUN prefix when configured",
-			Action:  "create",
-			Message: "/something",
-			DryRun:  true,
-			Output:  "✓ [DRY RUN][    create]: /something\n",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			ios, _, _, stderr := iostreams.Test()
-
-			task := &Common{
-				DryRun: test.DryRun,
-			}
-			task.LogSuccess(ios, test.Action, test.Message)
-			assert.Equal(t, test.Output, stderr.String())
 		})
 	}
 }

@@ -45,7 +45,7 @@ func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
 	ts.Add(task1)
 	ts.Add(task2)
 
-	ctx := NewTaskContext(ios, nil, nil)
+	ctx := NewTaskContext(ios, nil, nil, false)
 	err := ts.Execute(ctx, values)
 
 	assert.NoError(t, err)
@@ -64,7 +64,7 @@ func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 	ts := NewTaskSet()
 	ts.Add(task1)
 
-	ctx := NewTaskContext(ios, nil, nil)
+	ctx := NewTaskContext(ios, nil, nil, false)
 	err := ts.Execute(ctx, values)
 
 	assert.NoError(t, err)
@@ -94,7 +94,7 @@ func TestTaskSet_HaltsExecutionAtTheFirstError(t *testing.T) {
 	ts.Add(task2)
 	ts.Add(task3)
 
-	ctx := NewTaskContext(ios, nil, nil)
+	ctx := NewTaskContext(ios, nil, nil, false)
 	err := ts.Execute(ctx, values)
 
 	assert.ErrorContains(t, err, "boom")

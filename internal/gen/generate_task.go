@@ -88,37 +88,37 @@ func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src str
 // generate is called to generate a non-existing dst file.
 func (t *GenerateTask) generate(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.createDst(values, src, dst); err != nil {
-		t.LogFailure(ctx.IO, "fail", dst)
+		ctx.Logger.Failure("fail", dst)
 		return err
 	}
-	t.LogSuccess(ctx.IO, "generate", dst)
+	ctx.Logger.Success("generate", dst)
 	return nil
 }
 
 // keep is called when keeping an existing dst file.
 func (t *GenerateTask) keep(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	t.LogSuccess(ctx.IO, "keep", dst)
+	ctx.Logger.Success("keep", dst)
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
 func (t *GenerateTask) replace(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.deleteDst(dst); err != nil {
-		t.LogFailure(ctx.IO, "fail", dst)
+		ctx.Logger.Failure("fail", dst)
 		return err
 	}
 	if err := t.createDst(values, src, dst); err != nil {
-		t.LogFailure(ctx.IO, "fail", dst)
+		ctx.Logger.Failure("fail", dst)
 		return err
 	}
-	t.LogSuccess(ctx.IO, "replace", dst)
+	ctx.Logger.Success("replace", dst)
 	return nil
 }
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
 func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	t.LogWarning(ctx.IO, "conflict", fmt.Sprintf("%s already exists", dst))
+	ctx.Logger.Warning("conflict", "%s already exists", dst)
 	overwrite, err := ctx.Prompter.Confirm("Overwrite", false, "", "")
 	if err != nil {
 		return err
