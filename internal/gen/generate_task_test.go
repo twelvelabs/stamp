@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/test_util"
+	"github.com/twelvelabs/stamp/internal/testutil"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -373,10 +373,10 @@ func TestGenerateTask_Execute(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Desc, func(t *testing.T) {
-			defer test_util.Cleanup()
+			defer testutil.Cleanup()
 
 			// Create a temp dir
-			tmpDir := test_util.MkdirTemp(t)
+			tmpDir := testutil.MkdirTemp()
 			tt.Values["DstPath"] = tmpDir
 
 			// Populate the temp dir w/ any pre-existing files needed for the run

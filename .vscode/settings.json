@@ -26,6 +26,7 @@
         "stretchr",
         "symwalk",
         "testdata",
+        "testutil",
         "Titleize",
         "Unmarshaller",
         "whilp",

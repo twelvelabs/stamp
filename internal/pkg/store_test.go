@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/twelvelabs/stamp/internal/test_util"
+	"github.com/twelvelabs/stamp/internal/testutil"
 )
 
 func TestNewStore(t *testing.T) {
@@ -64,9 +64,9 @@ func TestLoadingAllPackagesWhenBasePathMissing(t *testing.T) {
 }
 
 func TestInstallingPackages(t *testing.T) {
-	defer test_util.Cleanup()
+	defer testutil.Cleanup()
 
-	storeDir := test_util.MkdirTemp(t)
+	storeDir := testutil.MkdirTemp()
 	pkgDir := path.Join(storeDir, "minimal")
 
 	store := NewStore(storeDir)
