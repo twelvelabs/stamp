@@ -15,8 +15,15 @@ import (
 
 // Task is the interface a generator task.
 type Task interface {
+	// Iterator returns a slice of values if the task should be run more than once.
+	// Configured via the `each` attribute (default nil).
 	Iterator(values map[string]any) []any
+
+	// Execute executes the task.
 	Execute(context *TaskContext, values map[string]any) error
+
+	// ShouldExecute returns true if the task should be run.
+	// Configured via the `if` attribute (default `true`).
 	ShouldExecute(values map[string]any) bool
 }
 

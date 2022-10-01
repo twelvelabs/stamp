@@ -86,6 +86,7 @@ func (vs *ValueSet) Get(key string) any {
 	}
 }
 
+// GetAll returns all data in the set.
 func (vs *ValueSet) GetAll() map[string]any {
 	data := map[string]any{}
 
@@ -118,6 +119,9 @@ func (vs *ValueSet) Set(key string, value any) error {
 	}
 }
 
+// SetArgs attempts to set all positional values with args.
+// If len(args) > len(ValueSet.Args()), then the remaining
+// items in args are returned.
 func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
 	for _, val := range vs.Args() {
 		if len(args) == 0 {
@@ -137,6 +141,8 @@ func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
 	return args, nil
 }
 
+// Prompt calls Value.Prompt() for each value in the set.
+// Returns the first error received.
 func (vs *ValueSet) Prompt(prompter Prompter) error {
 	_ = vs.GetAll() // workaround for cache invalidation issue
 	for _, val := range vs.All() {
@@ -147,6 +153,8 @@ func (vs *ValueSet) Prompt(prompter Prompter) error {
 	return nil
 }
 
+// Validate calls Value.Validate() for each value in the set.
+// Returns the first error received.
 func (vs *ValueSet) Validate() error {
 	for _, val := range vs.All() {
 		if err := val.Validate(); err != nil {
