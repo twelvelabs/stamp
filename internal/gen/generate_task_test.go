@@ -15,67 +15,67 @@ import (
 
 func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 	tests := []struct {
-		Name   string
-		Input  map[string]any
-		Output interface{}
-		Err    string
+		Name     string
+		TaskData map[string]any
+		Task     interface{}
+		Err      string
 	}{
 		{
 			Name: "returns an error when both src and dst are missing",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type": "generate",
 			},
-			Output: nil,
-			Err:    "Src is a required field, Dst is a required field",
+			Task: nil,
+			Err:  "Src is a required field, Dst is a required field",
 		},
 		{
 			Name: "returns an error when dst is missing",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type": "generate",
 				"src":  "example.tpl",
 			},
-			Output: nil,
-			Err:    "Dst is a required field",
+			Task: nil,
+			Err:  "Dst is a required field",
 		},
 		{
 			Name: "returns an error when src is missing",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type": "generate",
 				"dst":  "example.txt",
 			},
-			Output: nil,
-			Err:    "Src is a required field",
+			Task: nil,
+			Err:  "Src is a required field",
 		},
 		{
 			Name: "returns an error when mode is invalid",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type": "generate",
 				"src":  "example.tpl",
 				"dst":  "example.txt",
 				"mode": "not a posix-mode",
 			},
-			Output: nil,
-			Err:    "Mode must be a valid posix file mode",
+			Task: nil,
+			Err:  "Mode must be a valid posix file mode",
 		},
 		{
 			Name: "returns an error when conflict is invalid",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type":     "generate",
 				"src":      "example.tpl",
 				"dst":      "example.txt",
 				"conflict": "unknown",
 			},
-			Output: nil,
-			Err:    "unknown is not a valid Conflict",
+			Task: nil,
+			Err:  "unknown is not a valid Conflict",
 		},
 		{
 			Name: "returns the task when all fields are valid",
-			Input: map[string]any{
+			TaskData: map[string]any{
 				"type": "generate",
 				"src":  "example.tpl",
 				"dst":  "example.txt",
 			},
-			Output: &GenerateTask{
+			Task: &GenerateTask{
 				Common: Common{
 					If:   "true",
 					Each: "",
@@ -91,9 +91,9 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			actual, err := NewTask(test.Input)
+			actual, err := NewTask(test.TaskData)
 
-			assert.Equal(t, test.Output, actual)
+			assert.Equal(t, test.Task, actual)
 			if test.Err == "" {
 				assert.NoError(t, err)
 			} else {
