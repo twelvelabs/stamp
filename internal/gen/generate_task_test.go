@@ -2,9 +2,7 @@ package gen
 
 import (
 	"errors"
-	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -111,7 +109,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 		TaskData   map[string]any
 		Values     map[string]any
 		Prompter   *value.PrompterMock
-		StartFiles map[string]string
+		StartFiles map[string]any
 		EndFiles   map[string]any
 		Err        string
 	}{
@@ -254,7 +252,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 
 		{
 			Desc: "[conflict:keep] will keep without prompting",
-			StartFiles: map[string]string{
+			StartFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
@@ -277,7 +275,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 
 		{
 			Desc: "[conflict:replace] will replace without prompting",
-			StartFiles: map[string]string{
+			StartFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
@@ -300,7 +298,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 
 		{
 			Desc: "[conflict:prompt] will prompt to overwrite and replace the file if user confirms",
-			StartFiles: map[string]string{
+			StartFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
@@ -324,7 +322,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 		},
 		{
 			Desc: "[conflict:prompt] will prompt to overwrite and keep the file if user responds no",
-			StartFiles: map[string]string{
+			StartFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
@@ -348,7 +346,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 		},
 		{
 			Desc: "[conflict:prompt] will return any prompter errors",
-			StartFiles: map[string]string{
+			StartFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
@@ -379,13 +377,8 @@ func TestGenerateTask_Execute(t *testing.T) {
 			tmpDir := testutil.MkdirTemp()
 			tt.Values["DstPath"] = tmpDir
 
-			// Populate the temp dir w/ any pre-existing files needed for the run
-			if tt.StartFiles != nil {
-				for path, content := range tt.StartFiles {
-					path = tmpDir + "/" + path
-					_ = os.WriteFile(path, []byte(content), 0666)
-				}
-			}
+			// Populate the temp dir w/ any initial files
+			testutil.CreatePaths(tmpDir, tt.StartFiles)
 
 			// Create a new task and execute it
 			task, err := NewTask(tt.TaskData)
@@ -396,41 +389,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			err = task.Execute(ctx, tt.Values)
 
 			// Ensure the expected files were generated
-			if tt.EndFiles != nil {
-				for path, value := range tt.EndFiles {
-					// prepend the temp dir to the path
-					path = tmpDir + "/" + path
-					if strings.HasSuffix(path, "/") {
-						// path refers to a directory
-						if exists, ok := value.(bool); ok && !exists {
-							// value is `false`, dir _should not_ be there
-							assert.NoDirExists(t, path)
-						} else {
-							// dir _should_ be there
-							assert.DirExists(t, path)
-						}
-					} else {
-						// path is file
-						if exists, ok := value.(bool); ok && !exists {
-							// value is `false`, file _should not_ be there
-							assert.NoFileExists(t, path)
-						} else {
-							// file _should_ be there
-							assert.FileExists(t, path)
-							if content, ok := value.(string); ok {
-								// value is a string, file content should match
-								buf, _ := os.ReadFile(path)
-								assert.Equal(t, content, string(buf))
-							}
-							if perm, ok := value.(int); ok {
-								// value is an int, file permissions should match
-								info, _ := os.Stat(path)
-								assert.Equal(t, perm, int(info.Mode().Perm()))
-							}
-						}
-					}
-				}
-			}
+			testutil.AssertPaths(t, tmpDir, tt.EndFiles)
 
 			if tt.Err == "" {
 				assert.NoError(t, err)
