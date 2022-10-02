@@ -1,0 +1,10 @@
+Name: hello
+
+values:
+  - key: Greeting
+    type: string
+
+tasks:
+  - type: generate
+    src: "{{ .SrcPath }}/hello.txt"
+    dst: "{{ .DstPath }}/hello.txt"

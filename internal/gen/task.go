@@ -49,6 +49,8 @@ func NewTask(taskData map[string]any) (Task, error) {
 	switch taskType {
 	case "generate":
 		task = &GenerateTask{}
+	case "generator":
+		task = &GeneratorTask{}
 	default:
 		return nil, fmt.Errorf("unknown task type: %v", taskType)
 	}
