@@ -1,0 +1,15 @@
+Name: file
+
+values:
+  - key: FileName
+    type: string
+    default: untitled.txt
+
+  - key: FileContent
+    type: string
+    default: ""
+
+tasks:
+  - type: generate
+    src: "{{ .SrcPath }}/template.txt"
+    dst: "{{ .DstPath }}/{{ .FileName }}"

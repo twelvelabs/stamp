@@ -82,27 +82,12 @@ func TestGeneratorTask_Execute(t *testing.T) {
 			Desc: "executes the named generator with values",
 			TaskData: map[string]any{
 				"type": "generator",
-				"name": "hello",
+				"name": "file",
 			},
 			Values: map[string]any{
-				"Greeting": "hello, world!",
+				"FileName":    "hello.txt",
+				"FileContent": "hello, world!",
 			},
-			EndFiles: map[string]any{
-				"hello.txt": "hello, world!",
-			},
-			Err: "",
-		},
-
-		{
-			Desc: "executes the named generator with extras",
-			TaskData: map[string]any{
-				"type": "generator",
-				"name": "hello",
-				"extra": map[string]any{
-					"Greeting": "hello, world!",
-				},
-			},
-			Values: map[string]any{},
 			EndFiles: map[string]any{
 				"hello.txt": "hello, world!",
 			},
