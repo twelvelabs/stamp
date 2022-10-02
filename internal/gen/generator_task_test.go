@@ -58,7 +58,7 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 }
 
 func TestGeneratorTask_Execute(t *testing.T) {
-	packagesDir := filepath.Join("..", "..", "testdata", "generators")
+	storeDir := filepath.Join("..", "..", "testdata", "generators")
 	tests := []struct {
 		Desc       string
 		TaskData   map[string]any
@@ -121,7 +121,7 @@ func TestGeneratorTask_Execute(t *testing.T) {
 			// Populate the temp dir w/ any initial files
 			testutil.CreatePaths(tmpDir, tt.StartFiles)
 
-			store := NewStore(packagesDir)
+			store := NewStore(storeDir)
 
 			task, err := NewTask(tt.TaskData)
 			assert.NoError(t, err)

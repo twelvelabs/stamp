@@ -1,7 +1,10 @@
 package pkg
 
 import (
+	"fmt"
 	"path/filepath"
+
+	"github.com/gobuffalo/flect" //cspell: disable-line
 )
 
 type Package struct {
@@ -27,8 +30,7 @@ func (p *Package) MetaPath() string {
 //
 //	"/package/foo/bar/baz" => "foo:bar:baz"
 func (p *Package) Name() string {
-	val, _ := p.Metadata["Name"]
-	if val, ok := val.(string); ok {
+	if val, ok := p.MetadataLookup("name").(string); ok {
 		return val
 	}
 	return ""
@@ -41,8 +43,7 @@ func (p *Package) SetName(value string) {
 
 // Origin returns the path or URL used to install the package.
 func (p *Package) Origin() string {
-	val, _ := p.Metadata["Origin"]
-	if val, ok := val.(string); ok {
+	if val, ok := p.MetadataLookup("origin").(string); ok {
 		return val
 	}
 	return ""
@@ -84,4 +85,47 @@ func (p *Package) Root() *Package {
 		node = n
 	}
 	return node
+}
+
+// MetadataMapSlice returns a slice of maps for the given metadata key.
+func (p *Package) MetadataMapSlice(key string) []map[string]any {
+	items := []map[string]any{}
+	for i, m := range p.MetadataSlice(key) {
+		item, ok := m.(map[string]any)
+		if !ok {
+			panic(NewMetadataTypeCastError(
+				fmt.Sprintf("%s[%d]", key, i),
+				m,
+				"map[string]any",
+			))
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+// MetadataSlice returns a slice value for the given metadata key.
+func (p *Package) MetadataSlice(key string) []any {
+	val := p.MetadataLookup(key)
+	switch val.(type) {
+	case []any:
+		return val.([]any)
+	case nil:
+		return []any{}
+	default:
+		panic(NewMetadataTypeCastError(key, val, "[]any"))
+	}
+}
+
+// MetadataLookup returns the value for key in Metadata.
+// If not found, then tries the pascalized version of key.
+func (p *Package) MetadataLookup(key string) any {
+	if val, ok := p.Metadata[key]; ok {
+		return val
+	}
+
+	if val, ok := p.Metadata[flect.Pascalize(key)]; ok {
+		return val
+	}
+	return nil
 }

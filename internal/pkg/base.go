@@ -21,23 +21,6 @@ var (
 	pkgNameRegexp = regexp.MustCompile(`^[\w\-.:]+$`)
 )
 
-func NewNotFoundError(metaFile string) NotFoundError {
-	return NotFoundError{
-		metaFile: metaFile,
-	}
-}
-
-type NotFoundError struct {
-	metaFile string
-}
-
-func (e NotFoundError) Error() string {
-	// This assumes that the meta filename describes what the package is.
-	// i.e. if your package is a "widget", then name the file widget.yaml
-	kind := strings.TrimSuffix(e.metaFile, filepath.Ext(e.metaFile))
-	return fmt.Sprintf("%s not found", kind)
-}
-
 // PackagePath returns the absolute path to a package.
 // Returns an error if `name` is empty or invalid.
 // For example:

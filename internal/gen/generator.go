@@ -4,12 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"reflect"
-
-	// cspell:disable
-	"github.com/gobuffalo/flect"
-
-	// cspell:enable
 
 	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/value"
@@ -76,78 +70,9 @@ type Generator struct {
 }
 
 func (g *Generator) taskMetadata() []map[string]any {
-	return g.metadataSliceOfMaps("tasks")
+	return g.MetadataMapSlice("tasks")
 }
 
 func (g *Generator) valueMetadata() []map[string]any {
-	return g.metadataSliceOfMaps("values")
-}
-
-// Returns a slice of maps for the given metadata key.
-func (g *Generator) metadataSliceOfMaps(key string) []map[string]any {
-	items := []map[string]any{}
-	for i, m := range g.metadataSlice(key) {
-		item, ok := m.(map[string]any)
-		if !ok {
-			panic(NewMetadataTypeCastError(
-				fmt.Sprintf("%s[%d]", key, i),
-				m,
-				"map[string]any",
-			))
-		}
-		items = append(items, item)
-	}
-	return items
-}
-
-// returns a slice value for the given metadata key.
-func (g *Generator) metadataSlice(key string) []any {
-	val := g.metadataLookup(key)
-	switch val.(type) {
-	case []any:
-		return val.([]any)
-	case nil:
-		return []any{}
-	default:
-		panic(NewMetadataTypeCastError(key, val, "[]any"))
-	}
-}
-
-// Returns the value for key in metadata.
-// If not found, then tries the camel-cased version of key.
-func (g *Generator) metadataLookup(key string) any {
-	if val, ok := g.Metadata[key]; ok {
-		return val
-	}
-
-	if val, ok := g.Metadata[flect.Pascalize(key)]; ok {
-		return val
-	}
-	return nil
-}
-
-type MetadataTypeCastError struct {
-	key          string
-	value        any
-	expectedType string
-	actualType   string
-}
-
-func NewMetadataTypeCastError(key string, value any, expectedType string) MetadataTypeCastError {
-	actualType := reflect.TypeOf(value).String()
-	return MetadataTypeCastError{
-		key:          key,
-		value:        value,
-		expectedType: expectedType,
-		actualType:   actualType,
-	}
-}
-
-func (e MetadataTypeCastError) Error() string {
-	return fmt.Sprintf(
-		"generator metadata invalid: '%s' should be '%s', is '%s'",
-		e.key,
-		e.expectedType,
-		e.actualType,
-	)
+	return g.MetadataMapSlice("values")
 }
