@@ -1,0 +1,13 @@
+Name: delegating-dupe
+
+tasks:
+  # running task w/ custom content first to ensure
+  # that those values don't leak to the next task.
+  - type: generator
+    name: file
+    extra:
+      FileName: "customized.txt"
+      FileContent: "custom content"
+
+  - type: generator
+    name: file

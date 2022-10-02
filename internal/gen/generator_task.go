@@ -17,11 +17,16 @@ func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return err
 	}
 
+	// Deep copy so that any value mutation done by this generator
+	// doesn't leak up to the caller.
 	copied, err := copystructure.Copy(values)
 	if err != nil {
 		return err
 	}
 	data := copied.(map[string]any)
+	// Overwrite extras. Doing this here (in addition to the setting in GetGenerator),
+	// to cover the case where the same generator name is used in multiple tasks.
+	// In that scenario, `values` would contain those from the last task added.
 	for k, v := range t.Extra {
 		data[k] = v
 	}
@@ -34,6 +39,10 @@ func (t *GeneratorTask) GetGenerator(store *Store) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: set values using Extra
+	// Setting the extras here so that when the values are added to the
+	// delegating generator (See NewGenerator()), they have the correct data.
+	for k, v := range t.Extra {
+		gen.Values.Set(k, v)
+	}
 	return gen, nil
 }

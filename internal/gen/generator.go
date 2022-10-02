@@ -28,20 +28,32 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 		Tasks:   NewTaskSet(),
 	}
 
-	for _, vm := range gen.valueMetadata() {
-		v, err := value.NewValue(vm)
-		if err != nil {
-			return nil, fmt.Errorf("generator metadata invalid: %w", err)
-		}
-		gen.Values.Add(v)
-	}
-
 	for _, tm := range gen.taskMetadata() {
 		t, err := NewTask(tm)
 		if err != nil {
 			return nil, fmt.Errorf("generator metadata invalid: %w", err)
 		}
 		gen.Tasks.Add(t)
+
+		if gt, ok := t.(*GeneratorTask); ok {
+			// This is a task that calls out to a sub-generator,
+			// merge in the sub-generator's values.
+			subGen, err := gt.GetGenerator(store)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load sub-generator '%s': %w", gt.Name, err)
+			}
+			for _, val := range subGen.Values.All() {
+				gen.Values.Add(val)
+			}
+		}
+	}
+
+	for _, vm := range gen.valueMetadata() {
+		v, err := value.NewValue(vm)
+		if err != nil {
+			return nil, fmt.Errorf("generator metadata invalid: %w", err)
+		}
+		gen.Values.Add(v)
 	}
 
 	dstPath, err := filepath.Abs(".")
@@ -55,6 +67,9 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 }
 
 func NewGenerators(store *Store, packages []*pkg.Package) ([]*Generator, error) {
+	if store == nil {
+		return nil, ErrNilStore
+	}
 	generators := []*Generator{}
 	for _, p := range packages {
 		generator, err := NewGenerator(store, p)

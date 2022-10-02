@@ -1,0 +1,8 @@
+Name: delegating
+
+tasks:
+  - type: generator
+    name: file
+    extra:
+      FileName: "customized.txt"
+      FileContent: "custom content"
