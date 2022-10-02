@@ -17,7 +17,7 @@ func (s *Store) Load(name string) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewGenerator(pkg)
+	return NewGenerator(s, pkg)
 }
 
 func (s *Store) LoadAll() ([]*Generator, error) {
@@ -25,5 +25,5 @@ func (s *Store) LoadAll() ([]*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewGenerators(packages)
+	return NewGenerators(s, packages)
 }

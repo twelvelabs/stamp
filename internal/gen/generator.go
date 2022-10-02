@@ -11,9 +11,13 @@ import (
 
 var (
 	ErrNilPackage = errors.New("nil package")
+	ErrNilStore   = errors.New("nil store")
 )
 
-func NewGenerator(pkg *pkg.Package) (*Generator, error) {
+func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
+	if store == nil {
+		return nil, ErrNilStore
+	}
 	if pkg == nil {
 		return nil, ErrNilPackage
 	}
@@ -50,10 +54,10 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 	return gen, nil
 }
 
-func NewGenerators(packages []*pkg.Package) ([]*Generator, error) {
+func NewGenerators(store *Store, packages []*pkg.Package) ([]*Generator, error) {
 	generators := []*Generator{}
 	for _, p := range packages {
-		generator, err := NewGenerator(p)
+		generator, err := NewGenerator(store, p)
 		if err != nil {
 			return nil, err
 		}
