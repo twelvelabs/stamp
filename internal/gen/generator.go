@@ -30,13 +30,6 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 		Tasks:   NewTaskSet(),
 	}
 
-	dstPath, err := filepath.Abs(".")
-	if err != nil {
-		return nil, err
-	}
-	gen.Values.Set("SrcPath", gen.Path())
-	gen.Values.Set("DstPath", dstPath)
-
 	for _, vm := range gen.valueMetadata() {
 		v, err := value.NewValue(vm)
 		if err != nil {
@@ -52,6 +45,13 @@ func NewGenerator(pkg *pkg.Package) (*Generator, error) {
 		}
 		gen.Tasks.Add(t)
 	}
+
+	dstPath, err := filepath.Abs(".")
+	if err != nil {
+		return nil, err
+	}
+	gen.Tasks.SrcPath = gen.Path()
+	gen.Tasks.DstPath = dstPath
 
 	return gen, nil
 }
