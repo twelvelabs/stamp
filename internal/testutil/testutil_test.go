@@ -108,6 +108,48 @@ func TestMkdirTemp(t *testing.T) {
 	assert.Equal(t, []string{}, CleanupPaths())
 }
 
+func TestInTempDir(t *testing.T) {
+	f := chdirFunc
+	defer func() {
+		chdirFunc = f
+		ClearCleanupPaths()
+	}()
+
+	actualDirs := []string{}
+	chdirFunc = func(dir string) error {
+		actualDirs = append(actualDirs, dir)
+		return nil
+	}
+
+	expectedDirs := []string{}
+	InTempDir(func(tmpDir string) {
+		expectedDirs = append(expectedDirs, tmpDir)
+	})
+	expectedDirs = append(expectedDirs, WorkingDir())
+
+	assert.Equal(t, expectedDirs, actualDirs)
+
+	// error on first chdir call
+	chdirFunc = func(dir string) error {
+		return errors.New("boom")
+	}
+	assert.Panics(t, func() {
+		InTempDir(func(tmpDir string) {})
+	})
+
+	// error on second chdir call... for the coverage :/
+	chdirFunc = func(dir string) error {
+		return nil
+	}
+	assert.Panics(t, func() {
+		InTempDir(func(tmpDir string) {
+			chdirFunc = func(dir string) error {
+				return errors.New("boom")
+			}
+		})
+	})
+}
+
 func TestWorkingDir(t *testing.T) {
 	f := workingDirFunc
 	defer func() {

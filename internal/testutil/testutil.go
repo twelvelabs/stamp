@@ -15,6 +15,7 @@ var (
 	paths = []string{}
 
 	// Abstracted to make testing easier
+	chdirFunc      = os.Chdir
 	removeAllFunc  = os.RemoveAll
 	mkdirTempFunc  = os.MkdirTemp
 	mkdirAllFunc   = os.MkdirAll
@@ -70,6 +71,20 @@ func MkdirTemp() string {
 	}
 	AddCleanupPath(dir)
 	return dir
+}
+
+// InTempDir executes handler in a temp dir, restoring the working dir
+// back to it's original location once handler exits.
+func InTempDir(handler func(tmpDir string)) {
+	current := WorkingDir()
+	tmp := MkdirTemp()
+	if err := chdirFunc(tmp); err != nil {
+		panic(err)
+	}
+	handler(tmp)
+	if err := chdirFunc(current); err != nil {
+		panic(err)
+	}
 }
 
 // WorkingDir calls os.Getwd and panics on error.
