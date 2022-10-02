@@ -14,35 +14,28 @@ func TestNewValueSet(t *testing.T) {
 }
 
 func TestValueSet_AddAndGetValue(t *testing.T) {
-	tests := []struct {
-		Name  string
-		Value *Value
-		Key   string
-		Err   string
-	}{
-		{
-			Name:  "value is found",
-			Value: &Value{Key: "Foo"},
-			Key:   "Foo",
-			Err:   "",
-		},
-		{
-			Name:  "value not found",
-			Value: nil,
-			Key:   "Foo",
-			Err:   "",
-		},
-	}
+	vs := NewValueSet()
 
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			vs := NewValueSet()
-			// AddValue() should be chainable,
-			// and adding nil should be a noop
-			vs.Add(nil).Add(test.Value)
-			assert.Equal(t, test.Value, vs.Value(test.Key))
-		})
-	}
+	// Unknown keys return nil.
+	assert.Nil(t, vs.Value("unknown"))
+
+	// Adding nil is a noop.
+	vs.Add(nil)
+	assert.Equal(t, 0, vs.Len())
+
+	// Calls to Add() are chainable.
+	value1 := &Value{Key: "value1"}
+	value2 := &Value{Key: "value2"}
+	vs.Add(value1).Add(value2)
+	assert.Equal(t, 2, vs.Len())
+	assert.Equal(t, value1, vs.Value("value1"))
+	assert.Equal(t, value2, vs.Value("value2"))
+
+	// Duplicate values overwrite existing ones w/ the same key.
+	dupe1 := &Value{Key: "value1", Default: "something"}
+	vs.Add(dupe1)
+	assert.Equal(t, 2, vs.Len())
+	assert.Equal(t, dupe1, vs.Value("value1"))
 }
 
 func TestValueSet_ValuesMethods(t *testing.T) {
@@ -396,11 +389,13 @@ func TestValueSet_Validate(t *testing.T) {
 			name: "returns nil when all values are valid",
 			values: []*Value{
 				{
+					Key:             "v1",
 					DataType:        DataTypeString,
 					Default:         "foo",
 					ValidationRules: "required",
 				},
 				{
+					Key:             "v2",
 					DataType:        DataTypeString,
 					Default:         "bar",
 					ValidationRules: "required",
@@ -412,11 +407,13 @@ func TestValueSet_Validate(t *testing.T) {
 			name: "returns an error when any values are invalid",
 			values: []*Value{
 				{
+					Key:             "v1",
 					DataType:        DataTypeString,
 					Default:         "foo",
 					ValidationRules: "required",
 				},
 				{
+					Key:             "v2",
 					DataType:        DataTypeString,
 					Default:         "",
 					ValidationRules: "required",
@@ -449,9 +446,11 @@ func TestValueSet_Prompt(t *testing.T) {
 			name: "returns nil when all prompts succeed",
 			values: []*Value{
 				{
+					Key:      "v1",
 					DataType: DataTypeBool,
 				},
 				{
+					Key:      "v2",
 					DataType: DataTypeBool,
 				},
 			},
@@ -464,9 +463,11 @@ func TestValueSet_Prompt(t *testing.T) {
 			name: "returns an error when any prompts fail",
 			values: []*Value{
 				{
+					Key:      "v1",
 					DataType: DataTypeBool,
 				},
 				{
+					Key:      "v2",
 					DataType: DataTypeBool,
 				},
 			},

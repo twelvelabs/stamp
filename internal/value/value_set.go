@@ -1,21 +1,32 @@
 package value
 
+// ValueSet is a unique set of Values (identified by Value.Key).
 type ValueSet struct {
-	values  []*Value
+	keys    []string
+	values  map[string]*Value
 	dataMap DataMap
 }
 
 // NewValueSet returns a new ValueSet.
 func NewValueSet() *ValueSet {
 	return &ValueSet{
-		values:  []*Value{},
+		values:  map[string]*Value{},
 		dataMap: NewDataMap(),
 	}
 }
 
+// Len returns the number of values in the set.
+func (vs *ValueSet) Len() int {
+	return len(vs.values)
+}
+
 // All returns all values in the set.
 func (vs *ValueSet) All() []*Value {
-	return vs.values
+	values := []*Value{}
+	for _, key := range vs.keys {
+		values = append(values, vs.values[key])
+	}
+	return values
 }
 
 // Args returns only the arg values.
@@ -45,11 +56,15 @@ func (vs *ValueSet) Partition() ([]*Value, []*Value) {
 	return args, flags
 }
 
-// Add adds val to the set.
-func (vs *ValueSet) Add(val *Value) *ValueSet {
-	if val != nil {
-		vs.values = append(vs.values, val.WithValueSet(vs))
-		vs.Cache().Set(val.Key, val.Get())
+// Add adds a value to the set.
+// Values are identified by Value.Key and duplicates are overwritten.
+func (vs *ValueSet) Add(value *Value) *ValueSet {
+	if value != nil {
+		if _, found := vs.values[value.Key]; !found {
+			vs.keys = append(vs.keys, value.Key)
+		}
+		vs.values[value.Key] = value.WithValueSet(vs)
+		vs.Cache().Set(value.Key, value.Get())
 	}
 	return vs
 }
