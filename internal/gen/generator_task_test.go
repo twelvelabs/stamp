@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,7 +57,6 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 }
 
 func TestGeneratorTask_Execute(t *testing.T) {
-	storeDir := filepath.Join("..", "..", "testdata", "generators")
 	tests := []struct {
 		Desc       string
 		TaskData   map[string]any
@@ -99,30 +97,27 @@ func TestGeneratorTask_Execute(t *testing.T) {
 		t.Run(tt.Desc, func(t *testing.T) {
 			defer testutil.Cleanup()
 
-			// Create a temp dir
-			tmpDir := testutil.MkdirTemp()
-			tt.Values["DstPath"] = tmpDir
+			store := NewTestStore() // must call before changing dirs
 
-			// Populate the temp dir w/ any initial files
-			testutil.CreatePaths(tmpDir, tt.StartFiles)
+			testutil.InTempDir(t, func(tmpDir string) {
+				// Populate the temp dir w/ any initial files
+				testutil.CreatePaths(tmpDir, tt.StartFiles)
 
-			store := NewStore(storeDir)
-
-			task, err := NewTask(tt.TaskData)
-			assert.NoError(t, err)
-
-			ios := iostreams.Test()
-			ctx := NewTaskContext(ios, tt.Prompter, store, false)
-			err = task.Execute(ctx, tt.Values)
-
-			// Ensure the expected files were generated
-			testutil.AssertPaths(t, tmpDir, tt.EndFiles)
-
-			if tt.Err == "" {
+				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
-			} else {
-				assert.ErrorContains(t, err, tt.Err)
-			}
+
+				ctx := NewTaskContext(iostreams.Test(), tt.Prompter, store, false)
+				err = task.Execute(ctx, tt.Values)
+
+				// Ensure the expected files were generated
+				testutil.AssertPaths(t, tmpDir, tt.EndFiles)
+
+				if tt.Err == "" {
+					assert.NoError(t, err)
+				} else {
+					assert.ErrorContains(t, err, tt.Err)
+				}
+			})
 		})
 	}
 }

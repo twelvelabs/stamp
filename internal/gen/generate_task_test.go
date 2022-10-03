@@ -102,7 +102,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 }
 
 func TestGenerateTask_Execute(t *testing.T) {
-	templatesDir := filepath.Join("..", "..", "testdata", "templates")
+	templatesDir, _ := filepath.Abs(filepath.Join("..", "..", "testdata", "templates"))
 	tests := []struct {
 		Desc       string
 		DryRun     bool
@@ -121,7 +121,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 				"dst":  "{{ .DstPath }}/README.md",
 			},
 			Values: map[string]any{
-				"DstPath": "TBD",
+				"DstPath": ".",
 				"Empty":   "",
 			},
 			Err: "path '{{ .Empty }}' evaluated to an empty string",
@@ -148,8 +148,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			},
 			Values: map[string]any{
 				"SrcPath": templatesDir,
-				"DstPath": "TBD",
-				"Empty":   "",
+				"DstPath": ".",
 			},
 			Err: "missing.md: no such file or directory",
 		},
@@ -164,7 +163,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
@@ -182,7 +181,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
 				"README.md": 0o755,
@@ -200,7 +199,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
 				"README.md": false,
@@ -218,7 +217,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
 				"nested/README.md":  "# My Project\n",
@@ -239,7 +238,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
 				"nested/README.md":  false,
@@ -264,7 +263,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			Prompter: &value.PrompterMock{},
 			EndFiles: map[string]any{
@@ -287,7 +286,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			Prompter: &value.PrompterMock{},
 			EndFiles: map[string]any{
@@ -310,7 +309,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			Prompter: &value.PrompterMock{
 				ConfirmFunc: value.NewConfirmFunc(true, nil),
@@ -334,7 +333,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			Prompter: &value.PrompterMock{
 				ConfirmFunc: value.NewConfirmFunc(false, nil),
@@ -358,7 +357,7 @@ func TestGenerateTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"ProjectName": "My Project",
 				"SrcPath":     templatesDir,
-				"DstPath":     "TBD",
+				"DstPath":     ".",
 			},
 			Prompter: &value.PrompterMock{
 				ConfirmFunc: value.NewConfirmFunc(false, errors.New("boom")),
@@ -373,29 +372,26 @@ func TestGenerateTask_Execute(t *testing.T) {
 		t.Run(tt.Desc, func(t *testing.T) {
 			defer testutil.Cleanup()
 
-			// Create a temp dir
-			tmpDir := testutil.MkdirTemp()
-			tt.Values["DstPath"] = tmpDir
+			testutil.InTempDir(t, func(tmpDir string) {
+				// Populate the temp dir w/ any initial files
+				testutil.CreatePaths(tmpDir, tt.StartFiles)
 
-			// Populate the temp dir w/ any initial files
-			testutil.CreatePaths(tmpDir, tt.StartFiles)
-
-			// Create a new task and execute it
-			task, err := NewTask(tt.TaskData)
-			assert.NoError(t, err)
-
-			ios := iostreams.Test()
-			ctx := NewTaskContext(ios, tt.Prompter, nil, tt.DryRun)
-			err = task.Execute(ctx, tt.Values)
-
-			// Ensure the expected files were generated
-			testutil.AssertPaths(t, tmpDir, tt.EndFiles)
-
-			if tt.Err == "" {
+				// Create a new task and execute it
+				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
-			} else {
-				assert.ErrorContains(t, err, tt.Err)
-			}
+
+				ctx := NewTaskContext(iostreams.Test(), tt.Prompter, nil, tt.DryRun)
+				err = task.Execute(ctx, tt.Values)
+
+				// Ensure the expected files were generated
+				testutil.AssertPaths(t, tmpDir, tt.EndFiles)
+
+				if tt.Err == "" {
+					assert.NoError(t, err)
+				} else {
+					assert.ErrorContains(t, err, tt.Err)
+				}
+			})
 		})
 	}
 }

@@ -75,7 +75,8 @@ func MkdirTemp() string {
 
 // InTempDir executes handler in a temp dir, restoring the working dir
 // back to it's original location once handler exits.
-func InTempDir(handler func(tmpDir string)) {
+func InTempDir(t testing.TB, handler func(tmpDir string)) {
+	t.Helper()
 	current := WorkingDir()
 	tmp := MkdirTemp()
 	if err := chdirFunc(tmp); err != nil {
@@ -104,7 +105,8 @@ func WriteFile(name string, data []byte, perm fs.FileMode) {
 	AddCleanupPath(name)
 }
 
-func AssertPaths(t *testing.T, base string, files map[string]any) {
+func AssertPaths(t testing.TB, base string, files map[string]any) {
+	t.Helper()
 	if files == nil {
 		return
 	}
@@ -121,7 +123,8 @@ func AssertPaths(t *testing.T, base string, files map[string]any) {
 
 // AssertDirPath asserts a directory path does not exist if
 // value is false, otherwise asserts that it does.
-func AssertDirPath(t *testing.T, path string, value any) {
+func AssertDirPath(t testing.TB, path string, value any) {
+	t.Helper()
 	if exists, ok := value.(bool); ok && !exists {
 		assert.NoDirExists(t, path)
 	} else {
@@ -135,7 +138,8 @@ func AssertDirPath(t *testing.T, path string, value any) {
 // Additionally:
 //   - If value is a string, then the file contents should match.
 //   - If value is an int, then file permissions should match.
-func AssertFilePath(t *testing.T, path string, value any) {
+func AssertFilePath(t testing.TB, path string, value any) {
+	t.Helper()
 	if exists, ok := value.(bool); ok && !exists {
 		// value is `false`, file _should not_ be there
 		assert.NoFileExists(t, path)

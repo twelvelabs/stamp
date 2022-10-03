@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,11 +8,6 @@ import (
 	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/testutil"
 )
-
-func NewTestStore() *Store {
-	storePath, _ := filepath.Abs(filepath.Join("..", "..", "testdata", "generators"))
-	return NewStore(storePath)
-}
 
 func TestNewGenerator(t *testing.T) {
 	store := NewTestStore()
@@ -74,9 +68,9 @@ func TestNewGenerators(t *testing.T) {
 func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 	defer testutil.Cleanup()
 
-	store := NewTestStore() // store path is relative, can't be called in tmp dir
+	store := NewTestStore() // must call before changing dirs
 
-	testutil.InTempDir(func(tmpDir string) {
+	testutil.InTempDir(t, func(tmpDir string) {
 		gen, err := store.Load("delegating")
 		assert.NotNil(t, gen)
 		assert.NoError(t, err)
@@ -95,7 +89,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		})
 	})
 
-	testutil.InTempDir(func(tmpDir string) {
+	testutil.InTempDir(t, func(tmpDir string) {
 		gen, err := store.Load("delegating-dupe")
 		assert.NotNil(t, gen)
 		assert.NoError(t, err)

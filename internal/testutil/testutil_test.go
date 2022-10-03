@@ -122,7 +122,7 @@ func TestInTempDir(t *testing.T) {
 	}
 
 	expectedDirs := []string{}
-	InTempDir(func(tmpDir string) {
+	InTempDir(t, func(tmpDir string) {
 		expectedDirs = append(expectedDirs, tmpDir)
 	})
 	expectedDirs = append(expectedDirs, WorkingDir())
@@ -134,7 +134,7 @@ func TestInTempDir(t *testing.T) {
 		return errors.New("boom")
 	}
 	assert.Panics(t, func() {
-		InTempDir(func(tmpDir string) {})
+		InTempDir(t, func(tmpDir string) {})
 	})
 
 	// error on second chdir call... for the coverage :/
@@ -142,7 +142,7 @@ func TestInTempDir(t *testing.T) {
 		return nil
 	}
 	assert.Panics(t, func() {
-		InTempDir(func(tmpDir string) {
+		InTempDir(t, func(tmpDir string) {
 			chdirFunc = func(dir string) error {
 				return errors.New("boom")
 			}
