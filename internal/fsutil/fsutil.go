@@ -3,7 +3,6 @@ package fsutil
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -15,21 +14,13 @@ const (
 	DefaultFileMode = 0600
 )
 
-type FsUtil struct {
-}
-
-func NewFsUtil() *FsUtil {
-	return &FsUtil{}
-}
-
-func (fsu *FsUtil) NormalizePath(name string) (string, error) {
-	return NormalizePath(name)
-}
-
 // NormalizePath ensures that name is an absolute path.
 // Environment variables (and the ~ string) are expanded.
 func NormalizePath(name string) (string, error) {
 	normalized := strings.TrimSpace(name)
+	if normalized == "" {
+		return "", nil
+	}
 
 	// Replace ENV vars
 	normalized = os.ExpandEnv(normalized)
@@ -52,16 +43,18 @@ func NormalizePath(name string) (string, error) {
 	return normalized, nil
 }
 
-func (fsu *FsUtil) EnsureDirWritable(name string) error {
-	// Ensures dir exists (and IsDir).
-	err := os.MkdirAll(name, DefaultDirMode)
+// EnsureDirWritable ensures that path is a writable directory.
+// Will attempt to create a new directory if path does not exist.
+func EnsureDirWritable(path string) error {
+	// Ensure dir exists (and IsDir).
+	err := os.MkdirAll(path, DefaultDirMode)
 	if err != nil {
-		return fmt.Errorf("unable to create %s: %w", name, err)
+		return fmt.Errorf("unable to create %s: %w", path, err)
 	}
 
-	f := path.Join(name, ".touch")
+	f := filepath.Join(path, ".touch")
 	if err := os.WriteFile(f, []byte(""), DefaultFileMode); err != nil {
-		return fmt.Errorf("unable to write to %s: %w", name, err)
+		return fmt.Errorf("unable to write to %s: %w", path, err)
 	}
 	defer os.Remove(f)
 

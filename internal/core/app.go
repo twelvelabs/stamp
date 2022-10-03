@@ -12,7 +12,6 @@ import (
 
 type App struct {
 	Config   *Config
-	FsUtil   *fsutil.FsUtil
 	IO       *iostreams.IOStreams
 	Prompter value.Prompter
 	Store    *gen.Store
@@ -20,23 +19,21 @@ type App struct {
 
 func NewApp() (*App, error) {
 	config := NewConfig("")
-	fsUtil := fsutil.NewFsUtil()
 	ios := iostreams.System()
 	prompter := prompt.NewSurveyPrompter(ios.In, ios.Out, ios.Err)
 
-	storePath, err := fsUtil.NormalizePath(config.StorePath)
+	storePath, err := fsutil.NormalizePath(config.StorePath)
 	if err != nil {
 		return nil, fmt.Errorf("startup error: %w", err)
 	}
-	err = fsUtil.EnsureDirWritable(storePath)
+	err = fsutil.EnsureDirWritable(storePath)
 	if err != nil {
 		return nil, fmt.Errorf("startup error: %w", err)
 	}
-
 	store := gen.NewStore(storePath)
+
 	app := &App{
 		Config:   config,
-		FsUtil:   fsUtil,
 		IO:       ios,
 		Prompter: prompter,
 		Store:    store,
