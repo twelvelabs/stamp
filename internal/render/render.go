@@ -28,8 +28,8 @@ func FuncMap() template.FuncMap {
 	return funcs
 }
 
-// RenderFile renders the named file using the data in values.
-func RenderFile(path string, values map[string]any) (string, error) {
+// File renders the named file using the data in values.
+func File(path string, values map[string]any) (string, error) {
 	name := filepath.Base(path)
 	t, err := template.New(name).Funcs(FuncMap()).ParseFiles(path)
 	if err != nil {
@@ -38,8 +38,8 @@ func RenderFile(path string, values map[string]any) (string, error) {
 	return execute(t, values)
 }
 
-// RenderString renders the template string using the data in values.
-func RenderString(s string, values map[string]any) (string, error) {
+// String renders the template string using the data in values.
+func String(s string, values map[string]any) (string, error) {
 	t, err := template.New("render-string").Funcs(FuncMap()).Parse(s)
 	if err != nil {
 		return "", err

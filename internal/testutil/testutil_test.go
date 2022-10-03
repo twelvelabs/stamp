@@ -157,13 +157,13 @@ func TestWorkingDir(t *testing.T) {
 	}()
 
 	// should delegate to workingDirFunc
-	workingDirFunc = func() (dir string, err error) {
+	workingDirFunc = func() (string, error) {
 		return "/some/path", nil
 	}
 	assert.Equal(t, "/some/path", WorkingDir())
 
 	// should panic if workingDirFunc returns an error
-	workingDirFunc = func() (dir string, err error) {
+	workingDirFunc = func() (string, error) {
 		return "", errors.New("boom")
 	}
 	assert.Panics(t, func() {
@@ -259,8 +259,8 @@ func TestAssertFiles(t *testing.T) {
 		"hello.txt":  "hello",
 	})
 
-	os.Chmod(filepath.Join(tmpDir, "bin", "aaa.sh"), 0600)
-	os.Chmod(filepath.Join(tmpDir, "bin", "bbb.sh"), 0600)
+	_ = os.Chmod(filepath.Join(tmpDir, "bin", "aaa.sh"), 0600)
+	_ = os.Chmod(filepath.Join(tmpDir, "bin", "bbb.sh"), 0600)
 
 	AssertPaths(t, tmpDir, map[string]any{
 		"aaa/":        true,    // dir exists

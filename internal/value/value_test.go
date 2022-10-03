@@ -223,7 +223,7 @@ func TestValue_IsEmpty(t *testing.T) {
 	}
 }
 
-func TestValue_GetAndSet(t *testing.T) {
+func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
 	RegisterTransformer("explode", func(a any) (any, error) {
 		return "lol", errors.New("boom")
 	})

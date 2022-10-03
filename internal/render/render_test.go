@@ -56,7 +56,7 @@ func TestRenderFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Desc, func(t *testing.T) {
-			actual, err := RenderFile(tt.Template, tt.Values)
+			actual, err := File(tt.Template, tt.Values)
 			assert.Equal(t, tt.Rendered, actual)
 			if tt.Err == "" {
 				assert.NoError(t, err)
@@ -115,7 +115,7 @@ func TestRenderString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Desc, func(t *testing.T) {
-			actual, err := RenderString(tt.Template, tt.Values)
+			actual, err := String(tt.Template, tt.Values)
 			assert.Equal(t, tt.Rendered, actual)
 			if tt.Err == "" {
 				assert.NoError(t, err)

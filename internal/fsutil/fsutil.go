@@ -63,7 +63,7 @@ func (fsu *FsUtil) EnsureDirWritable(name string) error {
 	if err := os.WriteFile(f, []byte(""), DefaultFileMode); err != nil {
 		return fmt.Errorf("unable to write to %s: %w", name, err)
 	}
-	defer os.Remove(f) //nolint:errcheck
+	defer os.Remove(f)
 
 	return nil
 }

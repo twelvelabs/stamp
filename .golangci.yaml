@@ -1,9 +1,8 @@
 linters:
   disable:
-    # obnoxious
     - cyclop
     - dupl
-    - err113
+    - goerr113
     - exhaustivestruct
     - exhaustruct
     - forbidigo
@@ -19,23 +18,34 @@ linters:
     - nlreturn
     - paralleltest
     - testpackage
+    - varnamelen
+    - wrapcheck
     - wsl
+    # disabled because of generics
+    - rowserrcheck
+    - sqlclosecheck
+    - wastedassign
     # deprecated
+    - deadcode
     - golint
     - ifshort
     - interfacer
     - maligned
+    - nosnakecase
     - scopelint
+    - structcheck
+    - varcheck
   enable-all: true
 
 linters-settings:
+  exhaustive:
+    default-signifies-exhaustive: true
+
   gci:
-    local-prefixes: github.com/twelvelabs
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/twelvelabs/stamp) # Custom section: groups all imports with the specified Prefix.
 
-  #gocritic:
-  #  disabled-checks:
-  #    - commentFormatting
-
-  wrapcheck:
-    ignorePackageGlobs:
-      - github.com/twelvelabs/*
+  lll:
+    line-length: 120

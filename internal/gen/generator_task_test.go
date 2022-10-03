@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/testutil"
 	"github.com/twelvelabs/stamp/internal/value"
@@ -111,6 +112,24 @@ func TestGeneratorTask_Execute(t *testing.T) {
 				"hello.txt":  false,
 			},
 			Err: "",
+		},
+
+		{
+			Desc: "returns an error if unable to set custom values",
+			TaskData: map[string]any{
+				"type": "generator",
+				"name": "file",
+				"values": map[string]any{
+					"FileName":    "custom.txt",
+					"FileContent": "{{}",
+				},
+			},
+			Values: map[string]any{},
+			EndFiles: map[string]any{
+				"custom.txt": false,
+				"hello.txt":  false,
+			},
+			Err: "unexpected \"}\" in command",
 		},
 	}
 

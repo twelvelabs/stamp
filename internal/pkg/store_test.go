@@ -9,13 +9,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/twelvelabs/stamp/internal/testutil"
 )
 
 func TestNewStore(t *testing.T) {
 	store := NewStore("/some/path")
 	assert.Equal(t, "/some/path", store.BasePath)
-	assert.Equal(t, DEFAULT_META_FILE, store.MetaFile)
+	assert.Equal(t, DefaultMetaFile, store.MetaFile)
 
 	store = NewStore("/some/path").WithMetaFile("custom.yml")
 	assert.Equal(t, "/some/path", store.BasePath)

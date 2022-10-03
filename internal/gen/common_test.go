@@ -12,7 +12,7 @@ import (
 func TestCommon_Defaults(t *testing.T) {
 	// empty struct should have defaults set
 	task := &Common{}
-	defaults.Set(task)
+	_ = defaults.Set(task)
 	assert.Equal(t, "true", task.If)
 	assert.Equal(t, "", task.Each)
 
@@ -21,7 +21,7 @@ func TestCommon_Defaults(t *testing.T) {
 		If:   "{{ .SomeBool }}",
 		Each: "{{ .SomeList }}",
 	}
-	defaults.Set(task)
+	_ = defaults.Set(task)
 	assert.Equal(t, "{{ .SomeBool }}", task.If)
 	assert.Equal(t, "{{ .SomeList }}", task.Each)
 }

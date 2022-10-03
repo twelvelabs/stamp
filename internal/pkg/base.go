@@ -151,7 +151,7 @@ func StorePackage(pkg *Package) error {
 	}
 
 	name := pkg.MetaPath()
-	err = os.WriteFile(name, data, 0755)
+	err = os.WriteFile(name, data, 0600)
 	if err != nil {
 		return err
 	}

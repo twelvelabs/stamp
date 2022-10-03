@@ -34,13 +34,13 @@ func init() {
 	translator, _ = uni.GetTranslator("en")
 
 	validate = validator.New()
-	validate.RegisterValidation("kebabcase", IsKebabCase)
-	validate.RegisterValidation("not-blank", validators.NotBlank)
-	validate.RegisterValidation("posix-mode", IsPosixMode)
+	_ = validate.RegisterValidation("kebabcase", IsKebabCase)
+	_ = validate.RegisterValidation("not-blank", validators.NotBlank)
+	_ = validate.RegisterValidation("posix-mode", IsPosixMode)
 
-	en_translations.RegisterDefaultTranslations(validate, translator)
+	_ = en_translations.RegisterDefaultTranslations(validate, translator)
 
-	validate.RegisterTranslation(
+	_ = validate.RegisterTranslation(
 		"kebabcase",
 		translator,
 		func(ut ut.Translator) error {
@@ -51,7 +51,7 @@ func init() {
 			return t
 		},
 	)
-	validate.RegisterTranslation(
+	_ = validate.RegisterTranslation(
 		"not-blank",
 		translator,
 		func(ut ut.Translator) error {
@@ -62,7 +62,7 @@ func init() {
 			return t
 		},
 	)
-	validate.RegisterTranslation(
+	_ = validate.RegisterTranslation(
 		"posix-mode",
 		translator,
 		func(ut ut.Translator) error {
@@ -101,7 +101,8 @@ func ValidateKeyVal(key string, value any, rules string) (err error) {
 		return
 	}
 
-	if errs, ok := err.(validator.ValidationErrors); ok {
+	var errs validator.ValidationErrors
+	if errors.As(err, &errs) {
 		err = validatorErrsToErr(key, errs)
 	}
 
@@ -115,7 +116,8 @@ func ValidateStruct(data any) error {
 		return nil
 	}
 
-	if errs, ok := err.(validator.ValidationErrors); ok {
+	var errs validator.ValidationErrors
+	if errors.As(err, &errs) {
 		err = validatorErrsToErr("", errs)
 	}
 	return err

@@ -87,7 +87,7 @@ func (g *CopyFileGetter) Get(dst string, u *url.URL) error {
 
 	// The source path must exist and be a directory to be usable.
 	if fi, err := os.Stat(src); err != nil {
-		return fmt.Errorf("source path error: %s", err)
+		return fmt.Errorf("source path error: %w", err)
 	} else if !fi.IsDir() {
 		return fmt.Errorf("source path must be a directory")
 	}

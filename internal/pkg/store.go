@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DEFAULT_META_FILE string = "package.yaml"
+	DefaultMetaFile string = "package.yaml"
 )
 
 type Store struct {
@@ -20,7 +20,7 @@ type Store struct {
 func NewStore(path string) *Store {
 	return &Store{
 		BasePath: path,
-		MetaFile: DEFAULT_META_FILE,
+		MetaFile: DefaultMetaFile,
 		getter:   DefaultGetter,
 	}
 }
@@ -52,9 +52,9 @@ func (s *Store) LoadAll() ([]*Package, error) {
 	return LoadPackages(s.BasePath, s.MetaFile)
 }
 
-type cleanupFunc func()
+type CleanupFunc func()
 
-func (s *Store) Stage(src string) (*Package, cleanupFunc, error) {
+func (s *Store) Stage(src string) (*Package, CleanupFunc, error) {
 	// Create a temp staging dir.
 	stagingRoot, err := os.MkdirTemp("", "pkg-")
 	if err != nil {

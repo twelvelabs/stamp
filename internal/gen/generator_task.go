@@ -42,7 +42,10 @@ func (t *GeneratorTask) GetGenerator(store *Store) (*Generator, error) {
 	// Setting the value overrides here so that when the values are added to the
 	// delegating generator (See NewGenerator()), they have the correct data.
 	for k, v := range t.Values {
-		gen.Values.Set(k, v)
+		err = gen.Values.Set(k, v)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return gen, nil
 }

@@ -18,7 +18,7 @@ func TestDefaultGetter(t *testing.T) {
 
 	pkgSrcPath := packageFixtureDir("minimal")
 	pkgDstPath := path.Join(tmpDir, "package")
-	pkgManifestPath := path.Join(pkgDstPath, DEFAULT_META_FILE)
+	pkgManifestPath := path.Join(pkgDstPath, DefaultMetaFile)
 
 	assert.NoDirExists(t, pkgDstPath)
 	assert.NoFileExists(t, pkgManifestPath)

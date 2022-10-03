@@ -50,7 +50,7 @@ func TestValueSet_ValuesMethods(t *testing.T) {
 		{Key: "flag2", InputMode: InputModeFlag},
 		{Key: "flag3", InputMode: InputModeFlag},
 	}
-	all := append(none, args...)
+	all := append([]*Value{}, args...)
 	all = append(all, flags...)
 
 	assert.Len(t, none, 0)
@@ -312,7 +312,7 @@ func TestValueSet_CacheInvalidation(t *testing.T) {
 	}, vs.GetAll())
 
 	// Setting DstPath should cause other keys to be re-evaluated
-	vs.Set("DstPath", "~/src/my-project")
+	_ = vs.Set("DstPath", "~/src/my-project")
 
 	assert.Equal(t, map[string]any{
 		"DstPath":     "~/src/my-project",
@@ -332,7 +332,7 @@ func TestValueSet_GetAndSet(t *testing.T) {
 	assert.Equal(t, nil, vs.Get("Foo"))
 
 	// "foo" isn't a Value, so setting it sets it in the cache
-	vs.Set("Foo", "aaa")
+	_ = vs.Set("Foo", "aaa")
 	assert.Equal(t, "aaa", vs.Get("Foo"))
 	assert.Equal(t, "aaa", vs.Cache().Get("Foo"))
 
@@ -348,7 +348,7 @@ func TestValueSet_GetAndSet(t *testing.T) {
 	assert.Equal(t, "bbb", vs.Cache().Get("Foo"))
 
 	// And setting it, should set the underlying value (as well as the cache)
-	vs.Set("Foo", "ccc")
+	_ = vs.Set("Foo", "ccc")
 	assert.Equal(t, "ccc", value.Get())
 	assert.Equal(t, "ccc", vs.Get("Foo"))
 	assert.Equal(t, "ccc", vs.Cache().Get("Foo"))
@@ -370,7 +370,7 @@ func TestValueSet_GetAll(t *testing.T) {
 		Default:  "{{ .ProjectName | underscore }}",
 	})
 
-	vs.Set("ProjectName", "My Proj")
+	_ = vs.Set("ProjectName", "My Proj")
 
 	assert.Equal(t, map[string]any{
 		"NonValue":    123,

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
+
 	"github.com/twelvelabs/stamp/internal/render"
 )
 
@@ -29,7 +30,7 @@ func (c *Common) Iterator(values map[string]any) []any {
 }
 
 func (c *Common) Render(tpl string, values map[string]any) string {
-	rendered, err := render.RenderString(tpl, values)
+	rendered, err := render.String(tpl, values)
 	if err != nil {
 		return tpl
 	}

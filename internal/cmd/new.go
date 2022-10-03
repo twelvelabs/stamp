@@ -83,9 +83,8 @@ func (a *NewAction) Validate() error {
 		if a.showHelp() {
 			// User ran `stamp new --help`.
 			return pflag.ErrHelp
-		} else {
-			return errors.New("name must not be blank")
 		}
+		return errors.New("name must not be blank")
 	}
 	return nil
 }

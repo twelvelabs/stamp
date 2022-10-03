@@ -54,7 +54,7 @@ func (s *IOStreams) Formatter() *Formatter {
 	return NewFormatter(s.ColorEnabled())
 }
 
-// Returns an IOStreams containing os.Stdin, os.Stdout, and os.Stderr
+// Returns an IOStreams containing os.Stdin, os.Stdout, and os.Stderr.
 func System() *IOStreams {
 	return &IOStreams{
 		In:  &systemIOStream{File: os.Stdin},

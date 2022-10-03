@@ -20,8 +20,8 @@ type FileWriter interface {
 	Fd() uintptr
 }
 
-func NewSurveyPrompter(in FileReader, out FileWriter, err FileWriter) value.Prompter {
-	return &surveyPrompter{
+func NewSurveyPrompter(in FileReader, out FileWriter, err FileWriter) *SurveyPrompter {
+	return &SurveyPrompter{
 		stdin:  in,
 		stdout: out,
 		stderr: err,
@@ -29,13 +29,13 @@ func NewSurveyPrompter(in FileReader, out FileWriter, err FileWriter) value.Prom
 }
 
 // The default prompter that delegates to the `survey` package.
-type surveyPrompter struct {
+type SurveyPrompter struct {
 	stdin  FileReader
 	stdout FileWriter
 	stderr FileWriter
 }
 
-func (p *surveyPrompter) Confirm(prompt string, defaultValue bool, help string, validationRules string) (bool, error) {
+func (p *SurveyPrompter) Confirm(prompt string, defaultValue bool, help string, validationRules string) (bool, error) {
 	var result bool
 
 	opts := []survey.AskOpt{
@@ -51,7 +51,9 @@ func (p *surveyPrompter) Confirm(prompt string, defaultValue bool, help string, 
 	return result, err
 }
 
-func (p *surveyPrompter) Input(prompt string, defaultValue string, help string, validationRules string) (string, error) {
+func (p *SurveyPrompter) Input(
+	prompt string, defaultValue string, help string, validationRules string,
+) (string, error) {
 	var result string
 
 	opts := []survey.AskOpt{
@@ -67,7 +69,9 @@ func (p *surveyPrompter) Input(prompt string, defaultValue string, help string, 
 	return result, err
 }
 
-func (p *surveyPrompter) MultiSelect(prompt string, options []string, defaultValues []string, help string, validationRules string) ([]string, error) {
+func (p *SurveyPrompter) MultiSelect(
+	prompt string, options []string, defaultValues []string, help string, validationRules string,
+) ([]string, error) {
 	var result []string
 
 	opts := []survey.AskOpt{
@@ -84,7 +88,9 @@ func (p *surveyPrompter) MultiSelect(prompt string, options []string, defaultVal
 	return result, err
 }
 
-func (p *surveyPrompter) Select(prompt string, options []string, defaultValue string, help string, validationRules string) (string, error) {
+func (p *SurveyPrompter) Select(
+	prompt string, options []string, defaultValue string, help string, validationRules string,
+) (string, error) {
 	var result string
 
 	opts := []survey.AskOpt{
@@ -101,7 +107,7 @@ func (p *surveyPrompter) Select(prompt string, options []string, defaultValue st
 	return result, err
 }
 
-func (p *surveyPrompter) ask(q survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
+func (p *SurveyPrompter) ask(q survey.Prompt, response interface{}, opts ...survey.AskOpt) error {
 	opts = append(opts, survey.WithStdio(p.stdin, p.stdout, p.stderr))
 	// survey.AskOne() doesn't allow passing in a transform func,
 	// so we need to call survey.Ask().

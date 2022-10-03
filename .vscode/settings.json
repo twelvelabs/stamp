@@ -3,21 +3,25 @@
         "CLICOLOR",
         "containedctx",
         "copystructure",
+        "creasty",
         "Dasherize",
         "dasherized",
-        "errcheck",
         "flect",
         "fsutil",
         "fsutils",
         "giturls",
+        "gobuffalo",
         "GOFILE",
         "hashicorp",
         "iostreams",
         "ireturn",
         "kebabcase",
+        "maintidx",
         "mapstructure",
+        "mitchellh",
         "nilerr",
         "nolint",
+        "oneof",
         "Ordinalize",
         "Pascalize",
         "pascalized",
@@ -34,5 +38,9 @@
         "whilp",
         "wrapcheck",
         "yolo"
-    ]
+    ],
+    "gopls": {
+        "local": "github.com/twelvelabs/stamp",
+        "ui.semanticTokens": true
+    },
 }

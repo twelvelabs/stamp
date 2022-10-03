@@ -68,18 +68,18 @@ func (a *RemoveAction) Validate() error {
 }
 
 func (a *RemoveAction) Run() error {
-	g, err := a.Store.Load(a.Name)
+	generator, err := a.Store.Load(a.Name)
 	if err != nil {
 		return err
 	}
 
-	children, err := g.Children()
+	children, err := generator.Children()
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintln(a.IO.Out, "Removing the following packages:")
-	fmt.Fprintln(a.IO.Out, " -", g.Name())
+	fmt.Fprintln(a.IO.Out, " -", generator.Name())
 	for _, child := range children {
 		fmt.Fprintln(a.IO.Out, " -", child.Name())
 	}

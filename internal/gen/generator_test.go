@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/testutil"
@@ -83,6 +84,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 
 		ctx := NewTaskContext(iostreams.Test(), nil, store, false)
 		err = gen.Tasks.Execute(ctx, values)
+		assert.NoError(t, err)
 
 		testutil.AssertPaths(t, tmpDir, map[string]any{
 			"customized.txt": "custom content",
@@ -104,6 +106,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 
 		ctx := NewTaskContext(iostreams.Test(), nil, store, false)
 		err = gen.Tasks.Execute(ctx, values)
+		assert.NoError(t, err)
 
 		// Should have respected the `values` attribute
 		// and created two different filenames.

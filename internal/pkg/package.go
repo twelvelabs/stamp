@@ -107,9 +107,9 @@ func (p *Package) MetadataMapSlice(key string) []map[string]any {
 // MetadataSlice returns a slice value for the given metadata key.
 func (p *Package) MetadataSlice(key string) []any {
 	val := p.MetadataLookup(key)
-	switch val.(type) {
+	switch v := val.(type) {
 	case []any:
-		return val.([]any)
+		return v
 	case nil:
 		return []any{}
 	default:

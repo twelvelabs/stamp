@@ -1,7 +1,7 @@
 package value
 
 // ValueSet is a unique set of Values (identified by Value.Key).
-type ValueSet struct {
+type ValueSet struct { //nolint:revive
 	keys    []string
 	values  map[string]*Value
 	dataMap DataMap
@@ -96,9 +96,8 @@ func (vs *ValueSet) SetCache(dataMap DataMap) *ValueSet {
 func (vs *ValueSet) Get(key string) any {
 	if v := vs.Value(key); v != nil {
 		return v.Get()
-	} else {
-		return vs.Cache().Get(key)
 	}
+	return vs.Cache().Get(key)
 }
 
 // GetAll returns all data in the set.
@@ -128,10 +127,9 @@ func (vs *ValueSet) GetAll() map[string]any {
 func (vs *ValueSet) Set(key string, value any) error {
 	if v := vs.Value(key); v != nil {
 		return v.set(value)
-	} else {
-		vs.Cache().Set(key, value)
-		return nil
 	}
+	vs.Cache().Set(key, value)
+	return nil
 }
 
 // SetArgs attempts to set all positional values with args.

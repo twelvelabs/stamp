@@ -7,21 +7,19 @@ import (
 	"reflect"
 	"strings"
 
-	//cspell:words pflag oneof
-	//cspell:disable
 	"github.com/creasty/defaults"
 	"github.com/gobuffalo/flect"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/pflag"
+
 	"github.com/twelvelabs/stamp/internal/render"
-	//cspell:enable
 )
 
 var (
 	ErrInvalidDataType = errors.New("invalid data type")
 
-	// ensure Value implements each interface
+	// ensure Value implements each interface.
 	_ flag.Getter = &Value{}
 	_ pflag.Value = &Value{}
 )
@@ -49,9 +47,9 @@ type Value struct {
 	Name            string       `mapstructure:"name"`
 	Flag            string       `mapstructure:"flag"`
 	Help            string       `mapstructure:"help"`
-	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"`
+	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"` //nolint:lll
 	Default         interface{}  `mapstructure:"default"`
-	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"`
+	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"` //nolint:lll
 	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag hidden"`
 	TransformRules  string       `mapstructure:"transform"`
 	ValidationRules string       `mapstructure:"validate"`
@@ -110,7 +108,7 @@ func (v *Value) IsUnset() bool {
 	return v.data == nil
 }
 
-// IsEmpty returns true if the
+// IsEmpty returns true if the value is empty.
 func (v *Value) IsEmpty() bool {
 	rv := reflect.ValueOf(v.Get())
 	switch rv.Kind() {
@@ -283,7 +281,7 @@ func (v *Value) render(data any) (any, error) {
 	if !ok {
 		return data, nil
 	}
-	rendered, err := render.RenderString(str, v.ValueSet().Cache())
+	rendered, err := render.String(str, v.ValueSet().Cache())
 	if err != nil {
 		return data, err
 	}

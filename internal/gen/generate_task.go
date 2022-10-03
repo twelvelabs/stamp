@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DST_DIR_MODE os.FileMode = 0755
+	DstDirMode os.FileMode = 0755
 )
 
 type GenerateTask struct {
@@ -53,31 +53,28 @@ func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			dstPath := filepath.Join(dst, strings.TrimPrefix(srcPath, src))
 			if srcPathInfo.IsDir() {
 				return t.createDstDir(dstPath)
-			} else {
-				return t.dispatch(ctx, values, srcPath, dstPath)
 			}
+			return t.dispatch(ctx, values, srcPath, dstPath)
 		})
-	} else {
-		// src is a single file
-		return t.dispatch(ctx, values, src, dst)
 	}
+	// src is a single file
+	return t.dispatch(ctx, values, src, dst)
 }
 
 // dispatch looks for conflicts and delegates to the correct generation method.
 func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) && dst != "" {
 		return t.generate(ctx, values, src, dst)
-	} else {
-		switch t.Conflict {
-		case ConflictPrompt:
-			return t.prompt(ctx, values, src, dst)
-		case ConflictKeep:
-			return t.keep(ctx, values, src, dst)
-		case ConflictReplace:
-			return t.replace(ctx, values, src, dst)
-		default:
-			return fmt.Errorf("unknown conflict type: %v", t.Conflict)
-		}
+	}
+	switch t.Conflict {
+	case ConflictPrompt:
+		return t.prompt(ctx, values, src, dst)
+	case ConflictKeep:
+		return t.keep(ctx, values, src, dst)
+	case ConflictReplace:
+		return t.replace(ctx, values, src, dst)
+	default:
+		return fmt.Errorf("unknown conflict type: %v", t.Conflict)
 	}
 }
 
@@ -92,7 +89,7 @@ func (t *GenerateTask) generate(ctx *TaskContext, values map[string]any, src str
 }
 
 // keep is called when keeping an existing dst file.
-func (t *GenerateTask) keep(ctx *TaskContext, values map[string]any, src string, dst string) error {
+func (t *GenerateTask) keep(ctx *TaskContext, _ map[string]any, _ string, dst string) error {
 	ctx.Logger.Success("keep", dst)
 	return nil
 }
@@ -121,16 +118,15 @@ func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src strin
 	}
 	if overwrite {
 		return t.replace(ctx, values, src, dst)
-	} else {
-		return t.keep(ctx, values, src, dst)
 	}
+	return t.keep(ctx, values, src, dst)
 }
 
 func (t *GenerateTask) createDstDir(dst string) error {
 	if t.DryRun {
 		return nil
 	}
-	return os.MkdirAll(dst, DST_DIR_MODE)
+	return os.MkdirAll(dst, DstDirMode)
 }
 
 func (t *GenerateTask) createDst(values map[string]any, src string, dst string) error {
@@ -143,13 +139,13 @@ func (t *GenerateTask) createDst(values map[string]any, src string, dst string) 
 	}
 
 	// render the src template
-	rendered, err := render.RenderFile(src, values)
+	rendered, err := render.File(src, values)
 	if err != nil {
 		return err
 	}
 
 	// create base dst dirs
-	if err := os.MkdirAll(filepath.Dir(dst), DST_DIR_MODE); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), DstDirMode); err != nil {
 		return err
 	}
 
@@ -191,7 +187,7 @@ func (t *GenerateTask) renderPath(values map[string]any, path string) (string, e
 	return rendered, nil
 }
 
-func (t *GenerateTask) parseMode(values map[string]any, mode string) (os.FileMode, error) {
+func (t *GenerateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {
 	parsed, err := strconv.ParseInt(mode, 8, 64)
 	if err != nil {
 		return 0, err

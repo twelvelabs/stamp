@@ -7,7 +7,7 @@ import (
 )
 
 func TestPackageTreeMethods(t *testing.T) {
-	nested, err := LoadPackage(packageFixtureDir("nested"), DEFAULT_META_FILE)
+	nested, err := LoadPackage(packageFixtureDir("nested"), DefaultMetaFile)
 
 	assert.NoError(t, err)
 	if assert.NotNil(t, nested) {
@@ -23,7 +23,7 @@ func TestPackageTreeMethods(t *testing.T) {
 		assert.Equal(t, nested, nested.Root())
 	}
 
-	aaa, err := LoadPackage(packageFixtureDir("nested/aaa"), DEFAULT_META_FILE)
+	aaa, err := LoadPackage(packageFixtureDir("nested/aaa"), DefaultMetaFile)
 
 	assert.NoError(t, err)
 	if assert.NotNil(t, aaa) {

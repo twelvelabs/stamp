@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/twelvelabs/stamp/internal/testutil"
 )
 
@@ -89,7 +90,7 @@ func TestLoadPackage(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.PackageName, func(t *testing.T) {
-			pkg, err := LoadPackage(test.PackagePath, DEFAULT_META_FILE)
+			pkg, err := LoadPackage(test.PackagePath, DefaultMetaFile)
 
 			if test.Err == "" {
 				if assert.NotNil(t, pkg) {
@@ -111,7 +112,7 @@ func TestStorePackage(t *testing.T) {
 	rootPath := testutil.MkdirTemp()
 	pkgPath, pkgMetaPath := createPackage(t, rootPath, "foo")
 
-	pkg, err := LoadPackage(pkgPath, DEFAULT_META_FILE)
+	pkg, err := LoadPackage(pkgPath, DefaultMetaFile)
 	if assert.NotNil(t, pkg) {
 		assert.Equal(t, "foo", pkg.Name())
 	}
@@ -136,7 +137,7 @@ func TestMovePackage(t *testing.T) {
 	barPath, _ := createPackage(t, rootPath, "bar")
 	renamedPath := path.Join(rootPath, "renamed")
 
-	pkg, err := LoadPackage(fooPath, DEFAULT_META_FILE)
+	pkg, err := LoadPackage(fooPath, DefaultMetaFile)
 	assert.NotNil(t, pkg)
 	assert.NoError(t, err)
 
@@ -161,7 +162,7 @@ func TestRemovePackage(t *testing.T) {
 	rootPath := testutil.MkdirTemp()
 	pkgPath, _ := createPackage(t, rootPath, "foo")
 
-	pkg, err := LoadPackage(pkgPath, DEFAULT_META_FILE)
+	pkg, err := LoadPackage(pkgPath, DefaultMetaFile)
 	assert.NotNil(t, pkg)
 	assert.NoError(t, err)
 
@@ -178,15 +179,16 @@ func TestRemovePackage(t *testing.T) {
 // Creates a new package directory and metadata file in the root
 // dir and returns the paths to both.
 func createPackage(t *testing.T, root string, name string) (string, string) {
+	t.Helper()
 	pkgPath := path.Join(root, strings.ReplaceAll(name, ":", "/"))
-	pkgMetaPath := path.Join(pkgPath, DEFAULT_META_FILE)
+	pkgMetaPath := path.Join(pkgPath, DefaultMetaFile)
 
 	err := os.MkdirAll(pkgPath, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = os.WriteFile(pkgMetaPath, []byte("Name: "+name), 0755)
+	err = os.WriteFile(pkgMetaPath, []byte("Name: "+name), 0600)
 	if err != nil {
 		t.Fatal(err)
 	}

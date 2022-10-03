@@ -7,6 +7,7 @@ import (
 	//cspell: disable
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
+
 	"github.com/twelvelabs/stamp/internal/value"
 	//cspell: enable
 )
@@ -35,11 +36,11 @@ var (
 	DefaultSetDefaultsFunc SetDefaultsFunc = defaults.Set
 
 	// SetDefaults sets the default values for the given task.
-	SetDefaults SetDefaultsFunc = DefaultSetDefaultsFunc
+	SetDefaults = DefaultSetDefaultsFunc
 )
 
 // NewTask returns a new Task struct for the given map of data.
-func NewTask(taskData map[string]any) (Task, error) {
+func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intentional
 	taskType, ok := taskData["type"]
 	if !ok {
 		return nil, errors.New("undefined task type")

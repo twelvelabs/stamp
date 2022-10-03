@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ACTION_WIDTH = 10
+	ActionWidth = 10
 )
 
 // NewActionLogger returns a new ActionLogger.
@@ -33,7 +33,7 @@ type ActionLogger struct {
 //	Info("action", "hello, %s", "world")
 func (l *ActionLogger) Info(action string, line string, args ...any) {
 	icon := l.format.InfoIcon()
-	action = l.format.Info(l.rightJustify(action, ACTION_WIDTH))
+	action = l.format.Info(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -45,7 +45,7 @@ func (l *ActionLogger) Info(action string, line string, args ...any) {
 //	Success("action", "hello, %s", "world")
 func (l *ActionLogger) Success(action string, line string, args ...any) {
 	icon := l.format.SuccessIcon()
-	action = l.format.Success(l.rightJustify(action, ACTION_WIDTH))
+	action = l.format.Success(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -57,7 +57,7 @@ func (l *ActionLogger) Success(action string, line string, args ...any) {
 //	Warning("action", "hello, %s", "world")
 func (l *ActionLogger) Warning(action string, line string, args ...any) {
 	icon := l.format.WarningIcon()
-	action = l.format.Warning(l.rightJustify(action, ACTION_WIDTH))
+	action = l.format.Warning(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -69,7 +69,7 @@ func (l *ActionLogger) Warning(action string, line string, args ...any) {
 //	Failure("action", "hello, %s", "world")
 func (l *ActionLogger) Failure(action string, line string, args ...any) {
 	icon := l.format.FailureIcon()
-	action = l.format.Failure(l.rightJustify(action, ACTION_WIDTH))
+	action = l.format.Failure(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -77,7 +77,7 @@ func (l *ActionLogger) Failure(action string, line string, args ...any) {
 func (l *ActionLogger) log(icon, action, line string, args ...any) {
 	prefix := icon + " "
 	if l.dryRun {
-		prefix = prefix + "[DRY RUN]"
+		prefix += "[DRY RUN]"
 	}
 	line = l.ensureNewline(prefix + "[" + action + "]: " + line)
 	fmt.Fprintf(l.ios.Err, line, args...)
@@ -85,13 +85,13 @@ func (l *ActionLogger) log(icon, action, line string, args ...any) {
 
 func (l *ActionLogger) ensureNewline(text string) string {
 	if !strings.HasSuffix(text, "\n") {
-		text = text + "\n"
+		text += "\n"
 	}
 	return text
 }
 
-func (l *ActionLogger) rightJustify(text string, width int) string {
-	return fmt.Sprintf("%*s", width, text)
+func (l *ActionLogger) rightJustify(text string) string {
+	return fmt.Sprintf("%*s", ActionWidth, text)
 }
 
 // NewIconLogger returns a new IconLogger.

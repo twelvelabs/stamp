@@ -14,7 +14,7 @@ import (
 var (
 	paths = []string{}
 
-	// Abstracted to make testing easier
+	// Abstracted to make testing easier.
 	chdirFunc      = os.Chdir
 	removeAllFunc  = os.RemoveAll
 	mkdirTempFunc  = os.MkdirTemp
@@ -31,7 +31,7 @@ func ClearCleanupPaths() {
 	paths = []string{}
 }
 
-// AddCleanupPath registers a path to be removed on Cleanup()
+// AddCleanupPath registers a path to be removed on Cleanup().
 func AddCleanupPath(path string) {
 	paths = append(paths, path)
 }
@@ -75,8 +75,8 @@ func MkdirTemp() string {
 
 // InTempDir executes handler in a temp dir, restoring the working dir
 // back to it's original location once handler exits.
-func InTempDir(t testing.TB, handler func(tmpDir string)) {
-	t.Helper()
+func InTempDir(tb testing.TB, handler func(tmpDir string)) {
+	tb.Helper()
 	current := WorkingDir()
 	tmp := MkdirTemp()
 	if err := chdirFunc(tmp); err != nil {
@@ -105,8 +105,8 @@ func WriteFile(name string, data []byte, perm fs.FileMode) {
 	AddCleanupPath(name)
 }
 
-func AssertPaths(t testing.TB, base string, files map[string]any) {
-	t.Helper()
+func AssertPaths(tb testing.TB, base string, files map[string]any) {
+	tb.Helper()
 	if files == nil {
 		return
 	}
@@ -114,21 +114,21 @@ func AssertPaths(t testing.TB, base string, files map[string]any) {
 		value := files[key]
 		path, isDir := joinPath(base, key)
 		if isDir {
-			AssertDirPath(t, path, value)
+			AssertDirPath(tb, path, value)
 		} else {
-			AssertFilePath(t, path, value)
+			AssertFilePath(tb, path, value)
 		}
 	}
 }
 
 // AssertDirPath asserts a directory path does not exist if
 // value is false, otherwise asserts that it does.
-func AssertDirPath(t testing.TB, path string, value any) {
-	t.Helper()
+func AssertDirPath(tb testing.TB, path string, value any) {
+	tb.Helper()
 	if exists, ok := value.(bool); ok && !exists {
-		assert.NoDirExists(t, path)
+		assert.NoDirExists(tb, path)
 	} else {
-		assert.DirExists(t, path)
+		assert.DirExists(tb, path)
 	}
 }
 
@@ -138,23 +138,23 @@ func AssertDirPath(t testing.TB, path string, value any) {
 // Additionally:
 //   - If value is a string, then the file contents should match.
 //   - If value is an int, then file permissions should match.
-func AssertFilePath(t testing.TB, path string, value any) {
-	t.Helper()
+func AssertFilePath(tb testing.TB, path string, value any) {
+	tb.Helper()
 	if exists, ok := value.(bool); ok && !exists {
 		// value is `false`, file _should not_ be there
-		assert.NoFileExists(t, path)
+		assert.NoFileExists(tb, path)
 	} else {
 		// file _should_ be there
-		assert.FileExists(t, path)
+		assert.FileExists(tb, path)
 		if content, ok := value.(string); ok {
 			// value is a string, file content should match
 			buf, _ := os.ReadFile(path)
-			assert.Equal(t, content, string(buf))
+			assert.Equal(tb, content, string(buf))
 		}
 		if perm, ok := value.(int); ok {
 			// value is an int, file permissions should match
 			info, _ := os.Stat(path)
-			assert.Equal(t, perm, int(info.Mode().Perm()))
+			assert.Equal(tb, perm, int(info.Mode().Perm()))
 		}
 	}
 }
@@ -180,9 +180,9 @@ func CreatePaths(base string, files map[string]any) {
 
 // Helper that returns base+path and whether path is supposed
 // to be a directory (indicated by it ending in "/").
-func joinPath(base string, path string) (joined string, isDir bool) {
-	isDir = strings.HasSuffix(path, "/")
-	joined = filepath.Join(base, path)
+func joinPath(base string, path string) (string, bool) {
+	isDir := strings.HasSuffix(path, "/")
+	joined := filepath.Join(base, path)
 	return joined, isDir
 }
 

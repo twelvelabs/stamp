@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	//cspell:disable
 	"github.com/gobuffalo/flect"
 	"github.com/spf13/cast"
+
 	"github.com/twelvelabs/stamp/internal/fsutil"
-	//cspell:enable
 )
 
 var (
@@ -50,8 +49,7 @@ func Transform(key string, value any, rule string) (any, error) {
 type Transformer func(any) (any, error)
 
 func GetTransformer(name string) Transformer {
-	t, _ := transformers[name]
-	return t
+	return transformers[name]
 }
 func RegisterTransformer(name string, t Transformer) {
 	transformers[name] = t

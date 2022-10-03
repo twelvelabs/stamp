@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/testutil"
 	"github.com/twelvelabs/stamp/internal/value"
@@ -101,7 +102,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 	}
 }
 
-func TestGenerateTask_Execute(t *testing.T) {
+func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 	templatesDir, _ := filepath.Abs(filepath.Join("..", "..", "testdata", "templates"))
 	tests := []struct {
 		Desc       string
