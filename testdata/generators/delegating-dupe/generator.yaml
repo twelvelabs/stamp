@@ -5,7 +5,7 @@ tasks:
   # that those values don't leak to the next task.
   - type: generator
     name: file
-    extra:
+    values:
       FileName: "customized.txt"
       FileContent: "custom content"
 

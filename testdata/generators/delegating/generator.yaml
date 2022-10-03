@@ -3,6 +3,6 @@ Name: delegating
 tasks:
   - type: generator
     name: file
-    extra:
+    values:
       FileName: "customized.txt"
       FileContent: "custom content"

@@ -35,8 +35,8 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 					If:   "true",
 					Each: "",
 				},
-				Name:  "foo",
-				Extra: map[string]any{},
+				Name:   "foo",
+				Values: map[string]any{},
 			},
 			Err: "",
 		},
@@ -77,7 +77,7 @@ func TestGeneratorTask_Execute(t *testing.T) {
 		},
 
 		{
-			Desc: "executes the named generator with values",
+			Desc: "executes the named generator",
 			TaskData: map[string]any{
 				"type": "generator",
 				"name": "file",
@@ -88,6 +88,27 @@ func TestGeneratorTask_Execute(t *testing.T) {
 			},
 			EndFiles: map[string]any{
 				"hello.txt": "hello, world!",
+			},
+			Err: "",
+		},
+
+		{
+			Desc: "executes the named generator with value overrides",
+			TaskData: map[string]any{
+				"type": "generator",
+				"name": "file",
+				"values": map[string]any{
+					"FileName":    "custom.txt",
+					"FileContent": "custom content",
+				},
+			},
+			Values: map[string]any{
+				"FileName":    "hello.txt",
+				"FileContent": "hello, world!",
+			},
+			EndFiles: map[string]any{
+				"custom.txt": "custom content",
+				"hello.txt":  false,
 			},
 			Err: "",
 		},

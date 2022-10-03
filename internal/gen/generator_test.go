@@ -105,7 +105,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		ctx := NewTaskContext(iostreams.Test(), nil, store, false)
 		err = gen.Tasks.Execute(ctx, values)
 
-		// Should have respected the `extra` attribute
+		// Should have respected the `values` attribute
 		// and created two different filenames.
 		testutil.AssertPaths(t, tmpDir, map[string]any{
 			"customized.txt": "custom content",

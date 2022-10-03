@@ -5,8 +5,8 @@ import "github.com/mitchellh/copystructure" //cspell: disable-line
 type GeneratorTask struct {
 	Common `mapstructure:",squash"`
 
-	Name  string         `validate:"required"`
-	Extra map[string]any `default:"{}"`
+	Name   string         `validate:"required"`
+	Values map[string]any `default:"{}"`
 }
 
 func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -24,10 +24,10 @@ func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return err
 	}
 	data := copied.(map[string]any)
-	// Overwrite extras. Doing this here (in addition to the setting in GetGenerator),
-	// to cover the case where the same generator name is used in multiple tasks.
+	// Doing this here (in addition to the setting in GetGenerator) to cover
+	// the case where the same generator name is used in multiple tasks.
 	// In that scenario, `values` would contain those from the last task added.
-	for k, v := range t.Extra {
+	for k, v := range t.Values {
 		data[k] = v
 	}
 
@@ -39,9 +39,9 @@ func (t *GeneratorTask) GetGenerator(store *Store) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Setting the extras here so that when the values are added to the
+	// Setting the value overrides here so that when the values are added to the
 	// delegating generator (See NewGenerator()), they have the correct data.
-	for k, v := range t.Extra {
+	for k, v := range t.Values {
 		gen.Values.Set(k, v)
 	}
 	return gen, nil
