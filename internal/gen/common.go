@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-
-	"github.com/twelvelabs/stamp/internal/render"
+	"github.com/twelvelabs/termite/render"
 )
 
 type Common struct {

@@ -18,12 +18,14 @@ lint:
 
 .PHONY: test
 test:
+	go mod tidy
 	go test -cover -coverprofile=coverage.out ./...
 	@cat coverage.out | grep -v "_mock.go" | grep -v "_enum.go" > coverage.out.new
 	@mv coverage.out.new coverage.out
 
 .PHONY: dist/stamp
 dist/stamp:
+	go mod tidy
 	go build -trimpath -o ./dist/stamp ./cmd/stamp
 
 .PHONY: build

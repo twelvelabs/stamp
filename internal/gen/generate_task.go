@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/twelvelabs/stamp/internal/render"
+	"github.com/twelvelabs/termite/render"
 )
 
 const (
