@@ -1,27 +1,29 @@
-package iostreams
+package gen
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/twelvelabs/stamp/internal/iostreams"
 )
 
 const (
 	ActionWidth = 10
 )
 
-// NewActionLogger returns a new ActionLogger.
-func NewActionLogger(ios *IOStreams, formatter *Formatter, dryRun bool) *ActionLogger {
-	return &ActionLogger{
+// NewTaskLogger returns a new TaskLogger.
+func NewTaskLogger(ios *iostreams.IOStreams, formatter *iostreams.Formatter, dryRun bool) *TaskLogger {
+	return &TaskLogger{
 		ios:    ios,
 		format: formatter,
 		dryRun: dryRun,
 	}
 }
 
-// ActionLogger logs formatted Task actions.
-type ActionLogger struct {
-	ios    *IOStreams
-	format *Formatter
+// TaskLogger logs formatted Task actions.
+type TaskLogger struct {
+	ios    *iostreams.IOStreams
+	format *iostreams.Formatter
 	dryRun bool
 }
 
@@ -31,7 +33,7 @@ type ActionLogger struct {
 //
 //	// Prints "• [    action]: hello, world\n"
 //	Info("action", "hello, %s", "world")
-func (l *ActionLogger) Info(action string, line string, args ...any) {
+func (l *TaskLogger) Info(action string, line string, args ...any) {
 	icon := l.format.InfoIcon()
 	action = l.format.Info(l.rightJustify(action))
 	l.log(icon, action, line, args...)
@@ -43,7 +45,7 @@ func (l *ActionLogger) Info(action string, line string, args ...any) {
 //
 //	// Prints "✓ [    action]: hello, world\n"
 //	Success("action", "hello, %s", "world")
-func (l *ActionLogger) Success(action string, line string, args ...any) {
+func (l *TaskLogger) Success(action string, line string, args ...any) {
 	icon := l.format.SuccessIcon()
 	action = l.format.Success(l.rightJustify(action))
 	l.log(icon, action, line, args...)
@@ -55,7 +57,7 @@ func (l *ActionLogger) Success(action string, line string, args ...any) {
 //
 //	// Prints "! [    action]: hello, world\n"
 //	Warning("action", "hello, %s", "world")
-func (l *ActionLogger) Warning(action string, line string, args ...any) {
+func (l *TaskLogger) Warning(action string, line string, args ...any) {
 	icon := l.format.WarningIcon()
 	action = l.format.Warning(l.rightJustify(action))
 	l.log(icon, action, line, args...)
@@ -67,14 +69,14 @@ func (l *ActionLogger) Warning(action string, line string, args ...any) {
 //
 //	// Prints "✖ [    action]: hello, world\n"
 //	Failure("action", "hello, %s", "world")
-func (l *ActionLogger) Failure(action string, line string, args ...any) {
+func (l *TaskLogger) Failure(action string, line string, args ...any) {
 	icon := l.format.FailureIcon()
 	action = l.format.Failure(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
 // logs the formatted icon, action, and line to StdErr.
-func (l *ActionLogger) log(icon, action, line string, args ...any) {
+func (l *TaskLogger) log(icon, action, line string, args ...any) {
 	prefix := icon + " "
 	if l.dryRun {
 		prefix += "[DRY RUN]"
@@ -83,47 +85,13 @@ func (l *ActionLogger) log(icon, action, line string, args ...any) {
 	fmt.Fprintf(l.ios.Err, line, args...)
 }
 
-func (l *ActionLogger) ensureNewline(text string) string {
+func (l *TaskLogger) ensureNewline(text string) string {
 	if !strings.HasSuffix(text, "\n") {
 		text += "\n"
 	}
 	return text
 }
 
-func (l *ActionLogger) rightJustify(text string) string {
+func (l *TaskLogger) rightJustify(text string) string {
 	return fmt.Sprintf("%*s", ActionWidth, text)
-}
-
-// NewIconLogger returns a new IconLogger.
-func NewIconLogger(ios *IOStreams, formatter *Formatter) *IconLogger {
-	return &IconLogger{
-		ios:    ios,
-		format: formatter,
-	}
-}
-
-// IconLogger is a generic logger that prefixes lines with status icons.
-type IconLogger struct {
-	ios    *IOStreams
-	format *Formatter
-}
-
-func (l *IconLogger) Info(line string, args ...any) {
-	icon := l.format.InfoIcon()
-	fmt.Fprintf(l.ios.Err, (icon + " " + line), args...)
-}
-
-func (l *IconLogger) Success(line string, args ...any) {
-	icon := l.format.SuccessIcon()
-	fmt.Fprintf(l.ios.Err, (icon + " " + line), args...)
-}
-
-func (l *IconLogger) Warning(line string, args ...any) {
-	icon := l.format.WarningIcon()
-	fmt.Fprintf(l.ios.Err, (icon + " " + line), args...)
-}
-
-func (l *IconLogger) Failure(line string, args ...any) {
-	icon := l.format.FailureIcon()
-	fmt.Fprintf(l.ios.Err, (icon + " " + line), args...)
 }
