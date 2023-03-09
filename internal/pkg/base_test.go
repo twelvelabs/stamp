@@ -9,8 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/twelvelabs/stamp/internal/testutil"
 )
 
 func TestPackagePath(t *testing.T) {
@@ -107,9 +105,7 @@ func TestLoadPackage(t *testing.T) {
 }
 
 func TestStorePackage(t *testing.T) {
-	defer testutil.Cleanup()
-
-	rootPath := testutil.MkdirTemp()
+	rootPath := t.TempDir()
 	pkgPath, pkgMetaPath := createPackage(t, rootPath, "foo")
 
 	pkg, err := LoadPackage(pkgPath, DefaultMetaFile)
@@ -130,9 +126,7 @@ func TestStorePackage(t *testing.T) {
 }
 
 func TestMovePackage(t *testing.T) {
-	defer testutil.Cleanup()
-
-	rootPath := testutil.MkdirTemp()
+	rootPath := t.TempDir()
 	fooPath, _ := createPackage(t, rootPath, "foo")
 	barPath, _ := createPackage(t, rootPath, "bar")
 	renamedPath := path.Join(rootPath, "renamed")
@@ -157,9 +151,7 @@ func TestMovePackage(t *testing.T) {
 }
 
 func TestRemovePackage(t *testing.T) {
-	defer testutil.Cleanup()
-
-	rootPath := testutil.MkdirTemp()
+	rootPath := t.TempDir()
 	pkgPath, _ := createPackage(t, rootPath, "foo")
 
 	pkg, err := LoadPackage(pkgPath, DefaultMetaFile)

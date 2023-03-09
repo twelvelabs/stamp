@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/twelvelabs/termite/testutil"
 
 	"github.com/twelvelabs/stamp/internal/iostreams"
-	"github.com/twelvelabs/stamp/internal/testutil"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -135,13 +135,11 @@ func TestGeneratorTask_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Desc, func(t *testing.T) {
-			defer testutil.Cleanup()
-
 			store := NewTestStore() // must call before changing dirs
 
 			testutil.InTempDir(t, func(tmpDir string) {
 				// Populate the temp dir w/ any initial files
-				testutil.CreatePaths(tmpDir, tt.StartFiles)
+				testutil.WritePaths(t, tmpDir, tt.StartFiles)
 
 				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)

@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/twelvelabs/stamp/internal/testutil"
+	"github.com/twelvelabs/termite/testutil"
 )
 
 func TestNormalizePath(t *testing.T) {
@@ -77,7 +76,6 @@ func TestNormalizePath(t *testing.T) {
 }
 
 func TestEnsureDirWritable(t *testing.T) {
-	defer testutil.Cleanup()
 	testutil.InTempDir(t, func(tmpDir string) {
 		dir := filepath.Join(tmpDir, "foo")
 		err := EnsureDirWritable(dir)
@@ -85,7 +83,7 @@ func TestEnsureDirWritable(t *testing.T) {
 		assert.DirExists(t, dir, "dir should exist")
 
 		dirEntry := filepath.Join(dir, "bar")
-		testutil.WriteFile(dirEntry, []byte(""), 0600)
+		testutil.WriteFile(t, dirEntry, []byte(""), 0600)
 		assert.FileExists(t, dirEntry, "dir should be writable")
 	})
 }

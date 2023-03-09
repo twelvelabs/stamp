@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/twelvelabs/termite/testutil"
 
 	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/pkg"
-	"github.com/twelvelabs/stamp/internal/testutil"
 )
 
 func TestNewGenerator(t *testing.T) {
@@ -67,8 +67,6 @@ func TestNewGenerators(t *testing.T) {
 }
 
 func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
-	defer testutil.Cleanup()
-
 	store := NewTestStore() // must call before changing dirs
 
 	testutil.InTempDir(t, func(tmpDir string) {
