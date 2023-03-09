@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -44,7 +44,7 @@ func NewRemoveCmd(app *core.App) *cobra.Command {
 
 type RemoveAction struct {
 	Store    *gen.Store
-	IO       *iostreams.IOStreams
+	IO       *ui.IOStreams
 	Prompter value.Prompter
 
 	Name string

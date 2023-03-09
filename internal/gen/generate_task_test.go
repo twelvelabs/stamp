@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
+	"github.com/twelvelabs/termite/ui"
 
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -379,7 +379,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
 
-				ctx := NewTaskContext(iostreams.Test(), tt.Prompter, nil, tt.DryRun)
+				ctx := NewTaskContext(ui.NewTestIOStreams(), tt.Prompter, nil, tt.DryRun)
 				err = task.Execute(ctx, tt.Values)
 
 				// Ensure the expected files were generated
@@ -414,7 +414,7 @@ func TestGenerateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
 	task := &GenerateTask{
 		Mode: "unknown",
 	}
-	ios := iostreams.Test()
+	ios := ui.NewTestIOStreams()
 	ctx := NewTaskContext(ios, nil, nil, false)
 	values := map[string]any{}
 

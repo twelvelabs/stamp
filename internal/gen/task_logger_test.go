@@ -4,8 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/termite/ui"
 )
 
 func TestTaskLogger_Info(t *testing.T) {
@@ -49,7 +48,7 @@ func TestTaskLogger_Info(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios := iostreams.Test()
+			ios := ui.NewTestIOStreams()
 
 			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Info(tt.action, tt.line, tt.args...)
@@ -100,7 +99,7 @@ func TestTaskLogger_Success(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios := iostreams.Test()
+			ios := ui.NewTestIOStreams()
 
 			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Success(tt.action, tt.line, tt.args...)
@@ -151,7 +150,7 @@ func TestTaskLogger_Warning(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios := iostreams.Test()
+			ios := ui.NewTestIOStreams()
 
 			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Warning(tt.action, tt.line, tt.args...)
@@ -202,7 +201,7 @@ func TestTaskLogger_Failure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ios := iostreams.Test()
+			ios := ui.NewTestIOStreams()
 
 			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
 			logger.Failure(tt.action, tt.line, tt.args...)

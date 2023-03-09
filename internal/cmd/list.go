@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 )
 
 func NewListCmd(app *core.App) *cobra.Command {
@@ -38,7 +38,7 @@ func NewListCmd(app *core.App) *cobra.Command {
 }
 
 type ListAction struct {
-	IO    *iostreams.IOStreams
+	IO    *ui.IOStreams
 	Store *gen.Store
 }
 

@@ -1,21 +1,22 @@
 package gen
 
 import (
-	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/termite/ui"
+
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
 // TaskContext holds configuration and dependencies used in Task.Execute().
 type TaskContext struct {
 	DryRun   bool
-	IO       *iostreams.IOStreams
+	IO       *ui.IOStreams
 	Logger   *TaskLogger
 	Prompter value.Prompter
 	Store    *Store
 }
 
 // NewTaskContext returns a configured TaskContext.
-func NewTaskContext(ios *iostreams.IOStreams, prompter value.Prompter, store *Store, dryRun bool) *TaskContext {
+func NewTaskContext(ios *ui.IOStreams, prompter value.Prompter, store *Store, dryRun bool) *TaskContext {
 	var logger *TaskLogger
 	// some tests need a context but not any of it's content, and so may pass in nil args.
 	if ios != nil {

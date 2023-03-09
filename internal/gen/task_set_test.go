@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/termite/ui"
 )
 
 func NewTaskMock(exe bool, exeErr error, iter []any) *TaskMock {
@@ -41,7 +40,7 @@ func TestTaskSet_AddsPathsWhenCallingExecute(t *testing.T) {
 	ts.SrcPath = "/path/to/src"
 	ts.DstPath = "/path/to/dst"
 
-	ctx := NewTaskContext(iostreams.Test(), nil, nil, false)
+	ctx := NewTaskContext(ui.NewTestIOStreams(), nil, nil, false)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -76,7 +75,7 @@ func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
 
 	ts := NewTaskSet().Add(task1).Add(task2)
 
-	ctx := NewTaskContext(iostreams.Test(), nil, nil, false)
+	ctx := NewTaskContext(ui.NewTestIOStreams(), nil, nil, false)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -98,7 +97,7 @@ func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 
 	ts := NewTaskSet().Add(task1)
 
-	ctx := NewTaskContext(iostreams.Test(), nil, nil, false)
+	ctx := NewTaskContext(ui.NewTestIOStreams(), nil, nil, false)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -119,7 +118,7 @@ func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 }
 
 func TestTaskSet_HaltsExecutionAtTheFirstError(t *testing.T) {
-	ios := iostreams.Test()
+	ios := ui.NewTestIOStreams()
 	values := map[string]any{}
 
 	task1 := NewTaskMock(true, nil, nil)

@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
+	"github.com/twelvelabs/termite/ui"
 
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/pkg"
 )
 
@@ -80,7 +80,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "customized.txt", values["FileName"])
 		assert.Equal(t, "custom content", values["FileContent"])
 
-		ctx := NewTaskContext(iostreams.Test(), nil, store, false)
+		ctx := NewTaskContext(ui.NewTestIOStreams(), nil, store, false)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 
@@ -102,7 +102,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "untitled.txt", values["FileName"])
 		assert.Equal(t, "", values["FileContent"])
 
-		ctx := NewTaskContext(iostreams.Test(), nil, store, false)
+		ctx := NewTaskContext(ui.NewTestIOStreams(), nil, store, false)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 

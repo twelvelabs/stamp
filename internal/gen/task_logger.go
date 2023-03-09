@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/twelvelabs/stamp/internal/iostreams"
+	"github.com/twelvelabs/termite/ui"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 )
 
 // NewTaskLogger returns a new TaskLogger.
-func NewTaskLogger(ios *iostreams.IOStreams, formatter *iostreams.Formatter, dryRun bool) *TaskLogger {
+func NewTaskLogger(ios *ui.IOStreams, formatter *ui.Formatter, dryRun bool) *TaskLogger {
 	return &TaskLogger{
 		ios:    ios,
 		format: formatter,
@@ -22,8 +22,8 @@ func NewTaskLogger(ios *iostreams.IOStreams, formatter *iostreams.Formatter, dry
 
 // TaskLogger logs formatted Task actions.
 type TaskLogger struct {
-	ios    *iostreams.IOStreams
-	format *iostreams.Formatter
+	ios    *ui.IOStreams
+	format *ui.Formatter
 	dryRun bool
 }
 

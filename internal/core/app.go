@@ -3,23 +3,24 @@ package core
 import (
 	"fmt"
 
+	"github.com/twelvelabs/termite/ui"
+
 	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/prompt"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
 type App struct {
 	Config   *Config
-	IO       *iostreams.IOStreams
+	IO       *ui.IOStreams
 	Prompter value.Prompter
 	Store    *gen.Store
 }
 
 func NewApp() (*App, error) {
 	config := NewConfig("")
-	ios := iostreams.System()
+	ios := ui.NewIOStreams()
 	prompter := prompt.NewSurveyPrompter(ios.In, ios.Out, ios.Err)
 
 	storePath, err := fsutil.NormalizePath(config.StorePath)

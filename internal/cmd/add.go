@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/pkg"
 )
 
@@ -42,7 +42,7 @@ func NewAddCmd(app *core.App) *cobra.Command {
 }
 
 type AddAction struct {
-	IO    *iostreams.IOStreams
+	IO    *ui.IOStreams
 	Store *gen.Store
 
 	Origin string

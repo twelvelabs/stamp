@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -53,7 +53,7 @@ func NewNewCmd(app *core.App) *cobra.Command {
 
 type NewAction struct {
 	Config   *core.Config
-	IO       *iostreams.IOStreams
+	IO       *ui.IOStreams
 	Prompter value.Prompter
 	Store    *gen.Store
 

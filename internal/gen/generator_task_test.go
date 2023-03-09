@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
+	"github.com/twelvelabs/termite/ui"
 
-	"github.com/twelvelabs/stamp/internal/iostreams"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -144,7 +144,7 @@ func TestGeneratorTask_Execute(t *testing.T) {
 				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
 
-				ctx := NewTaskContext(iostreams.Test(), tt.Prompter, store, false)
+				ctx := NewTaskContext(ui.NewTestIOStreams(), tt.Prompter, store, false)
 				err = task.Execute(ctx, tt.Values)
 
 				// Ensure the expected files were generated
