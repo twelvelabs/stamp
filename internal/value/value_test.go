@@ -481,9 +481,9 @@ func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
 				"Year":       1977,
 				"WannaDance": true,
 			}),
-			Input:  "Dee Dee {{.Last}}",
-			Output: "Dee Dee Ramone",
-			String: "Dee Dee Ramone",
+			Input:  "Dee Dee {{.Last}}", //nolint: dupword
+			Output: "Dee Dee Ramone",    //nolint: dupword
+			String: "Dee Dee Ramone",    //nolint: dupword
 			Err:    "",
 		},
 		{

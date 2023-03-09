@@ -1,12 +1,12 @@
 .PHONY: coverage
 coverage:
 	make test
-	go tool cover -html=coverage.tmp
+	go tool cover -html=coverage.out
 
 .PHONY: clean
 clean:
 	rm -Rf ./bin
-	rm coverage.tmp
+	rm coverage.out
 
 .PHONY: generate
 generate:
@@ -14,25 +14,24 @@ generate:
 
 .PHONY: lint
 lint:
-	golangci-lint run
+	stylist check
 
 .PHONY: test
 test:
-	go test -cover -coverprofile=coverage.tmp ./...
-	@cat coverage.tmp | grep -v "_mock.go" | grep -v "_enum.go" > coverage.tmp.new
-	@mv coverage.tmp.new coverage.tmp
+	go test -cover -coverprofile=coverage.out ./...
+	@cat coverage.out | grep -v "_mock.go" | grep -v "_enum.go" > coverage.out.new
+	@mv coverage.out.new coverage.out
 
-.PHONY: bin/stamp
-bin/stamp:
-	go build -trimpath -o ./bin/stamp ./cmd/stamp
+.PHONY: dist/stamp
+dist/stamp:
+	go build -trimpath -o ./dist/stamp ./cmd/stamp
 
 .PHONY: build
-build: bin/stamp
+build: dist/stamp
 
-prefix  := /usr/local
-bindir  := ${prefix}/bin
+dst_dir  := /usr/local/bin
 
 .PHONY: install
-install: bin/stamp
-	install -d ${bindir}
-	install -m755 bin/stamp ${bindir}/
+install: dist/stamp
+	install -d ${dst_dir}
+	install -m755 bin/stamp ${dst_dir}/

@@ -3,7 +3,7 @@ package iostreams
 import (
 	"testing"
 
-	"github.com/mgutz/ansi" //cspell: disable-line
+	"github.com/mgutz/ansi"
 	"github.com/stretchr/testify/assert"
 )
 

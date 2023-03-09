@@ -7,7 +7,7 @@ import (
 	"os"
 
 	getter "github.com/hashicorp/go-getter"
-	cp "github.com/otiai10/copy" //cspell:disable-line
+	cp "github.com/otiai10/copy"
 )
 
 // Getter is a function that copies a package from `src` to `dst`.

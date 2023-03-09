@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mgutz/ansi" //cspell: disable-line
+	"github.com/mgutz/ansi"
 )
 
 var (

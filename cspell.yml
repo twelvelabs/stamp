@@ -1,0 +1,59 @@
+version: "0.2"
+language: en-US
+dictionaries:
+  - bash
+  - golang
+ignorePaths:
+  - .cspellcache
+  - .git/
+  - .gitignore
+  - .golangci.yml
+  - dist/
+  - coverage.*
+  - cspell.yml
+  - go.mod
+  - go.sum
+  - LICENSE
+  - "**/testdata"
+  - "**/*_enum.go"
+ignoreRegExpList:
+  - /import \([^)]+\)/g
+words:
+  - containedctx
+  - copystructure
+  - coverprofile
+  - dasherize
+  - devcontainer
+  - dupword
+  - flect
+  - fsutil
+  - gitleaks
+  - GOFILE
+  - gofmt
+  - golangci
+  - gopls
+  - goreleaser
+  - iostreams
+  - ireturn
+  - kebabcase
+  - maintidx
+  - mapstructure
+  - markdownlint
+  - matryer
+  - nilerr
+  - nolint
+  - oneof
+  - ordinalize
+  - pascalize
+  - pascalized
+  - pflag
+  - ramone
+  - renderable
+  - shellcheck
+  - symwalk
+  - testdata
+  - testutil
+  - titleize
+  - trimpath
+  - twelvelabs
+  - unmarshaller

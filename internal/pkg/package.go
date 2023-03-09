@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/gobuffalo/flect" //cspell: disable-line
+	"github.com/gobuffalo/flect"
 )
 
 type Package struct {

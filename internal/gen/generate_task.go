@@ -1,7 +1,5 @@
 package gen
 
-//cspell:words oneof
-
 import (
 	"fmt"
 	"io/fs"

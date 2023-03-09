@@ -3,10 +3,8 @@ package gen
 import (
 	"testing"
 
-	//cspell: disable
 	"github.com/creasty/defaults"
 	"github.com/stretchr/testify/assert"
-	//cspell: enable
 )
 
 func TestCommon_Defaults(t *testing.T) {

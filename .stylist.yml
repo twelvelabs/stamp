@@ -1,0 +1,11 @@
+excludes:
+  - dist/**
+  - coverage.*
+processors:
+  - preset: cspell
+  - preset: gitleaks
+  - preset: gofmt
+  - preset: golangci-lint
+  - preset: markdownlint
+  - preset: shellcheck
+  - preset: shfmt

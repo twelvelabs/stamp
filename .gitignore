@@ -1,2 +1,3 @@
-bin/stamp
-coverage.tmp
+.cspellcache
+dist/
+coverage.*

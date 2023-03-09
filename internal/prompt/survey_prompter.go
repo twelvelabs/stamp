@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2" //cspell: disable-line
+	"github.com/AlecAivazis/survey/v2"
 
 	"github.com/twelvelabs/stamp/internal/value"
 )

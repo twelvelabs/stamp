@@ -1,5 +1,3 @@
-//cspell:words manifoldco promptui
-
 package cmd
 
 import (

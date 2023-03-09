@@ -1,6 +1,6 @@
 # Stamp
 
-Stamp is a CLI tool for creating new projects (or new files in existing projects) from templates.
+Stamp is a CLI tool for creating new projects (or files) from templates.
 
 ## Usage
 

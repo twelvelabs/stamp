@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/creasty/defaults" //cspell:disable-line
+	"github.com/creasty/defaults"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -1,6 +1,8 @@
 package gen
 
-import "github.com/twelvelabs/stamp/internal/pkg"
+import (
+	"github.com/twelvelabs/stamp/internal/pkg"
+)
 
 type Store struct {
 	*pkg.Store

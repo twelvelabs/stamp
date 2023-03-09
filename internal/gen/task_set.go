@@ -1,9 +1,7 @@
 package gen
 
 import (
-	//cspell: disable
 	"github.com/mitchellh/copystructure"
-	//cspell: enable
 )
 
 // NewTaskSet returns a new TaskSet.

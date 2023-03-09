@@ -1,6 +1,8 @@
 package gen
 
-import "github.com/mitchellh/copystructure" //cspell: disable-line
+import (
+	"github.com/mitchellh/copystructure"
+)
 
 type GeneratorTask struct {
 	Common `mapstructure:",squash"`
