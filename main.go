@@ -14,9 +14,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
+	ctx := app.Context()
 
 	command := cmd.NewRootCmd(app)
-	if err := command.Execute(); err != nil {
+	if err := command.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}
 }

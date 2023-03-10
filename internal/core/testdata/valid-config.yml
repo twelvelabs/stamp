@@ -1,0 +1,5 @@
+---
+store_path: ~/some/dir
+debug: true
+defaults:
+  UserName: test-user

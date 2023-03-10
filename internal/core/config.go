@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -15,9 +14,19 @@ type Config struct {
 	StorePath string         `mapstructure:"store_path" default:"~/.stamp/packages"`
 }
 
-func NewConfig(in string) *Config {
-	if in != "" {
-		viper.SetConfigFile(in)
+// NewDefaultConfig returns a new, default config.
+func NewDefaultConfig() (*Config, error) {
+	config := &Config{}
+	return config, defaults.Set(config)
+}
+
+// NewConfig returns a new config for the file at path.
+// If path is empty, uses one of:
+//   - .stamp.yaml
+//   - ~/.stamp/.stamp.yaml
+func NewConfig(path string) (*Config, error) {
+	if path != "" {
+		viper.SetConfigFile(path)
 	} else {
 		viper.AddConfigPath(".")
 		viper.AddConfigPath("$HOME/.stamp/")
@@ -28,15 +37,10 @@ func NewConfig(in string) *Config {
 	viper.AutomaticEnv()
 	_ = viper.ReadInConfig()
 
-	config := &Config{}
-
-	if err := defaults.Set(config); err != nil {
-		cobra.CheckErr(err)
-	}
-
+	config, _ := NewDefaultConfig()
 	err := viper.Unmarshal(config)
 	if err != nil {
-		cobra.CheckErr(err)
+		return nil, err
 	}
 
 	if config.Debug {
@@ -44,5 +48,5 @@ func NewConfig(in string) *Config {
 		fmt.Fprintln(os.Stderr, "Store path:", config.StorePath)
 	}
 
-	return config
+	return config, nil
 }

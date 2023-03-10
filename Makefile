@@ -26,7 +26,7 @@ test:
 .PHONY: dist/stamp
 dist/stamp:
 	go mod tidy
-	go build -trimpath -o ./dist/stamp ./cmd/stamp
+	go build -trimpath -o ./dist/stamp .
 
 .PHONY: build
 build: dist/stamp
