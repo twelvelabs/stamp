@@ -488,8 +488,8 @@ github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8=
 github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
-github.com/twelvelabs/termite v0.7.0 h1:cPM+YElP1nmBxfYIevHaWaad9Z4baBNK7ilriEHrST8=
-github.com/twelvelabs/termite v0.7.0/go.mod h1:/xYLGQoMS42Hxhjftg5uOrEopQKuy6Ku7zxGmH1Icz0=
+github.com/twelvelabs/termite v0.8.0 h1:woQGXIN1SBEdRe941fDjVCGZaphgMrYI2yzjqwI/MrQ=
+github.com/twelvelabs/termite v0.8.0/go.mod h1:/xYLGQoMS42Hxhjftg5uOrEopQKuy6Ku7zxGmH1Icz0=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/ulikunitz/xz v0.5.11 h1:kpFauv27b6ynzBNT/Xy+1k+fK4WswhN/6PN5WhFAGw8=
 github.com/ulikunitz/xz v0.5.11/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
