@@ -1,4 +1,4 @@
-package gen
+package stamp
 
 import (
 	"github.com/twelvelabs/stamp/internal/pkg"

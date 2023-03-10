@@ -123,7 +123,7 @@ func (vs *ValueSet) GetAll() map[string]any {
 // Set sets the value data for key.
 // If key is not found, then sets the data in the cache
 // so that it can be used by other values
-// (see SrcPath and DstPath in gen.Generator).
+// (see SrcPath and DstPath in stamp.Generator).
 func (vs *ValueSet) Set(key string, value any) error {
 	if v := vs.Value(key); v != nil {
 		return v.set(value)

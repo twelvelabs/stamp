@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/twelvelabs/stamp/internal/core"
-	"github.com/twelvelabs/stamp/internal/gen"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
 func NewNewCmd(app *core.App) *cobra.Command {
@@ -131,7 +131,7 @@ func (a *NewAction) Run() error {
 	if err != nil {
 		return err
 	}
-	ctx := gen.NewTaskContext(a.IO, a.Prompter, a.Store, dryRun)
+	ctx := stamp.NewTaskContext(a.IO, a.Prompter, a.Store, dryRun)
 	values := generator.Values.GetAll()
 
 	// And finally... Release the hounds™
@@ -144,14 +144,14 @@ func (a *NewAction) Run() error {
 	return nil
 }
 
-func (a *NewAction) setUsage(generator *gen.Generator) {
+func (a *NewAction) setUsage(generator *stamp.Generator) {
 	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "<name>", generator.Name())
 	for _, v := range generator.Values.Args() {
 		a.cmd.Use += fmt.Sprintf(" [<%s>]", v.FlagName())
 	}
 }
 
-func (a *NewAction) setDefaults(generator *gen.Generator) {
+func (a *NewAction) setDefaults(generator *stamp.Generator) {
 	for _, val := range generator.Values.All() {
 		// viper forces all config keys to lowercase,
 		// so users have to store defaults by flag name :shrug:
@@ -162,7 +162,7 @@ func (a *NewAction) setDefaults(generator *gen.Generator) {
 	}
 }
 
-func (a *NewAction) registerFlags(generator *gen.Generator) {
+func (a *NewAction) registerFlags(generator *stamp.Generator) {
 	for _, val := range generator.Values.Flags() {
 		a.cmd.Flags().Var(val, val.FlagName(), val.Help)
 		if val.IsBoolFlag() {
@@ -179,7 +179,7 @@ func (a *NewAction) parseFlags() error {
 	return nil
 }
 
-func (a *NewAction) setArgs(generator *gen.Generator) error {
+func (a *NewAction) setArgs(generator *stamp.Generator) error {
 	nonFlagArgs := a.cmd.Flags().Args()
 	remaining, err := generator.Values.SetArgs(nonFlagArgs)
 	if err != nil {

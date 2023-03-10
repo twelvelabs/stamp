@@ -8,8 +8,8 @@ import (
 	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
-	"github.com/twelvelabs/stamp/internal/gen"
 	"github.com/twelvelabs/stamp/internal/prompt"
+	"github.com/twelvelabs/stamp/internal/stamp"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
@@ -24,7 +24,7 @@ type App struct {
 	IO       *ui.IOStreams
 	UI       *ui.UserInterface
 	Prompter value.Prompter
-	Store    *gen.Store
+	Store    *stamp.Store
 
 	ctx context.Context //nolint: containedctx
 }
@@ -59,7 +59,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("startup error: %w", err)
 	}
-	store := gen.NewStore(storePath)
+	store := stamp.NewStore(storePath)
 
 	app := &App{
 		Config:   config,
@@ -77,8 +77,8 @@ func NewTestApp() *App {
 	ios := ui.NewTestIOStreams()
 	prompter := &value.PrompterMock{}
 
-	storePath, _ := filepath.Abs(filepath.Join("..", "gen", "testdata", "generators"))
-	store := gen.NewStore(storePath)
+	storePath, _ := filepath.Abs(filepath.Join("..", "stamp", "testdata", "generators"))
+	store := stamp.NewStore(storePath)
 
 	app := &App{
 		Config:   config,

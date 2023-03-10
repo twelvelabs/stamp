@@ -1,4 +1,4 @@
-package gen
+package stamp
 
 //go:generate go-enum -f=$GOFILE --marshal --names
 

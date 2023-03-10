@@ -18,7 +18,7 @@ func TestNewTestApp(t *testing.T) {
 	assert.IsType(t, &App{}, app)
 	assert.NotNil(t, app)
 
-	// ensure store is pointing to gen/testdata/generators.
+	// ensure store is pointing to stamp/testdata/generators.
 	generator, err := app.Store.Load("file")
 	assert.NotNil(t, generator)
 	assert.NoError(t, err)
