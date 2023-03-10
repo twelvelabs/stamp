@@ -2,20 +2,15 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
-	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/twelvelabs/stamp/internal/core"
-	"github.com/twelvelabs/stamp/internal/gen"
 )
 
 func NewUpdateCmd(app *core.App) *cobra.Command {
-	action := &UpdateAction{
-		Store: app.Store,
-	}
+	action := NewUpdateAction(app)
 
 	cmd := &cobra.Command{
 		Use:   "update [name]",
@@ -29,16 +24,23 @@ func NewUpdateCmd(app *core.App) *cobra.Command {
 			err = action.Validate()
 			cobra.CheckErr(err)
 
-			err = action.Run(cmd.InOrStdin(), cmd.OutOrStdout())
+			err = action.Run()
 			cobra.CheckErr(err)
 		},
 	}
 	return cmd
 }
 
+func NewUpdateAction(app *core.App) *UpdateAction {
+	return &UpdateAction{
+		App: app,
+	}
+}
+
 type UpdateAction struct {
-	Store *gen.Store
-	Name  string
+	*core.App
+
+	Name string
 }
 
 func (a *UpdateAction) Setup(args []string) error {
@@ -56,8 +58,8 @@ func (a *UpdateAction) Validate() error {
 	return nil
 }
 
-func (a *UpdateAction) Run(in io.Reader, out io.Writer) error {
-	fmt.Fprintln(out, "Updating package:", a.Name)
+func (a *UpdateAction) Run() error {
+	a.UI.Out("Updating package: %s\n", a.Name)
 
 	updated, err := a.Store.Update(a.Name)
 	if err != nil {
@@ -69,9 +71,9 @@ func (a *UpdateAction) Run(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintln(out, " -", updated.Name())
+	a.UI.Out(" - %s\n", updated.Name())
 	for _, child := range children {
-		fmt.Fprintln(out, " -", child.Name())
+		a.UI.Out(" - %s\n", child.Name())
 	}
 
 	return nil

@@ -14,6 +14,7 @@ import (
 type App struct {
 	Config   *Config
 	IO       *ui.IOStreams
+	UI       *ui.UserInterface
 	Prompter value.Prompter
 	Store    *gen.Store
 }
@@ -36,6 +37,7 @@ func NewApp() (*App, error) {
 	app := &App{
 		Config:   config,
 		IO:       ios,
+		UI:       ui.NewUserInterface(ios),
 		Prompter: prompter,
 		Store:    store,
 	}

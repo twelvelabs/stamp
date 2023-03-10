@@ -2,23 +2,15 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
-	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 func NewRemoveCmd(app *core.App) *cobra.Command {
-	action := &RemoveAction{
-		IO:       app.IO,
-		Prompter: app.Prompter,
-		Store:    app.Store,
-	}
+	action := NewRemoveAction(app)
 
 	cmd := &cobra.Command{
 		Use:   "remove [name]",
@@ -42,10 +34,14 @@ func NewRemoveCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
+func NewRemoveAction(app *core.App) *RemoveAction {
+	return &RemoveAction{
+		App: app,
+	}
+}
+
 type RemoveAction struct {
-	Store    *gen.Store
-	IO       *ui.IOStreams
-	Prompter value.Prompter
+	*core.App
 
 	Name string
 }
@@ -76,18 +72,18 @@ func (a *RemoveAction) Run() error {
 		return err
 	}
 
-	fmt.Fprintln(a.IO.Out, "Removing the following packages:")
-	fmt.Fprintln(a.IO.Out, " -", generator.Name())
+	a.UI.Out("Removing the following packages:\n")
+	a.UI.Out(" - %s\n", generator.Name())
 	for _, child := range children {
-		fmt.Fprintln(a.IO.Out, " -", child.Name())
+		a.UI.Out(" - %s\n", child.Name())
 	}
 
-	confirmed, err := a.Prompter.Confirm("Are you sure?", false, "", "")
+	ok, err := a.UI.Confirm("Are you sure", false)
 	if err != nil {
 		return err
 	}
 
-	if confirmed {
+	if ok {
 		_, err = a.Store.Uninstall(a.Name)
 		return err
 	}

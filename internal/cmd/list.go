@@ -1,20 +1,13 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
-	"github.com/twelvelabs/stamp/internal/gen"
 )
 
 func NewListCmd(app *core.App) *cobra.Command {
-	action := &ListAction{
-		IO:    app.IO,
-		Store: app.Store,
-	}
+	action := NewListAction(app)
 
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -37,9 +30,14 @@ func NewListCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
+func NewListAction(app *core.App) *ListAction {
+	return &ListAction{
+		App: app,
+	}
+}
+
 type ListAction struct {
-	IO    *ui.IOStreams
-	Store *gen.Store
+	*core.App
 }
 
 func (a *ListAction) Setup(cmd *cobra.Command, args []string) error {
@@ -54,9 +52,9 @@ func (a *ListAction) Run() error {
 		return err
 	}
 
-	fmt.Fprintln(a.IO.Err, "Generators:")
+	a.UI.Out("Generators:\n")
 	for _, p := range results {
-		fmt.Fprintf(a.IO.Err, " - %s\n", p.Name())
+		a.UI.Out(" - %s\n", p.Name())
 	}
 	return nil
 }

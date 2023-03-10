@@ -7,20 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/gen"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 func NewNewCmd(app *core.App) *cobra.Command {
-	action := &NewAction{
-		Config:   app.Config,
-		IO:       app.IO,
-		Prompter: app.Prompter,
-		Store:    app.Store,
-	}
+	action := NewNewAction(app)
 
 	cmd := &cobra.Command{
 		Use:   "new <name>",
@@ -51,11 +44,14 @@ func NewNewCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
+func NewNewAction(app *core.App) *NewAction {
+	return &NewAction{
+		App: app,
+	}
+}
+
 type NewAction struct {
-	Config   *core.Config
-	IO       *ui.IOStreams
-	Prompter value.Prompter
-	Store    *gen.Store
+	*core.App
 
 	Name   string
 	DryRun bool
@@ -126,9 +122,9 @@ func (a *NewAction) Run() error {
 		return err
 	}
 
-	fmt.Fprintln(a.IO.Err, "")
-	fmt.Fprintln(a.IO.Err, "Running:", generator.Name())
-	fmt.Fprintln(a.IO.Err, "")
+	a.UI.Out("\n")
+	a.UI.Out("Running: %s\n", generator.Name())
+	a.UI.Out("\n")
 
 	// Prepare everything needed to execute.
 	dryRun, err := a.cmd.Flags().GetBool("dry-run")
@@ -143,7 +139,7 @@ func (a *NewAction) Run() error {
 		return err
 	}
 
-	fmt.Fprintln(a.IO.Err, "")
+	a.UI.Out("\n")
 
 	return nil
 }

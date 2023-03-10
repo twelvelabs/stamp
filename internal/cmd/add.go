@@ -2,22 +2,16 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/core"
-	"github.com/twelvelabs/stamp/internal/gen"
 	"github.com/twelvelabs/stamp/internal/pkg"
 )
 
 func NewAddCmd(app *core.App) *cobra.Command {
-	action := &AddAction{
-		IO:    app.IO,
-		Store: app.Store,
-	}
+	action := NewAddAction(app)
 
 	cmd := &cobra.Command{
 		Use:   "add [origin]",
@@ -41,9 +35,14 @@ func NewAddCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
+func NewAddAction(app *core.App) *AddAction {
+	return &AddAction{
+		App: app,
+	}
+}
+
 type AddAction struct {
-	IO    *ui.IOStreams
-	Store *gen.Store
+	*core.App
 
 	Origin string
 }
@@ -64,7 +63,7 @@ func (a *AddAction) Validate() error {
 }
 
 func (a *AddAction) Run() error {
-	fmt.Fprintf(a.IO.Err, "Adding package from: %s\n", a.Origin)
+	a.UI.Out("Adding package from: %s\n", a.Origin)
 
 	installed, err := a.Store.Install(a.Origin)
 	if err != nil {
@@ -78,7 +77,7 @@ func (a *AddAction) Run() error {
 	results = append([]*pkg.Package{installed}, results...)
 
 	for _, p := range results {
-		fmt.Fprintf(a.IO.Err, " - %s\n", p.Name())
+		a.UI.Out(" - %s\n", p.Name())
 	}
 	return nil
 }
