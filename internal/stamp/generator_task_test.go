@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
-
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
@@ -61,7 +59,6 @@ func TestGeneratorTask_Execute(t *testing.T) {
 		Desc       string
 		TaskData   map[string]any
 		Values     map[string]any
-		Prompter   *value.PrompterMock
 		StartFiles map[string]any
 		EndFiles   map[string]any
 		Err        string

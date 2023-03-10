@@ -110,7 +110,7 @@ func (t *GenerateTask) replace(ctx *TaskContext, values map[string]any, src stri
 // delegates to keep or replace depending on their response.
 func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	ctx.Logger.Warning("conflict", "%s already exists", dst)
-	overwrite, err := ctx.Prompter.Confirm("Overwrite", false, "", "")
+	overwrite, err := ctx.UI.Confirm("Overwrite", false)
 	if err != nil {
 		return err
 	}

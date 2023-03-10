@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/twelvelabs/termite/testutil"
-
-	"github.com/twelvelabs/stamp/internal/value"
+	"github.com/twelvelabs/termite/ui"
 )
 
 func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
@@ -108,9 +108,9 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		DryRun     bool
 		TaskData   map[string]any
 		Values     map[string]any
-		Prompter   *value.PrompterMock
 		StartFiles map[string]any
 		EndFiles   map[string]any
+		Setup      func(app *App)
 		Err        string
 	}{
 		{
@@ -265,7 +265,6 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath":     templatesDir,
 				"DstPath":     ".",
 			},
-			Prompter: &value.PrompterMock{},
 			EndFiles: map[string]any{
 				"README.md": "Pre-existing content",
 			},
@@ -288,7 +287,6 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath":     templatesDir,
 				"DstPath":     ".",
 			},
-			Prompter: &value.PrompterMock{},
 			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
 			},
@@ -311,8 +309,11 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath":     templatesDir,
 				"DstPath":     ".",
 			},
-			Prompter: &value.PrompterMock{
-				ConfirmFunc: value.NewConfirmFunc(true, nil),
+			Setup: func(app *App) {
+				app.UI.RegisterStub(
+					ui.MatchConfirm("Overwrite"),
+					ui.RespondBool(true),
+				)
 			},
 			EndFiles: map[string]any{
 				"README.md": "# My Project\n",
@@ -335,8 +336,11 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath":     templatesDir,
 				"DstPath":     ".",
 			},
-			Prompter: &value.PrompterMock{
-				ConfirmFunc: value.NewConfirmFunc(false, nil),
+			Setup: func(app *App) {
+				app.UI.RegisterStub(
+					ui.MatchConfirm("Overwrite"),
+					ui.RespondBool(false),
+				)
 			},
 			EndFiles: map[string]any{
 				"README.md": "Pre-existing content",
@@ -359,8 +363,11 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath":     templatesDir,
 				"DstPath":     ".",
 			},
-			Prompter: &value.PrompterMock{
-				ConfirmFunc: value.NewConfirmFunc(false, errors.New("boom")),
+			Setup: func(app *App) {
+				app.UI.RegisterStub(
+					ui.MatchConfirm("Overwrite"),
+					ui.RespondError(errors.New("boom")),
+				)
 			},
 			EndFiles: map[string]any{
 				"README.md": "Pre-existing content",
@@ -374,13 +381,16 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				// Populate the temp dir w/ any initial files
 				testutil.WritePaths(t, tmpDir, tt.StartFiles)
 
-				// Create a new task and execute it
-				task, err := NewTask(tt.TaskData)
-				assert.NoError(t, err)
-
+				// Setup the app.
 				app := NewTestApp()
-				app.Prompter = tt.Prompter
+				if tt.Setup != nil {
+					tt.Setup(app)
+				}
+				defer app.UI.VerifyStubs(t)
 
+				// Create a new task and execute it.
+				task, err := NewTask(tt.TaskData)
+				require.NoError(t, err)
 				ctx := NewTaskContext(app, tt.DryRun)
 				err = task.Execute(ctx, tt.Values)
 

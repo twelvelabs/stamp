@@ -82,7 +82,7 @@ func NewTestApp() *App {
 	app := &App{
 		Config:   config,
 		IO:       ios,
-		UI:       ui.NewUserInterface(ios),
+		UI:       ui.NewUserInterface(ios).WithStubbing(),
 		Prompter: prompter,
 		Store:    store,
 	}
