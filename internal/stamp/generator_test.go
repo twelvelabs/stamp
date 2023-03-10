@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/pkg"
 )
@@ -68,6 +67,8 @@ func TestNewGenerators(t *testing.T) {
 
 func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 	store := NewTestStore() // must call before changing dirs
+	app := NewTestApp()
+	app.Store = store
 
 	testutil.InTempDir(t, func(tmpDir string) {
 		gen, err := store.Load("delegating")
@@ -80,7 +81,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "customized.txt", values["FileName"])
 		assert.Equal(t, "custom content", values["FileContent"])
 
-		ctx := NewTaskContext(ui.NewTestIOStreams(), nil, store, false)
+		ctx := NewTaskContext(app, false)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 
@@ -102,7 +103,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "untitled.txt", values["FileName"])
 		assert.Equal(t, "", values["FileContent"])
 
-		ctx := NewTaskContext(ui.NewTestIOStreams(), nil, store, false)
+		ctx := NewTaskContext(app, false)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 

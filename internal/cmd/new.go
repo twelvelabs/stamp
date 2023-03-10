@@ -130,7 +130,7 @@ func (a *NewAction) Run() error {
 	if err != nil {
 		return err
 	}
-	ctx := stamp.NewTaskContext(a.IO, a.Prompter, a.Store, dryRun)
+	ctx := stamp.NewTaskContext(a.App, dryRun)
 	values := generator.Values.GetAll()
 
 	// And finally... Release the hounds™

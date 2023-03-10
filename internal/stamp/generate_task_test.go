@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
-	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/value"
 )
@@ -379,7 +378,10 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
 
-				ctx := NewTaskContext(ui.NewTestIOStreams(), tt.Prompter, nil, tt.DryRun)
+				app := NewTestApp()
+				app.Prompter = tt.Prompter
+
+				ctx := NewTaskContext(app, tt.DryRun)
 				err = task.Execute(ctx, tt.Values)
 
 				// Ensure the expected files were generated
@@ -401,7 +403,8 @@ func TestGenerateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
 	task := &GenerateTask{
 		Conflict: "unknown",
 	}
-	ctx := NewTaskContext(nil, nil, nil, false)
+	app := NewTestApp()
+	ctx := NewTaskContext(app, false)
 	values := map[string]any{}
 
 	err := task.dispatch(ctx, values, "", "")
@@ -414,8 +417,8 @@ func TestGenerateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
 	task := &GenerateTask{
 		Mode: "unknown",
 	}
-	ios := ui.NewTestIOStreams()
-	ctx := NewTaskContext(ios, nil, nil, false)
+	app := NewTestApp()
+	ctx := NewTaskContext(app, false)
 	values := map[string]any{}
 
 	err := task.dispatch(ctx, values, "", "/do-not-generate")
