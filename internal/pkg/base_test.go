@@ -198,7 +198,7 @@ func workingDir() string {
 
 // Returns the absolute path to `./testdata/packages`.
 func packageFixturesDir() string {
-	dir, err := filepath.Abs(path.Join(workingDir(), "..", "..", "testdata", "packages"))
+	dir, err := filepath.Abs(path.Join(workingDir(), "testdata", "packages"))
 	if err != nil {
 		log.Fatal(err)
 	}

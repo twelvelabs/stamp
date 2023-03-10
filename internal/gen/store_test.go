@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// NewTestStore returns a new store pointing to ../../testdata/generators.
+// NewTestStore returns a new store pointing to ./testdata/generators.
 // Note that since we're starting with a relative path, this function
 // needs to be called outside any calls to InTempDir().
 func NewTestStore() *Store {
-	storePath, _ := filepath.Abs(filepath.Join("..", "..", "testdata", "generators"))
+	storePath, _ := filepath.Abs(filepath.Join("testdata", "generators"))
 	return NewStore(storePath)
 }
 
