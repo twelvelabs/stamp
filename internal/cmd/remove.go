@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/twelvelabs/stamp/internal/core"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
-func NewRemoveCmd(app *core.App) *cobra.Command {
+func NewRemoveCmd(app *stamp.App) *cobra.Command {
 	action := NewRemoveAction(app)
 
 	cmd := &cobra.Command{
@@ -34,14 +34,14 @@ func NewRemoveCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
-func NewRemoveAction(app *core.App) *RemoveAction {
+func NewRemoveAction(app *stamp.App) *RemoveAction {
 	return &RemoveAction{
 		App: app,
 	}
 }
 
 type RemoveAction struct {
-	*core.App
+	*stamp.App
 
 	Name string
 }

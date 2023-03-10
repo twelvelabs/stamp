@@ -3,10 +3,10 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/twelvelabs/stamp/internal/core"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
-func NewListCmd(app *core.App) *cobra.Command {
+func NewListCmd(app *stamp.App) *cobra.Command {
 	action := NewListAction(app)
 
 	cmd := &cobra.Command{
@@ -30,14 +30,14 @@ func NewListCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
-func NewListAction(app *core.App) *ListAction {
+func NewListAction(app *stamp.App) *ListAction {
 	return &ListAction{
 		App: app,
 	}
 }
 
 type ListAction struct {
-	*core.App
+	*stamp.App
 }
 
 func (a *ListAction) Setup(cmd *cobra.Command, args []string) error {

@@ -8,11 +8,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
-func NewNewCmd(app *core.App) *cobra.Command {
+func NewNewCmd(app *stamp.App) *cobra.Command {
 	action := NewNewAction(app)
 
 	cmd := &cobra.Command{
@@ -44,14 +43,14 @@ func NewNewCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
-func NewNewAction(app *core.App) *NewAction {
+func NewNewAction(app *stamp.App) *NewAction {
 	return &NewAction{
 		App: app,
 	}
 }
 
 type NewAction struct {
-	*core.App
+	*stamp.App
 
 	Name   string
 	DryRun bool

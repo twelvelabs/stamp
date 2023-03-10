@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/twelvelabs/stamp/internal/core"
 	"github.com/twelvelabs/stamp/internal/pkg"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
-func NewAddCmd(app *core.App) *cobra.Command {
+func NewAddCmd(app *stamp.App) *cobra.Command {
 	action := NewAddAction(app)
 
 	cmd := &cobra.Command{
@@ -35,14 +35,14 @@ func NewAddCmd(app *core.App) *cobra.Command {
 	return cmd
 }
 
-func NewAddAction(app *core.App) *AddAction {
+func NewAddAction(app *stamp.App) *AddAction {
 	return &AddAction{
 		App: app,
 	}
 }
 
 type AddAction struct {
-	*core.App
+	*stamp.App
 
 	Origin string
 }

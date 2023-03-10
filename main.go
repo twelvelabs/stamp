@@ -5,11 +5,11 @@ import (
 	"os"
 
 	"github.com/twelvelabs/stamp/internal/cmd"
-	"github.com/twelvelabs/stamp/internal/core"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
 func main() {
-	app, err := core.NewApp()
+	app, err := stamp.NewApp()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)

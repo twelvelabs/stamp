@@ -1,4 +1,4 @@
-package core
+package stamp
 
 import (
 	"path/filepath"
@@ -13,7 +13,7 @@ func TestNewDefaultConfig(t *testing.T) {
 }
 
 func TestNewConfig_Valid(t *testing.T) {
-	path := filepath.Join("testdata", "valid-config.yml")
+	path := filepath.Join("testdata", "config", "valid.yml")
 	config, err := NewConfig(path)
 	assert.NoError(t, err)
 	assert.Equal(t, "~/some/dir", config.StorePath)
@@ -23,7 +23,7 @@ func TestNewConfig_Valid(t *testing.T) {
 }
 
 func TestNewConfig_Invalid(t *testing.T) {
-	path := filepath.Join("testdata", "invalid-config.yml")
+	path := filepath.Join("testdata", "config", "invalid.yml")
 	_, err := NewConfig(path)
 	assert.ErrorContains(t, err, "cannot parse 'debug' as bool")
 }

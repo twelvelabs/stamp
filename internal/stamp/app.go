@@ -1,4 +1,4 @@
-package core
+package stamp
 
 import (
 	"context"
@@ -9,14 +9,13 @@ import (
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/prompt"
-	"github.com/twelvelabs/stamp/internal/stamp"
 	"github.com/twelvelabs/stamp/internal/value"
 )
 
 type ctxKey string
 
 var (
-	ctxKeyApp ctxKey = "github.com/twelvelabs/stamp/internal/core.App"
+	ctxKeyApp ctxKey = "github.com/twelvelabs/stamp/internal/stamp.App"
 )
 
 type App struct {
@@ -24,7 +23,7 @@ type App struct {
 	IO       *ui.IOStreams
 	UI       *ui.UserInterface
 	Prompter value.Prompter
-	Store    *stamp.Store
+	Store    *Store
 
 	ctx context.Context //nolint: containedctx
 }
@@ -59,7 +58,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("startup error: %w", err)
 	}
-	store := stamp.NewStore(storePath)
+	store := NewStore(storePath)
 
 	app := &App{
 		Config:   config,
@@ -77,8 +76,8 @@ func NewTestApp() *App {
 	ios := ui.NewTestIOStreams()
 	prompter := &value.PrompterMock{}
 
-	storePath, _ := filepath.Abs(filepath.Join("..", "stamp", "testdata", "generators"))
-	store := stamp.NewStore(storePath)
+	storePath, _ := filepath.Abs(filepath.Join("testdata", "generators"))
+	store := NewStore(storePath)
 
 	app := &App{
 		Config:   config,

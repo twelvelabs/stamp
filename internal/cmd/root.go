@@ -3,10 +3,10 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/twelvelabs/stamp/internal/core"
+	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
-func NewRootCmd(app *core.App) *cobra.Command {
+func NewRootCmd(app *stamp.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stamp",
 		Short: "A brief description of your application",
