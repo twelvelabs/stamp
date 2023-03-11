@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/twelvelabs/termite/ui"
 )
 
 func TestNewValue(t *testing.T) {
@@ -621,22 +622,21 @@ func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
 	}
 }
 
-func TestValue_Prompt(t *testing.T) {
+func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 	tests := []struct {
-		Name     string
-		Value    *Value
-		Prompter Prompter
-		Output   interface{}
-		Err      string
+		Name   string
+		Value  *Value
+		Setup  func(p *ui.UserInterface)
+		Output interface{}
+		Err    string
 	}{
 		{
 			Name: "invalid type",
 			Value: (&Value{
 				DataType: "not-a-type",
 			}),
-			Prompter: &PrompterMock{},
-			Output:   nil,
-			Err:      "invalid data type",
+			Output: nil,
+			Err:    "invalid data type",
 		},
 		{
 			Name: "[bool] true",
@@ -644,8 +644,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "bool",
 				Default:  false,
 			}),
-			Prompter: &PrompterMock{
-				ConfirmFunc: NewConfirmFunc(true, nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchConfirm(""),
+					ui.RespondBool(true),
+				)
 			},
 			Output: true,
 			Err:    "",
@@ -661,8 +664,11 @@ func TestValue_Prompt(t *testing.T) {
 				"Year":       1977,
 				"WannaDance": true,
 			}),
-			Prompter: &PrompterMock{
-				ConfirmFunc: NewNoopConfirmFunc(),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchConfirm(""),
+					ui.RespondDefault(),
+				)
 			},
 			Output: true,
 			Err:    "",
@@ -673,8 +679,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "bool",
 				Default:  false,
 			}),
-			Prompter: &PrompterMock{
-				ConfirmFunc: NewConfirmFunc(true, errors.New("boom")),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchConfirm(""),
+					ui.RespondError(errors.New("boom")),
+				)
 			},
 			Output: false,
 			Err:    "boom",
@@ -686,9 +695,6 @@ func TestValue_Prompt(t *testing.T) {
 				Default:      false,
 				PromptConfig: PromptConfigNever,
 			}),
-			Prompter: &PrompterMock{
-				ConfirmFunc: NewConfirmFunc(true, nil),
-			},
 			Output: false,
 			Err:    "",
 		},
@@ -699,8 +705,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "int",
 				Default:  1,
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewInputFunc("12", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondString("12"),
+				)
 			},
 			Output: 12,
 			Err:    "",
@@ -712,8 +721,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  1,
 				Options:  []any{1, 2, 3},
 			}),
-			Prompter: &PrompterMock{
-				SelectFunc: NewSelectFunc("3", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchSelect(""),
+					ui.RespondString("3"),
+				)
 			},
 			Output: 3,
 			Err:    "",
@@ -729,8 +741,11 @@ func TestValue_Prompt(t *testing.T) {
 				"Year":       1977,
 				"WannaDance": true,
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewNoopInputFunc(),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondDefault(),
+				)
 			},
 			Output: 1978,
 			Err:    "",
@@ -741,8 +756,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "int",
 				Default:  1,
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewInputFunc("not an int", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondString("not an int"),
+				)
 			},
 			Output: nil,
 			Err:    "unable to cast",
@@ -754,8 +772,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "intSlice",
 				Default:  "",
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewInputFunc("1,2,3", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondString("1,2,3"),
+				)
 			},
 			Output: []int{1, 2, 3},
 			Err:    "",
@@ -767,8 +788,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  "",
 				Options:  []any{1, 2, 3},
 			}),
-			Prompter: &PrompterMock{
-				MultiSelectFunc: NewMultiSelectFunc([]string{"1", "2"}, nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchMultiSelect(""),
+					ui.RespondStringSlice([]string{"1", "2"}),
+				)
 			},
 			Output: []int{1, 2},
 			Err:    "",
@@ -780,8 +804,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  []int{1, 2},
 				Options:  []any{1, 2, 3},
 			}),
-			Prompter: &PrompterMock{
-				MultiSelectFunc: NewNoopMultiSelectFunc(),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchMultiSelect(""),
+					ui.RespondDefault(),
+				)
 			},
 			Output: []int{1, 2},
 			Err:    "",
@@ -793,8 +820,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "string",
 				Default:  "foo",
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewInputFunc("bar", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondString("bar"),
+				)
 			},
 			Output: "bar",
 			Err:    "",
@@ -810,8 +840,11 @@ func TestValue_Prompt(t *testing.T) {
 				"Year":       1977,
 				"WannaDance": true,
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewNoopInputFunc(),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondDefault(),
+				)
 			},
 			Output: "Joey Ramone",
 			Err:    "",
@@ -823,8 +856,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  "foo",
 				Options:  []any{"foo", "bar", "baz"},
 			}),
-			Prompter: &PrompterMock{
-				SelectFunc: NewSelectFunc("baz", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchSelect(""),
+					ui.RespondString("baz"),
+				)
 			},
 			Output: "baz",
 			Err:    "",
@@ -836,8 +872,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  "foo",
 				Options:  []any{"foo", "bar", "baz"},
 			}),
-			Prompter: &PrompterMock{
-				SelectFunc: NewNoopSelectFunc(),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchSelect(""),
+					ui.RespondDefault(),
+				)
 			},
 			Output: "foo",
 			Err:    "",
@@ -849,8 +888,11 @@ func TestValue_Prompt(t *testing.T) {
 				DataType: "stringSlice",
 				Default:  "",
 			}),
-			Prompter: &PrompterMock{
-				InputFunc: NewInputFunc("foo,bar", nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchInput(""),
+					ui.RespondString("foo,bar"),
+				)
 			},
 			Output: []string{"foo", "bar"},
 			Err:    "",
@@ -862,8 +904,11 @@ func TestValue_Prompt(t *testing.T) {
 				Default:  "",
 				Options:  []any{"foo", "bar", "baz"},
 			}),
-			Prompter: &PrompterMock{
-				MultiSelectFunc: NewMultiSelectFunc([]string{"foo", "bar"}, nil),
+			Setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchMultiSelect(""),
+					ui.RespondStringSlice([]string{"foo", "bar"}),
+				)
 			},
 			Output: []string{"foo", "bar"},
 			Err:    "",
@@ -872,7 +917,14 @@ func TestValue_Prompt(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			err := test.Value.Prompt(test.Prompter)
+			prompter := ui.NewUserInterface(ui.NewTestIOStreams()).WithStubbing()
+			defer prompter.VerifyStubs(t)
+
+			if test.Setup != nil {
+				test.Setup(prompter)
+			}
+
+			err := test.Value.Prompt(prompter)
 			if test.Err == "" {
 				assert.NoError(t, err)
 				assert.Equal(t, test.Output, test.Value.Get(), "Get() should match output")

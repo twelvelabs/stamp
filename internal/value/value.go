@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/pflag"
 	"github.com/twelvelabs/termite/render"
+	"github.com/twelvelabs/termite/ui"
 )
 
 var (
@@ -140,7 +141,7 @@ func (v *Value) ShouldPrompt() bool {
 }
 
 // Prompt prompts the user for a value.
-func (v *Value) Prompt(prompter Prompter) error {
+func (v *Value) Prompt(prompter ui.Prompter) error {
 	if !v.ShouldPrompt() {
 		return nil
 	}
@@ -152,19 +153,24 @@ func (v *Value) Prompt(prompter Prompter) error {
 	switch v.DataType {
 	case DataTypeBool:
 		defVal := cast.ToBool(v.Get())
-		response, err = prompter.Confirm(v.DisplayName(), defVal, v.Help, v.ValidationRules)
+		response, err = prompter.Confirm(v.DisplayName(), defVal,
+			ui.WithHelp(v.Help), ui.WithValidation(v.ValidationRules))
 	case DataTypeInt, DataTypeString:
 		if len(options) > 0 {
-			response, err = prompter.Select(v.DisplayName(), options, v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Select(v.DisplayName(), options, v.String(),
+				ui.WithHelp(v.Help), ui.WithValidation(v.ValidationRules))
 		} else {
-			response, err = prompter.Input(v.DisplayName(), v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Input(v.DisplayName(), v.String(),
+				ui.WithHelp(v.Help), ui.WithValidation(v.ValidationRules))
 		}
 	case DataTypeIntSlice, DataTypeStringSlice:
 		if len(options) > 0 {
 			defVal := cast.ToStringSlice(v.Get())
-			response, err = prompter.MultiSelect(v.DisplayName(), options, defVal, v.Help, v.ValidationRules)
+			response, err = prompter.MultiSelect(v.DisplayName(), options, defVal,
+				ui.WithHelp(v.Help), ui.WithValidation(v.ValidationRules))
 		} else {
-			response, err = prompter.Input(v.DisplayName(), v.String(), v.Help, v.ValidationRules)
+			response, err = prompter.Input(v.DisplayName(), v.String(),
+				ui.WithHelp(v.Help), ui.WithValidation(v.ValidationRules))
 		}
 	default:
 		return ErrInvalidDataType

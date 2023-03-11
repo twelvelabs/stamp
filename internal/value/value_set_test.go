@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/twelvelabs/termite/ui"
 )
 
 func TestNewValueSet(t *testing.T) {
@@ -435,11 +436,10 @@ func TestValueSet_Validate(t *testing.T) {
 }
 
 func TestValueSet_Prompt(t *testing.T) {
-	callCount := 0
 	tests := []struct {
 		name      string
 		values    []*Value
-		prompter  *PrompterMock
+		setup     func(p *ui.UserInterface)
 		assertion assert.ErrorAssertionFunc
 	}{
 		{
@@ -454,8 +454,15 @@ func TestValueSet_Prompt(t *testing.T) {
 					DataType: DataTypeBool,
 				},
 			},
-			prompter: &PrompterMock{
-				ConfirmFunc: NewConfirmFunc(true, nil), // always succeeds
+			setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchConfirm("V1"),
+					ui.RespondBool(true),
+				)
+				p.RegisterStub(
+					ui.MatchConfirm("V2"),
+					ui.RespondBool(true),
+				)
 			},
 			assertion: assert.NoError,
 		},
@@ -471,15 +478,15 @@ func TestValueSet_Prompt(t *testing.T) {
 					DataType: DataTypeBool,
 				},
 			},
-			prompter: &PrompterMock{
-				// fails on second prompt
-				ConfirmFunc: func(prompt string, defaultValue bool, help, validationRules string) (bool, error) {
-					callCount++
-					if callCount >= 2 {
-						return false, errors.New("boom")
-					}
-					return true, nil
-				},
+			setup: func(p *ui.UserInterface) {
+				p.RegisterStub(
+					ui.MatchConfirm("V1"),
+					ui.RespondBool(true),
+				)
+				p.RegisterStub(
+					ui.MatchConfirm("V2"),
+					ui.RespondError(errors.New("boom")),
+				)
 			},
 			assertion: assert.Error,
 		},
@@ -487,12 +494,17 @@ func TestValueSet_Prompt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			prompter := ui.NewUserInterface(ui.NewTestIOStreams()).WithStubbing()
+			defer prompter.VerifyStubs(t)
+			if tt.setup != nil {
+				tt.setup(prompter)
+			}
+
 			vs := NewValueSet()
 			for _, v := range tt.values {
 				vs.Add(v)
 			}
-			tt.assertion(t, vs.Prompt(tt.prompter))
-			assert.Equal(t, len(vs.All()), len(tt.prompter.ConfirmCalls()))
+			tt.assertion(t, vs.Prompt(prompter))
 		})
 	}
 }

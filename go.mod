@@ -3,7 +3,6 @@ module github.com/twelvelabs/stamp
 go 1.19
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/creasty/defaults v1.6.0
 	github.com/edwardrf/symwalk v0.1.0
 	github.com/go-playground/locales v0.14.1
@@ -19,7 +18,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
-	github.com/twelvelabs/termite v0.8.0
+	github.com/twelvelabs/termite v0.9.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -29,6 +28,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v0.12.0 // indirect
 	cloud.google.com/go/storage v1.29.0 // indirect
+	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect

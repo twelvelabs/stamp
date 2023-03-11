@@ -1,5 +1,9 @@
 package value
 
+import (
+	"github.com/twelvelabs/termite/ui"
+)
+
 // ValueSet is a unique set of Values (identified by Value.Key).
 type ValueSet struct { //nolint:revive
 	keys    []string
@@ -156,7 +160,7 @@ func (vs *ValueSet) SetArgs(args []string) ([]string, error) {
 
 // Prompt calls Value.Prompt() for each value in the set.
 // Returns the first error received.
-func (vs *ValueSet) Prompt(prompter Prompter) error {
+func (vs *ValueSet) Prompt(prompter ui.Prompter) error {
 	_ = vs.GetAll() // workaround for cache invalidation issue
 	for _, val := range vs.All() {
 		if err := val.Prompt(prompter); err != nil {

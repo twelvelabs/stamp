@@ -114,7 +114,7 @@ func (a *NewAction) Run() error {
 		return err
 	}
 
-	if err := generator.Values.Prompt(a.Prompter); err != nil {
+	if err := generator.Values.Prompt(a.UI); err != nil {
 		return err
 	}
 	if err := generator.Values.Validate(); err != nil {

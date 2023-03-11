@@ -8,8 +8,6 @@ import (
 	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
-	"github.com/twelvelabs/stamp/internal/prompt"
-	"github.com/twelvelabs/stamp/internal/value"
 )
 
 type ctxKey string
@@ -19,11 +17,10 @@ var (
 )
 
 type App struct {
-	Config   *Config
-	IO       *ui.IOStreams
-	UI       *ui.UserInterface
-	Prompter value.Prompter
-	Store    *Store
+	Config *Config
+	IO     *ui.IOStreams
+	UI     *ui.UserInterface
+	Store  *Store
 
 	ctx context.Context //nolint: containedctx
 }
@@ -48,7 +45,6 @@ func NewApp() (*App, error) {
 	}
 
 	ios := ui.NewIOStreams()
-	prompter := prompt.NewSurveyPrompter(ios.In, ios.Out, ios.Err)
 
 	storePath, err := fsutil.NormalizePath(config.StorePath)
 	if err != nil {
@@ -61,11 +57,10 @@ func NewApp() (*App, error) {
 	store := NewStore(storePath)
 
 	app := &App{
-		Config:   config,
-		IO:       ios,
-		UI:       ui.NewUserInterface(ios),
-		Prompter: prompter,
-		Store:    store,
+		Config: config,
+		IO:     ios,
+		UI:     ui.NewUserInterface(ios),
+		Store:  store,
 	}
 
 	return app, nil
@@ -74,17 +69,15 @@ func NewApp() (*App, error) {
 func NewTestApp() *App {
 	config, _ := NewDefaultConfig()
 	ios := ui.NewTestIOStreams()
-	prompter := &value.PrompterMock{}
 
 	storePath, _ := filepath.Abs(filepath.Join("testdata", "generators"))
 	store := NewStore(storePath)
 
 	app := &App{
-		Config:   config,
-		IO:       ios,
-		UI:       ui.NewUserInterface(ios).WithStubbing(),
-		Prompter: prompter,
-		Store:    store,
+		Config: config,
+		IO:     ios,
+		UI:     ui.NewUserInterface(ios).WithStubbing(),
+		Store:  store,
 	}
 
 	return app
