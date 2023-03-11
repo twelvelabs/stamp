@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/twelvelabs/termite/render"
 	"github.com/twelvelabs/termite/ui"
+	"github.com/twelvelabs/termite/validate"
 )
 
 var (
@@ -34,7 +35,7 @@ func NewValue(valueData map[string]any) (*Value, error) {
 	if err := mapstructure.Decode(valueData, val); err != nil {
 		return nil, err
 	}
-	if err := ValidateStruct(val); err != nil {
+	if err := validate.Struct(val); err != nil {
 		return nil, err
 	}
 
@@ -370,5 +371,5 @@ func (v *Value) validate(data any) error {
 			rules = strings.Join(segments, ",")
 		}
 	}
-	return ValidateKeyVal(v.Key, data, rules)
+	return validate.KeyVal(v.Key, data, rules)
 }

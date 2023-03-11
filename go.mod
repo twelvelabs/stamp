@@ -5,9 +5,6 @@ go 1.19
 require (
 	github.com/creasty/defaults v1.6.0
 	github.com/edwardrf/symwalk v0.1.0
-	github.com/go-playground/locales v0.14.1
-	github.com/go-playground/universal-translator v0.18.1
-	github.com/go-playground/validator/v10 v10.11.2
 	github.com/gobuffalo/flect v1.0.2
 	github.com/hashicorp/go-getter v1.7.0
 	github.com/mitchellh/copystructure v1.2.0
@@ -38,6 +35,9 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.11.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

@@ -6,8 +6,7 @@ import (
 
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
-
-	"github.com/twelvelabs/stamp/internal/value"
+	"github.com/twelvelabs/termite/validate"
 )
 
 //go:generate moq -rm -out task_mock.go . Task
@@ -70,7 +69,7 @@ func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intent
 	if err := decoder.Decode(taskData); err != nil {
 		return nil, err
 	}
-	if err := value.ValidateStruct(task); err != nil {
+	if err := validate.Struct(task); err != nil {
 		return nil, err
 	}
 	return task, nil

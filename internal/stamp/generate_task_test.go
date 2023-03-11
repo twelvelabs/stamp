@@ -24,7 +24,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 				"type": "generate",
 			},
 			Task: nil,
-			Err:  "Src is a required field, Dst is a required field",
+			Err:  "Dst is a required field, Src is a required field",
 		},
 		{
 			Name: "returns an error when dst is missing",
