@@ -49,11 +49,12 @@ func TestTaskLogger_Info(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ios := ui.NewTestIOStreams()
+			u := ui.NewUserInterface(ios)
 
-			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
+			logger := NewTaskLogger(u, tt.dryRun)
 			logger.Info(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, ios.Err.String())
+			assert.Equal(t, tt.expected, ios.Out.String())
 		})
 	}
 }
@@ -100,11 +101,12 @@ func TestTaskLogger_Success(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ios := ui.NewTestIOStreams()
+			u := ui.NewUserInterface(ios)
 
-			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
+			logger := NewTaskLogger(u, tt.dryRun)
 			logger.Success(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, ios.Err.String())
+			assert.Equal(t, tt.expected, ios.Out.String())
 		})
 	}
 }
@@ -151,11 +153,12 @@ func TestTaskLogger_Warning(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ios := ui.NewTestIOStreams()
+			u := ui.NewUserInterface(ios)
 
-			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
+			logger := NewTaskLogger(u, tt.dryRun)
 			logger.Warning(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, ios.Err.String())
+			assert.Equal(t, tt.expected, ios.Out.String())
 		})
 	}
 }
@@ -202,11 +205,12 @@ func TestTaskLogger_Failure(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ios := ui.NewTestIOStreams()
+			u := ui.NewUserInterface(ios)
 
-			logger := NewTaskLogger(ios, ios.Formatter(), tt.dryRun)
+			logger := NewTaskLogger(u, tt.dryRun)
 			logger.Failure(tt.action, tt.line, tt.args...)
 
-			assert.Equal(t, tt.expected, ios.Err.String())
+			assert.Equal(t, tt.expected, ios.Out.String())
 		})
 	}
 }

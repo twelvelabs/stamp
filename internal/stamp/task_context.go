@@ -15,12 +15,11 @@ type TaskContext struct {
 
 // NewTaskContext returns a configured TaskContext.
 func NewTaskContext(app *App, dryRun bool) *TaskContext {
-	logger := NewTaskLogger(app.IO, app.IO.Formatter(), dryRun)
 	return &TaskContext{
 		DryRun: dryRun,
 		IO:     app.IO,
 		UI:     app.UI,
-		Logger: logger,
+		Logger: NewTaskLogger(app.UI, dryRun),
 		Store:  app.Store,
 	}
 }

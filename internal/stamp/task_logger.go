@@ -12,18 +12,16 @@ const (
 )
 
 // NewTaskLogger returns a new TaskLogger.
-func NewTaskLogger(ios *ui.IOStreams, formatter *ui.Formatter, dryRun bool) *TaskLogger {
+func NewTaskLogger(u *ui.UserInterface, dryRun bool) *TaskLogger {
 	return &TaskLogger{
-		ios:    ios,
-		format: formatter,
+		ui:     u,
 		dryRun: dryRun,
 	}
 }
 
 // TaskLogger logs formatted Task actions.
 type TaskLogger struct {
-	ios    *ui.IOStreams
-	format *ui.Formatter
+	ui     *ui.UserInterface
 	dryRun bool
 }
 
@@ -34,8 +32,8 @@ type TaskLogger struct {
 //	// Prints "• [    action]: hello, world\n"
 //	Info("action", "hello, %s", "world")
 func (l *TaskLogger) Info(action string, line string, args ...any) {
-	icon := l.format.InfoIcon()
-	action = l.format.Info(l.rightJustify(action))
+	icon := l.ui.InfoIcon()
+	action = l.ui.Info(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -46,8 +44,8 @@ func (l *TaskLogger) Info(action string, line string, args ...any) {
 //	// Prints "✓ [    action]: hello, world\n"
 //	Success("action", "hello, %s", "world")
 func (l *TaskLogger) Success(action string, line string, args ...any) {
-	icon := l.format.SuccessIcon()
-	action = l.format.Success(l.rightJustify(action))
+	icon := l.ui.SuccessIcon()
+	action = l.ui.Success(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -58,8 +56,8 @@ func (l *TaskLogger) Success(action string, line string, args ...any) {
 //	// Prints "! [    action]: hello, world\n"
 //	Warning("action", "hello, %s", "world")
 func (l *TaskLogger) Warning(action string, line string, args ...any) {
-	icon := l.format.WarningIcon()
-	action = l.format.Warning(l.rightJustify(action))
+	icon := l.ui.WarningIcon()
+	action = l.ui.Warning(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -70,8 +68,8 @@ func (l *TaskLogger) Warning(action string, line string, args ...any) {
 //	// Prints "✖ [    action]: hello, world\n"
 //	Failure("action", "hello, %s", "world")
 func (l *TaskLogger) Failure(action string, line string, args ...any) {
-	icon := l.format.FailureIcon()
-	action = l.format.Failure(l.rightJustify(action))
+	icon := l.ui.FailureIcon()
+	action = l.ui.Failure(l.rightJustify(action))
 	l.log(icon, action, line, args...)
 }
 
@@ -82,7 +80,7 @@ func (l *TaskLogger) log(icon, action, line string, args ...any) {
 		prefix += "[DRY RUN]"
 	}
 	line = l.ensureNewline(prefix + "[" + action + "]: " + line)
-	fmt.Fprintf(l.ios.Err, line, args...)
+	l.ui.Out(line, args...)
 }
 
 func (l *TaskLogger) ensureNewline(text string) string {
