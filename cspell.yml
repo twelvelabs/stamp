@@ -14,11 +14,13 @@ ignorePaths:
   - go.mod
   - go.sum
   - LICENSE
+  - Makefile
   - "**/testdata"
   - "**/*_enum.go"
 ignoreRegExpList:
   - /import \([^)]+\)/g
 words:
+  - codecov
   - containedctx
   - copystructure
   - coverprofile
@@ -31,11 +33,13 @@ words:
   - GOFILE
   - gofmt
   - golangci
+  - gomod
   - gopls
   - goreleaser
   - iostreams
   - ireturn
   - kebabcase
+  - ldflags
   - maintidx
   - mapstructure
   - markdownlint

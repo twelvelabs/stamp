@@ -8,8 +8,15 @@ import (
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
+var (
+	version = "dev"
+	commit  = ""
+	date    = ""
+)
+
 func main() {
-	app, err := stamp.NewApp()
+	meta := stamp.NewAppMeta(version, commit, date)
+	app, err := stamp.NewApp(meta)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
