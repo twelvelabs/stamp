@@ -142,7 +142,7 @@ func TestGeneratorTask_Execute(t *testing.T) {
 				task, err := NewTask(tt.TaskData)
 				assert.NoError(t, err)
 
-				ctx := NewTaskContext(app, false)
+				ctx := NewTaskContext(app)
 				err = task.Execute(ctx, tt.Values)
 
 				// Ensure the expected files were generated

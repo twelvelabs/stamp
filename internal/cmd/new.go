@@ -32,7 +32,7 @@ func NewNewCmd(app *stamp.App) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&action.DryRun, "dry-run", false, "Show generator tasks without taking action.")
+	cmd.Flags().BoolVar(&app.Config.DryRun, "dry-run", app.Config.DryRun, "Show generator tasks without taking action.")
 	cmd.Flags().Lookup("dry-run").NoOptDefVal = "true"
 
 	cmd.Flags().SortFlags = false
@@ -51,8 +51,7 @@ func NewNewAction(app *stamp.App) *NewAction {
 type NewAction struct {
 	*stamp.App
 
-	Name   string
-	DryRun bool
+	Name string
 
 	cmd  *cobra.Command
 	args []string
@@ -125,11 +124,7 @@ func (a *NewAction) Run() error {
 	a.UI.Out("\n")
 
 	// Prepare everything needed to execute.
-	dryRun, err := a.cmd.Flags().GetBool("dry-run")
-	if err != nil {
-		return err
-	}
-	ctx := stamp.NewTaskContext(a.App, dryRun)
+	ctx := stamp.NewTaskContext(a.App)
 	values := generator.Values.GetAll()
 
 	// And finally... Release the hounds™

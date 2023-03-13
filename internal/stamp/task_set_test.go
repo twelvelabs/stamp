@@ -40,7 +40,7 @@ func TestTaskSet_AddsPathsWhenCallingExecute(t *testing.T) {
 	ts.DstPath = "/path/to/dst"
 
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -76,7 +76,7 @@ func TestTaskSet_OnlyExecutesTasksThatWantToBe(t *testing.T) {
 	ts := NewTaskSet().Add(task1).Add(task2)
 
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -99,7 +99,7 @@ func TestTaskSet_CanExecuteTasksMultipleTimes(t *testing.T) {
 	ts := NewTaskSet().Add(task1)
 
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	values := map[string]any{}
 	err := ts.Execute(ctx, values)
 
@@ -132,7 +132,7 @@ func TestTaskSet_HaltsExecutionAtTheFirstError(t *testing.T) {
 	ts.Add(task3)
 
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	err := ts.Execute(ctx, values)
 
 	assert.ErrorContains(t, err, "boom")

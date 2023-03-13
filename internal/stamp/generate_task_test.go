@@ -383,6 +383,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 
 				// Setup the app.
 				app := NewTestApp()
+				app.Config.DryRun = tt.DryRun
 				if tt.Setup != nil {
 					tt.Setup(app)
 				}
@@ -391,7 +392,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				// Create a new task and execute it.
 				task, err := NewTask(tt.TaskData)
 				require.NoError(t, err)
-				ctx := NewTaskContext(app, tt.DryRun)
+				ctx := NewTaskContext(app)
 				err = task.Execute(ctx, tt.Values)
 
 				// Ensure the expected files were generated
@@ -414,7 +415,7 @@ func TestGenerateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
 		Conflict: "unknown",
 	}
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	values := map[string]any{}
 
 	err := task.dispatch(ctx, values, "", "")
@@ -428,7 +429,7 @@ func TestGenerateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
 		Mode: "unknown",
 	}
 	app := NewTestApp()
-	ctx := NewTaskContext(app, false)
+	ctx := NewTaskContext(app)
 	values := map[string]any{}
 
 	err := task.dispatch(ctx, values, "", "/do-not-generate")

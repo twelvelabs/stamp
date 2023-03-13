@@ -81,7 +81,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "customized.txt", values["FileName"])
 		assert.Equal(t, "custom content", values["FileContent"])
 
-		ctx := NewTaskContext(app, false)
+		ctx := NewTaskContext(app)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 
@@ -103,7 +103,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		assert.Equal(t, "untitled.txt", values["FileName"])
 		assert.Equal(t, "", values["FileContent"])
 
-		ctx := NewTaskContext(app, false)
+		ctx := NewTaskContext(app)
 		err = gen.Tasks.Execute(ctx, values)
 		assert.NoError(t, err)
 

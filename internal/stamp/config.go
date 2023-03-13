@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Debug     bool           `mapstructure:"debug"`
 	Defaults  map[string]any `mapstructure:"defaults"   default:"{}"`
+	DryRun    bool           `mapstructure:"dry_run"`
 	StorePath string         `mapstructure:"store_path" default:"~/.stamp/packages"`
 }
 

@@ -14,12 +14,12 @@ type TaskContext struct {
 }
 
 // NewTaskContext returns a configured TaskContext.
-func NewTaskContext(app *App, dryRun bool) *TaskContext {
+func NewTaskContext(app *App) *TaskContext {
 	return &TaskContext{
-		DryRun: dryRun,
+		DryRun: app.Config.DryRun,
 		IO:     app.IO,
 		UI:     app.UI,
-		Logger: NewTaskLogger(app.UI, dryRun),
+		Logger: NewTaskLogger(app.UI, app.Config.DryRun),
 		Store:  app.Store,
 	}
 }
