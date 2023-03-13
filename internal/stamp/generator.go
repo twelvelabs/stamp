@@ -88,6 +88,10 @@ type Generator struct {
 	Tasks  *TaskSet
 }
 
+func (g *Generator) Description() string {
+	return g.MetadataString("description")
+}
+
 func (g *Generator) taskMetadata() []map[string]any {
 	return g.MetadataMapSlice("tasks")
 }

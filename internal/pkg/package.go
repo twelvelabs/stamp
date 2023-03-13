@@ -30,10 +30,7 @@ func (p *Package) MetaPath() string {
 //
 //	"/package/foo/bar/baz" => "foo:bar:baz"
 func (p *Package) Name() string {
-	if val, ok := p.MetadataLookup("name").(string); ok {
-		return val
-	}
-	return ""
+	return p.MetadataString("name")
 }
 
 // SetName sets the package name.
@@ -43,10 +40,7 @@ func (p *Package) SetName(value string) {
 
 // Origin returns the path or URL used to install the package.
 func (p *Package) Origin() string {
-	if val, ok := p.MetadataLookup("origin").(string); ok {
-		return val
-	}
-	return ""
+	return p.MetadataString("origin")
 }
 
 // SetOrigin sets the package origin.
@@ -114,6 +108,19 @@ func (p *Package) MetadataSlice(key string) []any {
 		return []any{}
 	default:
 		panic(NewMetadataTypeCastError(key, val, "[]any"))
+	}
+}
+
+// MetadataString returns a string value for the given metadata key.
+func (p *Package) MetadataString(key string) string {
+	val := p.MetadataLookup(key)
+	switch v := val.(type) {
+	case string:
+		return v
+	case nil:
+		return ""
+	default:
+		panic(NewMetadataTypeCastError(key, val, "string"))
 	}
 }
 

@@ -213,3 +213,51 @@ func TestPackage_MetadataMapSlice(t *testing.T) {
 		})
 	}
 }
+
+func TestPackage_MetadataString(t *testing.T) {
+	tests := []struct {
+		Desc     string
+		Metadata map[string]any
+		Key      string
+		Value    any
+		Panics   bool
+	}{
+		{
+			Desc:     "returns empty string for unset keys",
+			Metadata: map[string]any{},
+			Key:      "name",
+			Value:    "",
+		},
+		{
+			Desc: "returns the value for key if present",
+			Metadata: map[string]any{
+				"name": "foo",
+			},
+			Key:   "name",
+			Value: "foo",
+		},
+		{
+			Desc: "panics if value is not a slice",
+			Metadata: map[string]any{
+				"name": 123,
+			},
+			Key:    "name",
+			Panics: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.Desc, func(t *testing.T) {
+			p := &Package{
+				Metadata: tt.Metadata,
+			}
+
+			if tt.Panics {
+				assert.Panics(t, func() {
+					p.MetadataString(tt.Key)
+				})
+			} else {
+				assert.Equal(t, tt.Value, p.MetadataString(tt.Key))
+			}
+		})
+	}
+}

@@ -115,3 +115,14 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 		})
 	})
 }
+
+func TestGenerator_Description(t *testing.T) {
+	gen := &Generator{
+		Package: &pkg.Package{
+			Metadata: map[string]any{
+				"description": "a test generator",
+			},
+		},
+	}
+	assert.Equal(t, "a test generator", gen.Description())
+}
