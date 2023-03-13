@@ -33,7 +33,7 @@ func NewNewCmd(app *stamp.App) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&action.DryRun, "dry-run", true, "Show generator tasks without taking action.")
+	cmd.Flags().BoolVar(&action.DryRun, "dry-run", false, "Show generator tasks without taking action.")
 	cmd.Flags().Lookup("dry-run").NoOptDefVal = "true"
 
 	cmd.Flags().SortFlags = false
