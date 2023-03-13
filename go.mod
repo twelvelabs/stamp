@@ -3,7 +3,7 @@ module github.com/twelvelabs/stamp
 go 1.20
 
 require (
-	github.com/creasty/defaults v1.6.0
+	github.com/creasty/defaults v1.7.0
 	github.com/edwardrf/symwalk v0.1.0
 	github.com/gobuffalo/flect v1.0.2
 	github.com/hashicorp/go-getter v1.7.0
