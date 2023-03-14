@@ -1,6 +1,7 @@
 package fsutil
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +14,15 @@ const (
 	// DefaultFileMode grants `rw-------`.
 	DefaultFileMode = 0600
 )
+
+func NoPathExists(path string) bool {
+	_, err := os.Stat(path)
+	return errors.Is(err, os.ErrNotExist)
+}
+
+func PathExists(path string) bool {
+	return !NoPathExists(path)
+}
 
 // NormalizePath ensures that name is an absolute path.
 // Environment variables (and the ~ string) are expanded.
