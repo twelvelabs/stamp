@@ -11,11 +11,11 @@ import (
 	"github.com/twelvelabs/termite/ui"
 )
 
-func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
+func TestNewTask_WhenTypeIsCreate(t *testing.T) {
 	tests := []struct {
 		Name     string
 		TaskData map[string]any
-		Task     interface{}
+		Task     Task
 		Err      string
 	}{
 		{

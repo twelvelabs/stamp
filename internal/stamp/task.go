@@ -47,6 +47,8 @@ func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intent
 	switch taskType {
 	case "create", "generate":
 		task = &CreateTask{}
+	case "delete":
+		task = &DeleteTask{}
 	case "generator":
 		task = &GeneratorTask{}
 	default:

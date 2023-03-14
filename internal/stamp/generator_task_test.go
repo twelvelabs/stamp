@@ -11,7 +11,7 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 	tests := []struct {
 		Desc     string
 		TaskData map[string]any
-		Task     interface{}
+		Task     Task
 		Err      string
 	}{
 		{

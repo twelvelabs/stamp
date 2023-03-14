@@ -74,3 +74,63 @@ func (x *ConflictConfig) UnmarshalText(text []byte) error {
 	*x = tmp
 	return nil
 }
+
+const (
+	// MissingConfigIgnore is a MissingConfig of type ignore.
+	MissingConfigIgnore MissingConfig = "ignore"
+	// MissingConfigError is a MissingConfig of type error.
+	MissingConfigError MissingConfig = "error"
+)
+
+var ErrInvalidMissingConfig = fmt.Errorf("not a valid MissingConfig, try [%s]", strings.Join(_MissingConfigNames, ", "))
+
+var _MissingConfigNames = []string{
+	string(MissingConfigIgnore),
+	string(MissingConfigError),
+}
+
+// MissingConfigNames returns a list of possible string values of MissingConfig.
+func MissingConfigNames() []string {
+	tmp := make([]string, len(_MissingConfigNames))
+	copy(tmp, _MissingConfigNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x MissingConfig) String() string {
+	return string(x)
+}
+
+// String implements the Stringer interface.
+func (x MissingConfig) IsValid() bool {
+	_, err := ParseMissingConfig(string(x))
+	return err == nil
+}
+
+var _MissingConfigValue = map[string]MissingConfig{
+	"ignore": MissingConfigIgnore,
+	"error":  MissingConfigError,
+}
+
+// ParseMissingConfig attempts to convert a string to a MissingConfig.
+func ParseMissingConfig(name string) (MissingConfig, error) {
+	if x, ok := _MissingConfigValue[name]; ok {
+		return x, nil
+	}
+	return MissingConfig(""), fmt.Errorf("%s is %w", name, ErrInvalidMissingConfig)
+}
+
+// MarshalText implements the text marshaller method.
+func (x MissingConfig) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *MissingConfig) UnmarshalText(text []byte) error {
+	tmp, err := ParseMissingConfig(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
