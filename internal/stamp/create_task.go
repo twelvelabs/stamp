@@ -18,10 +18,10 @@ const (
 type CreateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src      string   `validate:"required"`
-	Dst      string   `validate:"required"`
-	Mode     string   `validate:"required,posix-mode" default:"0666"`
-	Conflict Conflict `validate:"required" default:"prompt"`
+	Src      string         `validate:"required"`
+	Dst      string         `validate:"required"`
+	Mode     string         `validate:"required,posix-mode" default:"0666"`
+	Conflict ConflictConfig `validate:"required" default:"prompt"`
 }
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -65,11 +65,11 @@ func (t *CreateTask) dispatch(ctx *TaskContext, values map[string]any, src strin
 		return t.create(ctx, values, src, dst)
 	}
 	switch t.Conflict {
-	case ConflictPrompt:
+	case ConflictConfigPrompt:
 		return t.prompt(ctx, values, src, dst)
-	case ConflictKeep:
+	case ConflictConfigKeep:
 		return t.keep(ctx, values, src, dst)
-	case ConflictReplace:
+	case ConflictConfigReplace:
 		return t.replace(ctx, values, src, dst)
 	default:
 		return fmt.Errorf("unknown conflict type: %v", t.Conflict)

@@ -24,6 +24,8 @@ const (
 	DataTypeStringSlice DataType = "stringSlice"
 )
 
+var ErrInvalidDataType = fmt.Errorf("not a valid DataType, try [%s]", strings.Join(_DataTypeNames, ", "))
+
 var _DataTypeNames = []string{
 	string(DataTypeBool),
 	string(DataTypeInt),
@@ -63,7 +65,7 @@ func ParseDataType(name string) (DataType, error) {
 	if x, ok := _DataTypeValue[name]; ok {
 		return x, nil
 	}
-	return DataType(""), fmt.Errorf("%s is not a valid DataType, try [%s]", name, strings.Join(_DataTypeNames, ", "))
+	return DataType(""), fmt.Errorf("%s is %w", name, ErrInvalidDataType)
 }
 
 // MarshalText implements the text marshaller method.
@@ -89,6 +91,8 @@ const (
 	// InputModeHidden is a InputMode of type hidden.
 	InputModeHidden InputMode = "hidden"
 )
+
+var ErrInvalidInputMode = fmt.Errorf("not a valid InputMode, try [%s]", strings.Join(_InputModeNames, ", "))
 
 var _InputModeNames = []string{
 	string(InputModeArg),
@@ -125,7 +129,7 @@ func ParseInputMode(name string) (InputMode, error) {
 	if x, ok := _InputModeValue[name]; ok {
 		return x, nil
 	}
-	return InputMode(""), fmt.Errorf("%s is not a valid InputMode, try [%s]", name, strings.Join(_InputModeNames, ", "))
+	return InputMode(""), fmt.Errorf("%s is %w", name, ErrInvalidInputMode)
 }
 
 // MarshalText implements the text marshaller method.
@@ -153,6 +157,8 @@ const (
 	// PromptConfigOnUnset is a PromptConfig of type on-unset.
 	PromptConfigOnUnset PromptConfig = "on-unset"
 )
+
+var ErrInvalidPromptConfig = fmt.Errorf("not a valid PromptConfig, try [%s]", strings.Join(_PromptConfigNames, ", "))
 
 var _PromptConfigNames = []string{
 	string(PromptConfigAlways),
@@ -191,7 +197,7 @@ func ParsePromptConfig(name string) (PromptConfig, error) {
 	if x, ok := _PromptConfigValue[name]; ok {
 		return x, nil
 	}
-	return PromptConfig(""), fmt.Errorf("%s is not a valid PromptConfig, try [%s]", name, strings.Join(_PromptConfigNames, ", "))
+	return PromptConfig(""), fmt.Errorf("%s is %w", name, ErrInvalidPromptConfig)
 }
 
 // MarshalText implements the text marshaller method.

@@ -12,60 +12,62 @@ import (
 )
 
 const (
-	// ConflictKeep is a Conflict of type keep.
-	ConflictKeep Conflict = "keep"
-	// ConflictReplace is a Conflict of type replace.
-	ConflictReplace Conflict = "replace"
-	// ConflictPrompt is a Conflict of type prompt.
-	ConflictPrompt Conflict = "prompt"
+	// ConflictConfigKeep is a ConflictConfig of type keep.
+	ConflictConfigKeep ConflictConfig = "keep"
+	// ConflictConfigReplace is a ConflictConfig of type replace.
+	ConflictConfigReplace ConflictConfig = "replace"
+	// ConflictConfigPrompt is a ConflictConfig of type prompt.
+	ConflictConfigPrompt ConflictConfig = "prompt"
 )
 
-var _ConflictNames = []string{
-	string(ConflictKeep),
-	string(ConflictReplace),
-	string(ConflictPrompt),
+var ErrInvalidConflictConfig = fmt.Errorf("not a valid ConflictConfig, try [%s]", strings.Join(_ConflictConfigNames, ", "))
+
+var _ConflictConfigNames = []string{
+	string(ConflictConfigKeep),
+	string(ConflictConfigReplace),
+	string(ConflictConfigPrompt),
 }
 
-// ConflictNames returns a list of possible string values of Conflict.
-func ConflictNames() []string {
-	tmp := make([]string, len(_ConflictNames))
-	copy(tmp, _ConflictNames)
+// ConflictConfigNames returns a list of possible string values of ConflictConfig.
+func ConflictConfigNames() []string {
+	tmp := make([]string, len(_ConflictConfigNames))
+	copy(tmp, _ConflictConfigNames)
 	return tmp
 }
 
 // String implements the Stringer interface.
-func (x Conflict) String() string {
+func (x ConflictConfig) String() string {
 	return string(x)
 }
 
 // String implements the Stringer interface.
-func (x Conflict) IsValid() bool {
-	_, err := ParseConflict(string(x))
+func (x ConflictConfig) IsValid() bool {
+	_, err := ParseConflictConfig(string(x))
 	return err == nil
 }
 
-var _ConflictValue = map[string]Conflict{
-	"keep":    ConflictKeep,
-	"replace": ConflictReplace,
-	"prompt":  ConflictPrompt,
+var _ConflictConfigValue = map[string]ConflictConfig{
+	"keep":    ConflictConfigKeep,
+	"replace": ConflictConfigReplace,
+	"prompt":  ConflictConfigPrompt,
 }
 
-// ParseConflict attempts to convert a string to a Conflict.
-func ParseConflict(name string) (Conflict, error) {
-	if x, ok := _ConflictValue[name]; ok {
+// ParseConflictConfig attempts to convert a string to a ConflictConfig.
+func ParseConflictConfig(name string) (ConflictConfig, error) {
+	if x, ok := _ConflictConfigValue[name]; ok {
 		return x, nil
 	}
-	return Conflict(""), fmt.Errorf("%s is not a valid Conflict, try [%s]", name, strings.Join(_ConflictNames, ", "))
+	return ConflictConfig(""), fmt.Errorf("%s is %w", name, ErrInvalidConflictConfig)
 }
 
 // MarshalText implements the text marshaller method.
-func (x Conflict) MarshalText() ([]byte, error) {
+func (x ConflictConfig) MarshalText() ([]byte, error) {
 	return []byte(string(x)), nil
 }
 
 // UnmarshalText implements the text unmarshaller method.
-func (x *Conflict) UnmarshalText(text []byte) error {
-	tmp, err := ParseConflict(string(text))
+func (x *ConflictConfig) UnmarshalText(text []byte) error {
+	tmp, err := ParseConflictConfig(string(text))
 	if err != nil {
 		return err
 	}

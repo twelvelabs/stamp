@@ -244,7 +244,7 @@ func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
 			}),
 			Input:  "something",
 			Output: nil,
-			Err:    "invalid data type",
+			Err:    "not a valid DataType",
 		},
 		{
 			Name: "raises when type is invalid",
@@ -253,7 +253,7 @@ func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
 			}),
 			Input:  "something",
 			Output: nil,
-			Err:    "invalid data type",
+			Err:    "not a valid DataType",
 		},
 
 		// BOOL
@@ -636,7 +636,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "not-a-type",
 			}),
 			Output: nil,
-			Err:    "invalid data type",
+			Err:    "not a valid DataType",
 		},
 		{
 			Name: "[bool] true",

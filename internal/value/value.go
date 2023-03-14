@@ -18,8 +18,6 @@ import (
 )
 
 var (
-	ErrInvalidDataType = errors.New("invalid data type")
-
 	// ensure Value implements each interface.
 	_ flag.Getter = &Value{}
 	_ pflag.Value = &Value{}
