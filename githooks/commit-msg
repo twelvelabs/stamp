@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -o errexit -o errtrace -o nounset -o pipefail
+
+# For more advanced configs, add a `.gitlint` file.
+# See: https://jorisroovers.com/gitlint/configuration/
+gitlint \
+    --contrib=contrib-title-conventional-commits \
+    --ignore=body-is-missing \
+    --staged \
+    --msg-filename "${1}"

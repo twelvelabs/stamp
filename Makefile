@@ -57,6 +57,13 @@ setup: ## Bootstrap for local development
 	@if ! command -v gh >/dev/null 2>&1; then echo "Unable to find gh!"; exit 1; fi
 	@if ! command -v git >/dev/null 2>&1; then echo "Unable to find git!"; exit 1; fi
 	@if ! command -v go >/dev/null 2>&1; then echo "Unable to find go!"; exit 1; fi
+	@make setup-githooks
+
+.PHONY: setup-githooks
+setup-githooks: stylist gitlint
+	mkdir -p .git/hooks && rm -Rf .git/hooks/*
+	cp githooks/* .git/hooks/
+	chmod +x .git/hooks/*
 
 # Via https://www.thapaliya.com/en/writings/well-documented-makefiles/
 # Note: The `##@` comments determine grouping
@@ -71,6 +78,10 @@ help: ## Display this help
 .PHONY: actionlint
 actionlint:
 	@if ! command -v actionlint >/dev/null 2>&1; then go install github.com/rhysd/actionlint/cmd/actionlint@latest; fi
+
+.PHONY: gitlint
+gitlint:
+	@if ! command -v gitlint >/dev/null 2>&1; then pip install gitlint; fi
 
 .PHONY: go-enum
 go-enum:

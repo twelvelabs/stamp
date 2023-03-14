@@ -1,6 +1,8 @@
 excludes:
   - dist/**
+  - .cspellcache
   - coverage.*
+  - go.{mod,sum}
 processors:
   - preset: cspell
   - preset: gitleaks
@@ -8,4 +10,10 @@ processors:
   - preset: golangci-lint
   - preset: markdownlint
   - preset: shellcheck
+    includes:
+      - "**/*.sh"
+      - "githooks/*"
   - preset: shfmt
+    includes:
+      - "**/*.sh"
+      - "githooks/*"

@@ -30,6 +30,7 @@ words:
   - flect
   - fsutil
   - gitleaks
+  - gitlint
   - GOFILE
   - gofmt
   - golangci
