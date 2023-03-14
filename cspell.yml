@@ -36,6 +36,7 @@ words:
   - gomod
   - gopls
   - goreleaser
+  - gostamp
   - iostreams
   - ireturn
   - kebabcase
