@@ -15,7 +15,7 @@ const (
 	DstDirMode os.FileMode = 0755
 )
 
-type GenerateTask struct {
+type CreateTask struct {
 	Common `mapstructure:",squash"`
 
 	Src      string   `validate:"required"`
@@ -24,7 +24,7 @@ type GenerateTask struct {
 	Conflict Conflict `validate:"required" default:"prompt"`
 }
 
-func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
+func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	t.DryRun = ctx.DryRun
 
 	src, err := t.renderPath(values, t.Src)
@@ -60,9 +60,9 @@ func (t *GenerateTask) Execute(ctx *TaskContext, values map[string]any) error {
 }
 
 // dispatch looks for conflicts and delegates to the correct generation method.
-func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
+func (t *CreateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if _, err := os.Stat(dst); os.IsNotExist(err) && dst != "" {
-		return t.generate(ctx, values, src, dst)
+		return t.create(ctx, values, src, dst)
 	}
 	switch t.Conflict {
 	case ConflictPrompt:
@@ -76,24 +76,24 @@ func (t *GenerateTask) dispatch(ctx *TaskContext, values map[string]any, src str
 	}
 }
 
-// generate is called to generate a non-existing dst file.
-func (t *GenerateTask) generate(ctx *TaskContext, values map[string]any, src string, dst string) error {
+// create is called to create a non-existing dst file.
+func (t *CreateTask) create(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.createDst(values, src, dst); err != nil {
 		ctx.Logger.Failure("fail", dst)
 		return err
 	}
-	ctx.Logger.Success("generate", dst)
+	ctx.Logger.Success("create", dst)
 	return nil
 }
 
 // keep is called when keeping an existing dst file.
-func (t *GenerateTask) keep(ctx *TaskContext, _ map[string]any, _ string, dst string) error {
+func (t *CreateTask) keep(ctx *TaskContext, _ map[string]any, _ string, dst string) error {
 	ctx.Logger.Success("keep", dst)
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
-func (t *GenerateTask) replace(ctx *TaskContext, values map[string]any, src string, dst string) error {
+func (t *CreateTask) replace(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	if err := t.deleteDst(dst); err != nil {
 		ctx.Logger.Failure("fail", dst)
 		return err
@@ -108,7 +108,7 @@ func (t *GenerateTask) replace(ctx *TaskContext, values map[string]any, src stri
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
-func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
+func (t *CreateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
 	ctx.Logger.Warning("conflict", "%s already exists", dst)
 	overwrite, err := ctx.UI.Confirm("Overwrite", false)
 	if err != nil {
@@ -120,14 +120,14 @@ func (t *GenerateTask) prompt(ctx *TaskContext, values map[string]any, src strin
 	return t.keep(ctx, values, src, dst)
 }
 
-func (t *GenerateTask) createDstDir(dst string) error {
+func (t *CreateTask) createDstDir(dst string) error {
 	if t.DryRun {
 		return nil
 	}
 	return os.MkdirAll(dst, DstDirMode)
 }
 
-func (t *GenerateTask) createDst(values map[string]any, src string, dst string) error {
+func (t *CreateTask) createDst(values map[string]any, src string, dst string) error {
 	if t.DryRun {
 		return nil
 	}
@@ -167,7 +167,7 @@ func (t *GenerateTask) createDst(values map[string]any, src string, dst string) 
 	return nil
 }
 
-func (t *GenerateTask) deleteDst(dst string) error {
+func (t *CreateTask) deleteDst(dst string) error {
 	if t.DryRun {
 		return nil
 	}
@@ -177,7 +177,7 @@ func (t *GenerateTask) deleteDst(dst string) error {
 	return nil
 }
 
-func (t *GenerateTask) renderPath(values map[string]any, path string) (string, error) {
+func (t *CreateTask) renderPath(values map[string]any, path string) (string, error) {
 	rendered := t.Common.Render(path, values)
 	if rendered == "" {
 		return "", fmt.Errorf("path '%s' evaluated to an empty string", path)
@@ -185,7 +185,7 @@ func (t *GenerateTask) renderPath(values map[string]any, path string) (string, e
 	return rendered, nil
 }
 
-func (t *GenerateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {
+func (t *CreateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {
 	parsed, err := strconv.ParseInt(mode, 8, 64)
 	if err != nil {
 		return 0, err

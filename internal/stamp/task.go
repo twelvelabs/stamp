@@ -45,8 +45,8 @@ func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intent
 
 	var task Task // these should all be pointers
 	switch taskType {
-	case "generate":
-		task = &GenerateTask{}
+	case "create", "generate":
+		task = &CreateTask{}
 	case "generator":
 		task = &GeneratorTask{}
 	default:

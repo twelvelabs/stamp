@@ -21,7 +21,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns an error when both src and dst are missing",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 			},
 			Task: nil,
 			Err:  "Dst is a required field, Src is a required field",
@@ -29,7 +29,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns an error when dst is missing",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "example.tpl",
 			},
 			Task: nil,
@@ -38,7 +38,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns an error when src is missing",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"dst":  "example.txt",
 			},
 			Task: nil,
@@ -47,7 +47,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns an error when mode is invalid",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "example.tpl",
 				"dst":  "example.txt",
 				"mode": "not a posix-mode",
@@ -58,7 +58,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns an error when conflict is invalid",
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "example.tpl",
 				"dst":      "example.txt",
 				"conflict": "unknown",
@@ -69,11 +69,11 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "example.tpl",
 				"dst":  "example.txt",
 			},
-			Task: &GenerateTask{
+			Task: &CreateTask{
 				Common: Common{
 					If:   "true",
 					Each: "",
@@ -101,7 +101,7 @@ func TestNewTask_WhenTypeIsGenerate(t *testing.T) {
 	}
 }
 
-func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
+func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 	templatesDir, _ := filepath.Abs(filepath.Join("testdata", "templates"))
 	tests := []struct {
 		Desc       string
@@ -116,7 +116,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "returns an error if src evaluates to empty string",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .Empty }}",
 				"dst":  "{{ .DstPath }}/README.md",
 			},
@@ -129,7 +129,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/README.md",
 				"dst":  "{{ .Empty }}",
 			},
@@ -142,7 +142,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "returns an error if src does not exist",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/missing.md",
 				"dst":  "{{ .DstPath }}/README.md",
 			},
@@ -156,7 +156,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "generates a single file",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/README.md",
 				"dst":  "{{ .DstPath }}/README.md",
 			},
@@ -173,7 +173,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "generates a single file with custom permissions",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/README.md",
 				"dst":  "{{ .DstPath }}/README.md",
 				"mode": "0755",
@@ -189,10 +189,10 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 			Err: "",
 		},
 		{
-			Desc:   "does not generate a file during a dry run",
+			Desc:   "does not create a file during a dry run",
 			DryRun: true,
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/README.md",
 				"dst":  "{{ .DstPath }}/README.md",
 			},
@@ -210,7 +210,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 		{
 			Desc: "generates entire directories of files",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/nested/",
 				"dst":  "{{ .DstPath }}/nested/",
 			},
@@ -228,10 +228,10 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 			Err: "",
 		},
 		{
-			Desc:   "does not generate files or directories during a dry run",
+			Desc:   "does not create files or directories during a dry run",
 			DryRun: true,
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "{{ .SrcPath }}/nested/",
 				"dst":  "{{ .DstPath }}/nested/",
 			},
@@ -255,7 +255,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "{{ .SrcPath }}/README.md",
 				"dst":      "{{ .DstPath }}/README.md",
 				"conflict": "keep",
@@ -277,7 +277,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "{{ .SrcPath }}/README.md",
 				"dst":      "{{ .DstPath }}/README.md",
 				"conflict": "replace",
@@ -299,7 +299,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "{{ .SrcPath }}/README.md",
 				"dst":      "{{ .DstPath }}/README.md",
 				"conflict": "prompt",
@@ -326,7 +326,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "{{ .SrcPath }}/README.md",
 				"dst":      "{{ .DstPath }}/README.md",
 				"conflict": "prompt",
@@ -353,7 +353,7 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "generate",
+				"type":     "create",
 				"src":      "{{ .SrcPath }}/README.md",
 				"dst":      "{{ .DstPath }}/README.md",
 				"conflict": "prompt",
@@ -408,10 +408,10 @@ func TestGenerateTask_Execute(t *testing.T) { //nolint:maintidx
 	}
 }
 
-func TestGenerateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
+func TestCreateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
 	// invalid conflicts should always be caught by `NewTask`,
 	// but testing here for full coverage.
-	task := &GenerateTask{
+	task := &CreateTask{
 		Conflict: "unknown",
 	}
 	app := NewTestApp()
@@ -422,17 +422,17 @@ func TestGenerateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
 	assert.ErrorContains(t, err, "unknown conflict type")
 }
 
-func TestGenerateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
+func TestCreateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
 	// invalid modes should always be caught by `NewTask`,
 	// but testing here for full coverage.
-	task := &GenerateTask{
+	task := &CreateTask{
 		Mode: "unknown",
 	}
 	app := NewTestApp()
 	ctx := NewTaskContext(app)
 	values := map[string]any{}
 
-	err := task.dispatch(ctx, values, "", "/do-not-generate")
-	assert.NoFileExists(t, "/do-not-generate")
+	err := task.dispatch(ctx, values, "", "/do-not-create")
+	assert.NoFileExists(t, "/do-not-create")
 	assert.ErrorContains(t, err, "invalid syntax")
 }

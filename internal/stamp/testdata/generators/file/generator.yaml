@@ -10,6 +10,6 @@ values:
     default: ""
 
 tasks:
-  - type: generate
+  - type: create
     src: "{{ .SrcPath }}/template.txt"
     dst: "{{ .DstPath }}/{{ .FileName }}"

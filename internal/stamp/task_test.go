@@ -32,7 +32,7 @@ func TestNewTask(t *testing.T) {
 		{
 			Name: "returns an error if unable to set defaults",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 			},
 			Task: nil,
 			SetDefaults: func(a any) error {
@@ -43,7 +43,7 @@ func TestNewTask(t *testing.T) {
 		{
 			Name: "returns an error if decoding fails",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "/some/src/path",
 				"dst":  123, // not a string
 			},
@@ -53,7 +53,7 @@ func TestNewTask(t *testing.T) {
 		{
 			Name: "returns an error if validation fails",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "/some/src/path",
 				"dst":  "", // not present
 			},
@@ -63,11 +63,11 @@ func TestNewTask(t *testing.T) {
 		{
 			Name: "returns the correct struct for the given type",
 			TaskData: map[string]any{
-				"type": "generate",
+				"type": "create",
 				"src":  "/some/src/path",
 				"dst":  "/some/dst/path",
 			},
-			Task: &GenerateTask{
+			Task: &CreateTask{
 				Common: Common{
 					If:     "true",
 					Each:   "",
