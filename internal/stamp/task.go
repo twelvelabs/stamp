@@ -51,6 +51,8 @@ func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intent
 		task = &DeleteTask{}
 	case "generator":
 		task = &GeneratorTask{}
+	case "update":
+		task = &UpdateTask{}
 	default:
 		return nil, fmt.Errorf("unknown task type: %v", taskType)
 	}
