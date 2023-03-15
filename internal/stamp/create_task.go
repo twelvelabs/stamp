@@ -27,11 +27,11 @@ type CreateTask struct {
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	t.DryRun = ctx.DryRun
 
-	src, err := t.renderPath(values, t.Src)
+	src, err := t.RenderRequired("src", t.Src, values)
 	if err != nil {
 		return err
 	}
-	dst, err := t.renderPath(values, t.Dst)
+	dst, err := t.RenderRequired("dst", t.Dst, values)
 	if err != nil {
 		return err
 	}
@@ -175,14 +175,6 @@ func (t *CreateTask) deleteDst(dst string) error {
 		return err
 	}
 	return nil
-}
-
-func (t *CreateTask) renderPath(values map[string]any, path string) (string, error) {
-	rendered := t.Common.Render(path, values)
-	if rendered == "" {
-		return "", fmt.Errorf("path '%s' evaluated to an empty string", path)
-	}
-	return rendered, nil
 }
 
 func (t *CreateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {

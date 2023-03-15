@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cast"
@@ -34,6 +35,14 @@ func (c *Common) Render(tpl string, values map[string]any) string {
 		return tpl
 	}
 	return rendered
+}
+
+func (c *Common) RenderRequired(key, tpl string, values map[string]any) (string, error) {
+	rendered := c.Render(tpl, values)
+	if rendered == "" {
+		return "", fmt.Errorf("%s: '%s' evaluated to an empty string", key, tpl)
+	}
+	return rendered, nil
 }
 
 func (c *Common) ShouldExecute(values map[string]any) bool {
