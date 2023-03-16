@@ -52,7 +52,7 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 				"type":    "update",
 				"dst":     "example.txt",
 				"pattern": "foo",
-				"value":   "bar",
+				"content": "bar",
 			},
 			Task: &UpdateTask{
 				Common: Common{
@@ -62,7 +62,8 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 				Dst:     "example.txt",
 				Missing: "ignore",
 				Pattern: "foo",
-				Value:   "bar",
+				Action:  "replace",
+				Content: "bar",
 			},
 			Err: "",
 		},
@@ -104,6 +105,118 @@ func TestUpdateTask_Execute(t *testing.T) {
 				"Empty": "",
 			},
 			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
+		},
+		{
+			Desc: "returns an error if pattern evaluates to empty string",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "{{ .Empty }}",
+			},
+			Values: map[string]any{
+				"Empty": "",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			Err: "pattern: '{{ .Empty }}' evaluated to an empty string",
+		},
+		{
+			Desc: "returns an error if pattern can not be compiled to regexp",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "(.}",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			Err: "error parsing regexp",
+		},
+
+		{
+			Desc: "updates a path",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "Hello (\\w+)",
+				"action":  "replace",
+				"content": "Goodbye $1",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Goodbye World\n",
+			},
+		},
+		{
+			Desc: "updates a path and changes file mode",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"mode":    "0755",
+				"pattern": "Hello (\\w+)",
+				"action":  "replace",
+				"content": "Goodbye $1",
+			},
+			EndFiles: map[string]any{
+				"README.md": []any{
+					"Goodbye World\n",
+					0o755,
+				},
+			},
+		},
+		{
+			Desc:   "does not update paths during a dry run",
+			DryRun: true,
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "Hello (\\w+)",
+				"action":  "replace",
+				"content": "Goodbye $1",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+		},
+
+		{
+			Desc: "[missing:ignore] ignores missing paths",
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "foo",
+			},
+			EndFiles: map[string]any{
+				"README.md": false,
+			},
+		},
+		{
+			Desc: "[missing:error] returns an error when path is missing",
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"missing": "error",
+				"pattern": "foo",
+			},
+			EndFiles: map[string]any{
+				"README.md": false,
+			},
+			Err: "path not found",
 		},
 	}
 	for _, tt := range tests {
