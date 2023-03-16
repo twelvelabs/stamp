@@ -141,7 +141,39 @@ func TestUpdateTask_Execute(t *testing.T) {
 		},
 
 		{
-			Desc: "updates a path",
+			Desc: "prepends a string in dst",
+			StartFiles: map[string]any{
+				"README.md": "aaa bbb ccc\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "aaa",
+				"action":  "prepend",
+				"content": "000 ",
+			},
+			EndFiles: map[string]any{
+				"README.md": "000 aaa bbb ccc\n",
+			},
+		},
+		{
+			Desc: "appends a string in dst",
+			StartFiles: map[string]any{
+				"README.md": "aaa bbb ccc\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "ccc",
+				"action":  "append",
+				"content": " ddd",
+			},
+			EndFiles: map[string]any{
+				"README.md": "aaa bbb ccc ddd\n",
+			},
+		},
+		{
+			Desc: "replaces a string in dst",
 			StartFiles: map[string]any{
 				"README.md": "Hello World\n",
 			},
@@ -156,6 +188,22 @@ func TestUpdateTask_Execute(t *testing.T) {
 				"README.md": "Goodbye World\n",
 			},
 		},
+		{
+			Desc: "deletes a string in dst",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "(?m)\\s*(\\w+)$",
+				"action":  "delete",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello\n",
+			},
+		},
+
 		{
 			Desc: "updates a path and changes file mode",
 			StartFiles: map[string]any{

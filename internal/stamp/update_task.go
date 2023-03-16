@@ -115,12 +115,23 @@ func (t *UpdateTask) replaceYAML(content []byte, pattern, replacement string) ([
 	return nil, nil
 }
 
-func (t *UpdateTask) replaceText(content []byte, pattern, replacement string) ([]byte, error) {
-	// TODO: handle other action types (insert, append, etc...)
+func (t *UpdateTask) replaceText(content []byte, pattern, repl string) ([]byte, error) {
 	re, err := regexp.Compile(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("compile pattern: %w", err)
 	}
-	content = re.ReplaceAll(content, []byte(replacement))
-	return content, nil
+
+	var replacement []byte
+	switch t.Action {
+	case UpdateActionAppend:
+		replacement = append([]byte("$0"), []byte(repl)...)
+	case UpdateActionPrepend:
+		replacement = append([]byte(repl), []byte("$0")...)
+	case UpdateActionReplace:
+		replacement = []byte(repl)
+	case UpdateActionDelete:
+		replacement = []byte{}
+	}
+
+	return re.ReplaceAll(content, replacement), nil
 }
