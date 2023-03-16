@@ -184,7 +184,10 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
-				"README.md": 0o755,
+				"README.md": []any{
+					"# My Project\n",
+					0o755,
+				},
 			},
 			Err: "",
 		},

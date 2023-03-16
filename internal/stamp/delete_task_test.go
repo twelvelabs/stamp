@@ -153,7 +153,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			EndFiles: map[string]any{
 				"README.md": false,
 			},
-			Err: "path does not exist",
+			Err: "path not found",
 		},
 	}
 	for _, tt := range tests {

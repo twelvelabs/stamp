@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/twelvelabs/termite/render"
@@ -131,7 +130,9 @@ func (t *CreateTask) createDst(values map[string]any, src string, dst string) er
 	if t.DryRun {
 		return nil
 	}
-	mode, err := t.parseMode(values, t.Mode)
+
+	// render and parse mode
+	mode, err := t.RenderMode(t.Mode, values)
 	if err != nil {
 		return err
 	}
@@ -175,12 +176,4 @@ func (t *CreateTask) deleteDst(dst string) error {
 		return err
 	}
 	return nil
-}
-
-func (t *CreateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {
-	parsed, err := strconv.ParseInt(mode, 8, 64)
-	if err != nil {
-		return 0, err
-	}
-	return os.FileMode(parsed), nil
 }

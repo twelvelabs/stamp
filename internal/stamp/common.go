@@ -1,11 +1,18 @@
 package stamp
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
+)
+
+var (
+	ErrPathNotFound = errors.New("path not found")
 )
 
 type Common struct {
@@ -43,6 +50,15 @@ func (c *Common) RenderRequired(key, tpl string, values map[string]any) (string,
 		return "", fmt.Errorf("%s: '%s' evaluated to an empty string", key, tpl)
 	}
 	return rendered, nil
+}
+
+func (c *Common) RenderMode(tpl string, values map[string]any) (os.FileMode, error) {
+	rendered := c.Render(tpl, values)
+	parsed, err := strconv.ParseUint(rendered, 8, 32)
+	if err != nil {
+		return 0, err
+	}
+	return os.FileMode(parsed), nil
 }
 
 func (c *Common) ShouldExecute(values map[string]any) bool {

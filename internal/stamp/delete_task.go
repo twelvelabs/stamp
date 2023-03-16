@@ -1,7 +1,6 @@
 package stamp
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -29,7 +28,7 @@ func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return nil
 	} else if t.Missing == MissingConfigError {
 		ctx.Logger.Failure("fail", dst)
-		return fmt.Errorf("path does not exist")
+		return ErrPathNotFound
 	}
 
 	return nil
