@@ -48,7 +48,7 @@ test: ## Test the app
 .PHONY: release
 release: ## Create a new release tag
 	git fetch --all --tags
-	@if [ "$$(gh release view --json tagName --jq .tagName)" != "$$(gh semver)" ]; then git tag --sign "$$(gh semver)" && git push origin --tags; else echo "Nothing to release."; fi
+	@if [ "$$(gh release view --json tagName --jq .tagName)" != "$$(gh semver)" ]; then git tag --message "$$(gh semver)" --sign "$$(gh semver)" && git push origin --tags; else echo "Nothing to release."; fi
 
 
 ##@ Other
