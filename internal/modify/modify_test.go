@@ -314,6 +314,23 @@ func TestModify_String(t *testing.T) {
 	}
 }
 
+func TestModify_AliasTypes(t *testing.T) {
+	modifier := Modifier(ActionAppend, int(222))
+	altered, changed := modifier(int(111))
+	assert.Equal(t, int64(333), altered)
+	assert.Equal(t, true, changed)
+
+	modifier = Modifier(ActionAppend, int32(222))
+	altered, changed = modifier(int32(111))
+	assert.Equal(t, int64(333), altered)
+	assert.Equal(t, true, changed)
+
+	modifier = Modifier(ActionAppend, float32(222.0))
+	altered, changed = modifier(float32(111.0))
+	assert.Equal(t, float64(333.0), altered)
+	assert.Equal(t, true, changed)
+}
+
 func TestModify_Unsupported(t *testing.T) {
 	subject := struct{}{}
 	arg := struct{}{}
