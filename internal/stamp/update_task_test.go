@@ -288,7 +288,15 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
-				"example.json": `{"foo":[4,5,1,2,3]}`,
+				"example.json": `{
+    "foo": [
+        4,
+        5,
+        1,
+        2,
+        3
+    ]
+}`,
 			},
 		},
 		{
@@ -305,7 +313,15 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
-				"example.json": `{"foo":[1,2,3,4,5]}`,
+				"example.json": `{
+    "foo": [
+        1,
+        2,
+        3,
+        4,
+        5
+    ]
+}`,
 			},
 		},
 		{
@@ -322,7 +338,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
-				"example.json": `{"foo":[4,5]}`,
+				"example.json": `{
+    "foo": [
+        4,
+        5
+    ]
+}`,
 			},
 		},
 		{

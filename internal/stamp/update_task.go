@@ -137,7 +137,7 @@ func (t *UpdateTask) replaceJSON(content []byte, pattern string, repl any) ([]by
 	}
 
 	// convert back to JSON
-	marshalled, err := oj.Marshal(data)
+	marshalled, err := oj.Marshal(data, 4) // 4 == indent size
 	if err != nil {
 		return nil, err
 	}
