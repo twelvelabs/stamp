@@ -1,5 +1,5 @@
 ---
 store_path: ~/some/dir
-debug: true
+debug: false
 defaults:
   UserName: test-user

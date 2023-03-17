@@ -86,7 +86,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			Values: map[string]any{
 				"Empty": "",
 			},
-			Err: "path '{{ .Empty }}' evaluated to an empty string",
+			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
 		},
 
 		{
@@ -153,7 +153,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			EndFiles: map[string]any{
 				"README.md": false,
 			},
-			Err: "path does not exist",
+			Err: "path not found",
 		},
 	}
 	for _, tt := range tests {

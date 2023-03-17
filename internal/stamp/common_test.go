@@ -104,6 +104,18 @@ func TestCommon_Render(t *testing.T) {
 	}
 }
 
+func TestCommon_RenderRequired(t *testing.T) {
+	task := &Common{}
+
+	rendered, err := task.RenderRequired("SomeKey", "{{ .Var }}", map[string]any{"Var": "foo"})
+	assert.Equal(t, "foo", rendered)
+	assert.NoError(t, err)
+
+	rendered, err = task.RenderRequired("SomeKey", "{{ .Var }}", map[string]any{"Var": ""})
+	assert.Equal(t, "", rendered)
+	assert.ErrorContains(t, err, "SomeKey: '{{ .Var }}' evaluated to an empty string")
+}
+
 func TestCommon_ShouldExecute(t *testing.T) {
 	tests := []struct {
 		Name   string

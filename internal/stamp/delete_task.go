@@ -1,7 +1,6 @@
 package stamp
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -15,7 +14,7 @@ type DeleteTask struct {
 }
 
 func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {
-	dst, err := t.renderPath(values, t.Dst)
+	dst, err := t.RenderRequired("dst", t.Dst, values)
 	if err != nil {
 		return err
 	}
@@ -29,7 +28,7 @@ func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return nil
 	} else if t.Missing == MissingConfigError {
 		ctx.Logger.Failure("fail", dst)
-		return fmt.Errorf("path does not exist")
+		return ErrPathNotFound
 	}
 
 	return nil
@@ -40,12 +39,4 @@ func (t *DeleteTask) deleteDst(ctx *TaskContext, dst string) error {
 		return nil
 	}
 	return os.RemoveAll(dst)
-}
-
-func (t *DeleteTask) renderPath(values map[string]any, path string) (string, error) {
-	rendered := t.Common.Render(path, values)
-	if rendered == "" {
-		return "", fmt.Errorf("path '%s' evaluated to an empty string", path)
-	}
-	return rendered, nil
 }

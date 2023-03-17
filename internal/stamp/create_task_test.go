@@ -124,7 +124,7 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"DstPath": ".",
 				"Empty":   "",
 			},
-			Err: "path '{{ .Empty }}' evaluated to an empty string",
+			Err: "src: '{{ .Empty }}' evaluated to an empty string",
 		},
 		{
 			Desc: "returns an error if dst evaluates to empty string",
@@ -137,7 +137,7 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"SrcPath": templatesDir,
 				"Empty":   "",
 			},
-			Err: "path '{{ .Empty }}' evaluated to an empty string",
+			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
 		},
 		{
 			Desc: "returns an error if src does not exist",
@@ -184,7 +184,10 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"DstPath":     ".",
 			},
 			EndFiles: map[string]any{
-				"README.md": 0o755,
+				"README.md": []any{
+					"# My Project\n",
+					0o755,
+				},
 			},
 			Err: "",
 		},

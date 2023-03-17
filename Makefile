@@ -19,6 +19,7 @@ coverage: gocovsh ## Show code coverage
 build: ## Build the app
 	go mod tidy
 	go build -trimpath -ldflags='-X main.version=dev -X main.commit=$(CURRENT_SHA) -X main.date=$(CURRENT_TS)' -o ${BUILD_DIR}/${APP_NAME} .
+	du -h ${BUILD_DIR}/${APP_NAME}
 
 .PHONY: install
 install: build ## Install the app

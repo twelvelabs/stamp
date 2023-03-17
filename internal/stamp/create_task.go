@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/twelvelabs/termite/render"
@@ -27,11 +26,11 @@ type CreateTask struct {
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	t.DryRun = ctx.DryRun
 
-	src, err := t.renderPath(values, t.Src)
+	src, err := t.RenderRequired("src", t.Src, values)
 	if err != nil {
 		return err
 	}
-	dst, err := t.renderPath(values, t.Dst)
+	dst, err := t.RenderRequired("dst", t.Dst, values)
 	if err != nil {
 		return err
 	}
@@ -131,7 +130,9 @@ func (t *CreateTask) createDst(values map[string]any, src string, dst string) er
 	if t.DryRun {
 		return nil
 	}
-	mode, err := t.parseMode(values, t.Mode)
+
+	// render and parse mode
+	mode, err := t.RenderMode(t.Mode, values)
 	if err != nil {
 		return err
 	}
@@ -175,20 +176,4 @@ func (t *CreateTask) deleteDst(dst string) error {
 		return err
 	}
 	return nil
-}
-
-func (t *CreateTask) renderPath(values map[string]any, path string) (string, error) {
-	rendered := t.Common.Render(path, values)
-	if rendered == "" {
-		return "", fmt.Errorf("path '%s' evaluated to an empty string", path)
-	}
-	return rendered, nil
-}
-
-func (t *CreateTask) parseMode(_ map[string]any, mode string) (os.FileMode, error) {
-	parsed, err := strconv.ParseInt(mode, 8, 64)
-	if err != nil {
-		return 0, err
-	}
-	return os.FileMode(parsed), nil
 }
