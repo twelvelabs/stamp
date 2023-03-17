@@ -42,20 +42,3 @@ func TestMissingConfig(t *testing.T) {
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
 }
-
-func TestUpdateAction(t *testing.T) {
-	name := UpdateActionNames()[0]
-	enum := UpdateAction(name)
-
-	assert.Equal(t, true, enum.IsValid())
-	assert.Equal(t, name, enum.String())
-
-	buf, err := enum.MarshalText()
-	assert.NoError(t, err)
-	assert.Equal(t, []byte(name), buf)
-
-	err = (&enum).UnmarshalText(buf)
-	assert.NoError(t, err)
-	err = (&enum).UnmarshalText([]byte{})
-	assert.Error(t, err)
-}

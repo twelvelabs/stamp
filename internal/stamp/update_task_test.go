@@ -83,7 +83,7 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 	}
 }
 
-func TestUpdateTask_Execute(t *testing.T) {
+func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 	tests := []struct {
 		Desc       string
 		DryRun     bool
@@ -138,6 +138,38 @@ func TestUpdateTask_Execute(t *testing.T) {
 				"README.md": "Hello World\n",
 			},
 			Err: "error parsing regexp",
+		},
+		{
+			Desc: "returns an error if replacement can not be cast to string",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./README.md",
+				"pattern": "World",
+				"content": struct{}{},
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			Err: "unable to cast struct",
+		},
+		{
+			Desc: "returns an error if asked to parse an unsupported file type",
+			StartFiles: map[string]any{
+				"main.go": "lol",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./main.go",
+				"pattern": "something",
+				"parse":   "true",
+			},
+			EndFiles: map[string]any{
+				"main.go": "lol",
+			},
+			Err: "unable to parse file type: go",
 		},
 
 		{
@@ -239,6 +271,74 @@ func TestUpdateTask_Execute(t *testing.T) {
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
+			},
+		},
+
+		{
+			Desc: "prepends JSON data in dst",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.json",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "prepend",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.json": `{"foo":[4,5,1,2,3]}`,
+			},
+		},
+		{
+			Desc: "appends JSON data in dst",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.json",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "append",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3,4,5]}`,
+			},
+		},
+		{
+			Desc: "replaces JSON data in dst",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.json",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "replace",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.json": `{"foo":[4,5]}`,
+			},
+		},
+		{
+			Desc: "deletes JSON data in dst",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.json",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "delete",
+			},
+			EndFiles: map[string]any{
+				"example.json": `{}`,
 			},
 		},
 
