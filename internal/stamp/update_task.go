@@ -10,6 +10,7 @@ import (
 	"github.com/ohler55/ojg/jp"
 	"github.com/ohler55/ojg/oj"
 	"github.com/spf13/cast"
+	"gopkg.in/yaml.v3"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/modify"
@@ -129,23 +130,10 @@ func (t *UpdateTask) replaceJSON(content []byte, pattern string, repl any) ([]by
 		return nil, err
 	}
 
-	// parse the JSON path expression
-	exp, err := jp.ParseString(pattern)
+	// modify the data structure
+	data, err = t.modifyDataStructure(data, pattern, t.Action, repl)
 	if err != nil {
 		return nil, err
-	}
-
-	// modify the data structure
-	if t.Action == modify.ActionDelete {
-		_, err := exp.Remove(data)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err := exp.Modify(data, modify.Modifier(t.Action, repl))
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// convert back to JSON
@@ -153,11 +141,52 @@ func (t *UpdateTask) replaceJSON(content []byte, pattern string, repl any) ([]by
 	if err != nil {
 		return nil, err
 	}
+
 	return marshalled, nil
 }
 
 func (t *UpdateTask) replaceYAML(content []byte, pattern string, repl any) ([]byte, error) {
-	return nil, nil
+	// parse the YAML into a data structure
+	var data any
+	err := yaml.Unmarshal(content, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	// modify the data structure
+	data, err = t.modifyDataStructure(data, pattern, t.Action, repl)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert back to YAML
+	marshalled, err := yaml.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return marshalled, nil
+}
+
+func (t *UpdateTask) modifyDataStructure(data any, pattern string, act modify.Action, repl any) (any, error) {
+	// parse pattern as a JSON path expression
+	exp, err := jp.ParseString(pattern)
+	if err != nil {
+		return nil, err
+	}
+	// use the expression to modify the data structure
+	if act == modify.ActionDelete {
+		_, err := exp.Remove(data)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := exp.Modify(data, modify.Modifier(act, repl))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return data, nil
 }
 
 func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]byte, error) {

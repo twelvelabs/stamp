@@ -343,6 +343,86 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		},
 
 		{
+			Desc: "prepends YAML data in dst",
+			StartFiles: map[string]any{
+				"example.yml": "foo: [1,2,3]\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.yml",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "prepend",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.yml": "foo:\n" +
+					"    - 4\n" +
+					"    - 5\n" +
+					"    - 1\n" +
+					"    - 2\n" +
+					"    - 3\n",
+			},
+		},
+		{
+			Desc: "appends YAML data in dst",
+			StartFiles: map[string]any{
+				"example.yml": "foo: [1,2,3]\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.yml",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "append",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.yml": "foo:\n" +
+					"    - 1\n" +
+					"    - 2\n" +
+					"    - 3\n" +
+					"    - 4\n" +
+					"    - 5\n",
+			},
+		},
+		{
+			Desc: "replaces YAML data in dst",
+			StartFiles: map[string]any{
+				"example.yml": "foo: [1,2,3]\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.yml",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "replace",
+				"content": []any{4, 5},
+			},
+			EndFiles: map[string]any{
+				"example.yml": "foo:\n" +
+					"    - 4\n" +
+					"    - 5\n",
+			},
+		},
+		{
+			Desc: "deletes YAML data in dst",
+			StartFiles: map[string]any{
+				"example.yml": "foo: [1,2,3]\n",
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.yml",
+				"parse":   "true",
+				"pattern": "$.foo",
+				"action":  "delete",
+			},
+			EndFiles: map[string]any{
+				"example.yml": "{}\n",
+			},
+		},
+
+		{
 			Desc: "[missing:ignore] ignores missing paths",
 			TaskData: map[string]any{
 				"type":    "update",
