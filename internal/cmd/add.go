@@ -25,10 +25,7 @@ func NewAddCmd(app *stamp.App) *cobra.Command {
 			if err := action.Validate(); err != nil {
 				return err
 			}
-			if err := action.Run(); err != nil {
-				return err
-			}
-			return nil
+			return action.Run()
 		},
 	}
 
@@ -47,7 +44,7 @@ type AddAction struct {
 	Origin string
 }
 
-func (a *AddAction) Setup(cmd *cobra.Command, args []string) error {
+func (a *AddAction) Setup(_ *cobra.Command, args []string) error {
 	if len(args) >= 1 {
 		a.Origin = args[0]
 	}

@@ -20,10 +20,7 @@ func NewListCmd(app *stamp.App) *cobra.Command {
 			if err := action.Validate(); err != nil {
 				return err
 			}
-			if err := action.Run(); err != nil {
-				return err
-			}
-			return nil
+			return action.Run()
 		},
 	}
 
@@ -40,7 +37,7 @@ type ListAction struct {
 	*stamp.App
 }
 
-func (a *ListAction) Setup(cmd *cobra.Command, args []string) error {
+func (a *ListAction) Setup(_ *cobra.Command, _ []string) error {
 	return nil
 }
 func (a *ListAction) Validate() error {

@@ -25,10 +25,7 @@ func NewNewCmd(app *stamp.App) *cobra.Command {
 			if err := action.Validate(); err != nil {
 				return err
 			}
-			if err := action.Run(); err != nil {
-				return err
-			}
-			return nil
+			return action.Run()
 		},
 	}
 
@@ -169,10 +166,7 @@ func (a *NewAction) registerFlags(generator *stamp.Generator) {
 
 func (a *NewAction) parseFlags() error {
 	a.cmd.DisableFlagParsing = false
-	if err := a.cmd.ParseFlags(a.args); err != nil {
-		return err
-	}
-	return nil
+	return a.cmd.ParseFlags(a.args)
 }
 
 func (a *NewAction) setArgs(generator *stamp.Generator) error {

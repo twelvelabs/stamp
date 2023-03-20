@@ -172,8 +172,5 @@ func (t *CreateTask) deleteDst(dst string) error {
 	if t.DryRun {
 		return nil
 	}
-	if err := os.Remove(dst); err != nil {
-		return err
-	}
-	return nil
+	return os.Remove(dst)
 }

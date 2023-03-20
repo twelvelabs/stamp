@@ -24,10 +24,7 @@ func NewRemoveCmd(app *stamp.App) *cobra.Command {
 			if err := action.Validate(); err != nil {
 				return err
 			}
-			if err := action.Run(); err != nil {
-				return err
-			}
-			return nil
+			return action.Run()
 		},
 	}
 
@@ -46,7 +43,7 @@ type RemoveAction struct {
 	Name string
 }
 
-func (a *RemoveAction) Setup(cmd *cobra.Command, args []string) error {
+func (a *RemoveAction) Setup(_ *cobra.Command, args []string) error {
 	if len(args) >= 1 {
 		a.Name = args[0]
 	}
