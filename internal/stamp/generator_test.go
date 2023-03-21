@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,4 +126,14 @@ func TestGenerator_Description(t *testing.T) {
 		},
 	}
 	assert.Equal(t, "a test generator", gen.Description())
+}
+
+func TestGenerator_SrcPath(t *testing.T) {
+	store := NewTestStore()
+	gen, err := store.Load("file")
+
+	srcPath := filepath.Join(gen.Path(), "_src")
+
+	assert.NoError(t, err)
+	assert.Equal(t, srcPath, gen.SrcPath())
 }

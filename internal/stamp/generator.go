@@ -60,7 +60,7 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	gen.Tasks.SrcPath = gen.Path()
+	gen.Tasks.SrcPath = gen.SrcPath()
 	gen.Tasks.DstPath = dstPath
 
 	return gen, nil
@@ -90,6 +90,10 @@ type Generator struct {
 
 func (g *Generator) Description() string {
 	return g.MetadataString("description")
+}
+
+func (g *Generator) SrcPath() string {
+	return filepath.Join(g.Path(), "_src")
 }
 
 func (g *Generator) taskMetadata() []map[string]any {
