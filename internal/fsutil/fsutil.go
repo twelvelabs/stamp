@@ -70,3 +70,43 @@ func EnsureDirWritable(path string) error {
 
 	return nil
 }
+
+// EnsurePathRelativeToRoot ensures that the relative path exists inside the trusted root,
+// and returns it's absolute path. Returns an error if the path traverses outside the root.
+func EnsurePathRelativeToRoot(path string, root string) (string, error) {
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return "", err
+	}
+
+	path = filepath.FromSlash(path)
+	absPath, err := filepath.Abs(filepath.Join(absRoot, path))
+	if err != nil {
+		return "", err
+	}
+
+	// EvalSymlinks returns an lstat error if path does not exist.
+	if PathExists(absPath) {
+		absPath, err = filepath.EvalSymlinks(absPath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if !IsSubDir(absPath, absRoot) {
+		return "", fmt.Errorf("%s attempted to traverse outside of %s", path, root)
+	}
+
+	return absPath, nil
+}
+
+func IsSubDir(path string, dir string) bool {
+	separator := string(filepath.Separator)
+	for path != separator {
+		path = filepath.Dir(path)
+		if path == dir {
+			return true
+		}
+	}
+	return false
+}
