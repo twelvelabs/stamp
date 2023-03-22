@@ -1,6 +1,7 @@
 package fsutil
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -106,4 +107,108 @@ func TestEnsureDirWritable(t *testing.T) {
 		testutil.WriteFile(t, dirEntry, []byte(""), 0600)
 		assert.FileExists(t, dirEntry, "dir should be writable")
 	})
+}
+
+func TestEnsurePathRelativeToRoot(t *testing.T) {
+	rootDir, _ := filepath.Abs(filepath.Join("testdata", "aaa"))
+
+	tests := []struct {
+		desc     string
+		path     string
+		root     string
+		expected string
+		err      string
+	}{
+		{
+			desc:     "returns path to dirs in root",
+			path:     "bbb",
+			root:     rootDir,
+			expected: filepath.Join(rootDir, "bbb"),
+		},
+		{
+			desc:     "returns path to files in root",
+			path:     "bbb/ccc.txt",
+			root:     rootDir,
+			expected: filepath.Join(rootDir, "bbb", "ccc.txt"),
+		},
+		{
+			desc:     "returns path to files in root even if not present",
+			path:     "bbb/missing.txt",
+			root:     rootDir,
+			expected: filepath.Join(rootDir, "bbb", "missing.txt"),
+		},
+		{
+			desc:     "returns path to symlinks in root",
+			path:     "bbb/ddd.txt",
+			root:     rootDir,
+			expected: filepath.Join(rootDir, "bbb", "ccc.txt"),
+		},
+		{
+			desc:     "handles relative roots without error",
+			path:     "bbb",
+			root:     "./testdata/aaa",
+			expected: filepath.Join(rootDir, "bbb"),
+		},
+		{
+			desc: "returns error if path traverses outside of root",
+			path: "../protected.txt",
+			root: rootDir,
+			err:  "attempted to traverse",
+		},
+		{
+			desc: "returns error if path traverses outside of root regardless of presence",
+			path: "../missing.txt",
+			root: rootDir,
+			err:  "attempted to traverse",
+		},
+		{
+			desc: "returns error if symlink traverses outside of root",
+			path: "bbb/eee.txt",
+			root: rootDir,
+			err:  "attempted to traverse",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			actual, err := EnsurePathRelativeToRoot(tt.path, tt.root)
+
+			assert.Equal(t, tt.expected, actual)
+
+			if tt.err == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.err)
+			}
+		})
+	}
+}
+
+func TestIsSubDir(t *testing.T) {
+	tests := []struct {
+		path     string
+		dir      string
+		expected bool
+	}{
+		{
+			path:     "/foo/bar/baz",
+			dir:      "/foo",
+			expected: true,
+		},
+		{
+			path:     "/foo/bar/baz",
+			dir:      "/",
+			expected: true,
+		},
+		{
+			path:     "/foo/bar/baz",
+			dir:      "/bar",
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		desc := fmt.Sprintf(":%s:%s", tt.path, tt.dir)
+		t.Run(desc, func(t *testing.T) {
+			assert.Equal(t, tt.expected, IsSubDir(tt.path, tt.dir))
+		})
+	}
 }

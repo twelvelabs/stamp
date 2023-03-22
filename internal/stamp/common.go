@@ -9,6 +9,8 @@ import (
 
 	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
+
+	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 var (
@@ -59,6 +61,18 @@ func (c *Common) RenderMode(tpl string, values map[string]any) (os.FileMode, err
 		return 0, err
 	}
 	return os.FileMode(parsed), nil
+}
+
+func (c *Common) RenderPath(key, tpl, root string, values map[string]any) (string, error) {
+	rendered, err := c.RenderRequired(key, tpl, values)
+	if err != nil {
+		return "", err
+	}
+	resolved, err := fsutil.EnsurePathRelativeToRoot(rendered, root)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", key, err)
+	}
+	return resolved, nil
 }
 
 func (c *Common) ShouldExecute(values map[string]any) bool {

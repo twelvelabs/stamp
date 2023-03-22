@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
 )
 
@@ -26,11 +27,13 @@ type CreateTask struct {
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	t.DryRun = ctx.DryRun
 
-	src, err := t.RenderRequired("src", t.Src, values)
+	srcRoot := cast.ToString(values["SrcPath"])
+	src, err := t.RenderPath("src", t.Src, srcRoot, values)
 	if err != nil {
 		return err
 	}
-	dst, err := t.RenderRequired("dst", t.Dst, values)
+	dstRoot := cast.ToString(values["DstPath"])
+	dst, err := t.RenderPath("dst", t.Dst, dstRoot, values)
 	if err != nil {
 		return err
 	}

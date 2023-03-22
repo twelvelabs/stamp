@@ -96,7 +96,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			},
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "{{ .DstPath }}/README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -114,7 +114,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			},
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "{{ .DstPath }}/README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -129,7 +129,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			Desc: "[missing:ignore] ignores missing paths",
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "{{ .DstPath }}/README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -144,7 +144,7 @@ func TestDeleteTask_Execute(t *testing.T) {
 			Desc: "[missing:error] returns an error when path is missing",
 			TaskData: map[string]any{
 				"type":    "delete",
-				"dst":     "{{ .DstPath }}/README.md",
+				"dst":     "README.md",
 				"missing": "error",
 			},
 			Values: map[string]any{
