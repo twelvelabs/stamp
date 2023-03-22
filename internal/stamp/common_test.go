@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/creasty/defaults"
@@ -114,6 +115,27 @@ func TestCommon_RenderRequired(t *testing.T) {
 	rendered, err = task.RenderRequired("SomeKey", "{{ .Var }}", map[string]any{"Var": ""})
 	assert.Equal(t, "", rendered)
 	assert.ErrorContains(t, err, "SomeKey: '{{ .Var }}' evaluated to an empty string")
+}
+
+func TestCommon_RenderPath(t *testing.T) {
+	task := &Common{}
+	root := "testdata"
+
+	// must be non-empty
+	rendered, err := task.RenderPath("dst", "{{ .Var }}", root, map[string]any{"Var": ""})
+	assert.Equal(t, "", rendered)
+	assert.ErrorContains(t, err, "dst: '{{ .Var }}' evaluated to an empty string")
+
+	// must not traverse outside of root
+	rendered, err = task.RenderPath("dst", "../../nope", root, map[string]any{})
+	assert.Equal(t, "", rendered)
+	assert.ErrorContains(t, err, "dst: ../../nope attempted to traverse outside of testdata")
+
+	// happy path
+	expected, _ := filepath.Abs(filepath.Join(root, "ok", "path"))
+	rendered, err = task.RenderPath("dst", "ok/path", root, map[string]any{})
+	assert.Equal(t, expected, rendered)
+	assert.NoError(t, err)
 }
 
 func TestCommon_ShouldExecute(t *testing.T) {

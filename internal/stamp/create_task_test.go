@@ -118,7 +118,7 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			TaskData: map[string]any{
 				"type": "create",
 				"src":  "{{ .Empty }}",
-				"dst":  "{{ .DstPath }}/README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -130,7 +130,7 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/README.md",
+				"src":  "README.md",
 				"dst":  "{{ .Empty }}",
 			},
 			Values: map[string]any{
@@ -143,8 +143,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "returns an error if src does not exist",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/missing.md",
-				"dst":  "{{ .DstPath }}/README.md",
+				"src":  "missing.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"SrcPath": templatesDir,
@@ -157,8 +157,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates a single file",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/README.md",
-				"dst":  "{{ .DstPath }}/README.md",
+				"src":  "README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -174,8 +174,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates a single file with custom permissions",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/README.md",
-				"dst":  "{{ .DstPath }}/README.md",
+				"src":  "README.md",
+				"dst":  "README.md",
 				"mode": "0755",
 			},
 			Values: map[string]any{
@@ -196,8 +196,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			DryRun: true,
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/README.md",
-				"dst":  "{{ .DstPath }}/README.md",
+				"src":  "README.md",
+				"dst":  "README.md",
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -214,8 +214,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates entire directories of files",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/nested/",
-				"dst":  "{{ .DstPath }}/nested/",
+				"src":  "nested/",
+				"dst":  "nested/",
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -235,8 +235,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			DryRun: true,
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "{{ .SrcPath }}/nested/",
-				"dst":  "{{ .DstPath }}/nested/",
+				"src":  "nested/",
+				"dst":  "nested/",
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -259,8 +259,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			TaskData: map[string]any{
 				"type":     "create",
-				"src":      "{{ .SrcPath }}/README.md",
-				"dst":      "{{ .DstPath }}/README.md",
+				"src":      "README.md",
+				"dst":      "README.md",
 				"conflict": "keep",
 			},
 			Values: map[string]any{
@@ -281,8 +281,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			TaskData: map[string]any{
 				"type":     "create",
-				"src":      "{{ .SrcPath }}/README.md",
-				"dst":      "{{ .DstPath }}/README.md",
+				"src":      "README.md",
+				"dst":      "README.md",
 				"conflict": "replace",
 			},
 			Values: map[string]any{
@@ -303,8 +303,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			TaskData: map[string]any{
 				"type":     "create",
-				"src":      "{{ .SrcPath }}/README.md",
-				"dst":      "{{ .DstPath }}/README.md",
+				"src":      "README.md",
+				"dst":      "README.md",
 				"conflict": "prompt",
 			},
 			Values: map[string]any{
@@ -330,8 +330,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			TaskData: map[string]any{
 				"type":     "create",
-				"src":      "{{ .SrcPath }}/README.md",
-				"dst":      "{{ .DstPath }}/README.md",
+				"src":      "README.md",
+				"dst":      "README.md",
 				"conflict": "prompt",
 			},
 			Values: map[string]any{
@@ -357,8 +357,8 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			TaskData: map[string]any{
 				"type":     "create",
-				"src":      "{{ .SrcPath }}/README.md",
-				"dst":      "{{ .DstPath }}/README.md",
+				"src":      "README.md",
+				"dst":      "README.md",
 				"conflict": "prompt",
 			},
 			Values: map[string]any{

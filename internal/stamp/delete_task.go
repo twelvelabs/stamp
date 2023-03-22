@@ -3,6 +3,8 @@ package stamp
 import (
 	"os"
 
+	"github.com/spf13/cast"
+
 	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
@@ -14,7 +16,8 @@ type DeleteTask struct {
 }
 
 func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {
-	dst, err := t.RenderRequired("dst", t.Dst, values)
+	dstRoot := cast.ToString(values["DstPath"])
+	dst, err := t.RenderPath("dst", t.Dst, dstRoot, values)
 	if err != nil {
 		return err
 	}

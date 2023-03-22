@@ -29,7 +29,8 @@ type UpdateTask struct {
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
-	dst, err := t.RenderRequired("dst", t.Dst, values)
+	dstRoot := cast.ToString(values["DstPath"])
+	dst, err := t.RenderPath("dst", t.Dst, dstRoot, values)
 	if err != nil {
 		ctx.Logger.Failure("fail", dst)
 		return err
