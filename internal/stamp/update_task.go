@@ -22,7 +22,7 @@ type UpdateTask struct {
 	Dst     string        `validate:"required"`
 	Missing MissingConfig `validate:"required" default:"ignore"`
 	Mode    string        `validate:"omitempty,posix-mode"`
-	Parse   string        ``
+	Parse   any           ``
 	Pattern string        `validate:"required"`
 	Action  modify.Action `validate:"required" default:"replace"`
 	Content any           ``
@@ -74,7 +74,7 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, values map[string]any, dst stri
 		replacement = t.Content
 	}
 	// resolve the parse field
-	parse := t.Render(t.Parse, values)
+	parse := t.Render(cast.ToString(t.Parse), values)
 	if parse == "" {
 		// An unspecified parse value implies plain text.
 		parse = "text"

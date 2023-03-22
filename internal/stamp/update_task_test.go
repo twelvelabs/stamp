@@ -171,6 +171,16 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			Err: "unable to parse file type: go",
 		},
+		{
+			Desc: "does not error if parse is passed as a bool",
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "./example.json",
+				"pattern": "something",
+				"parse":   true,
+			},
+			Err: "",
+		},
 
 		{
 			Desc: "prepends a string in dst",
