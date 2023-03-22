@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -128,7 +129,7 @@ func (t *UpdateTask) replaceJSON(content []byte, pattern string, repl any) ([]by
 	// parse the JSON into a data structure
 	data, err := oj.Parse(content)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("json parse: %w", err)
 	}
 
 	// modify the data structure
@@ -138,9 +139,11 @@ func (t *UpdateTask) replaceJSON(content []byte, pattern string, repl any) ([]by
 	}
 
 	// convert back to JSON
-	marshalled, err := oj.Marshal(data, 4) // 4 == indent size
+	// Note: using standard lib to marshal because it sorts JSON object keys
+	// (oj does not and it looks ugly when adding new keys).
+	marshalled, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("json marshal: %w", err)
 	}
 
 	return marshalled, nil
@@ -173,18 +176,18 @@ func (t *UpdateTask) modifyDataStructure(data any, pattern string, act modify.Ac
 	// parse pattern as a JSON path expression
 	exp, err := jp.ParseString(pattern)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("json path parse: %w", err)
 	}
 	// use the expression to modify the data structure
 	if act == modify.ActionDelete {
 		_, err := exp.Remove(data)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("json path remove: %w", err)
 		}
 	} else {
 		_, err := exp.Modify(data, modify.Modifier(act, repl))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("json path modify: %w", err)
 		}
 	}
 	return data, nil
