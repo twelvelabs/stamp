@@ -173,6 +173,9 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		},
 		{
 			Desc: "does not error if parse is passed as a bool",
+			StartFiles: map[string]any{
+				"example.json": "{}",
+			},
 			TaskData: map[string]any{
 				"type":    "update",
 				"dst":     "./example.json",
@@ -388,11 +391,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
-					"    - 4\n" +
-					"    - 5\n" +
-					"    - 1\n" +
-					"    - 2\n" +
-					"    - 3\n",
+					"  - 4\n" +
+					"  - 5\n" +
+					"  - 1\n" +
+					"  - 2\n" +
+					"  - 3\n",
 			},
 		},
 		{
@@ -410,11 +413,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
-					"    - 1\n" +
-					"    - 2\n" +
-					"    - 3\n" +
-					"    - 4\n" +
-					"    - 5\n",
+					"  - 1\n" +
+					"  - 2\n" +
+					"  - 3\n" +
+					"  - 4\n" +
+					"  - 5\n",
 			},
 		},
 		{
@@ -432,8 +435,8 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
-					"    - 4\n" +
-					"    - 5\n",
+					"  - 4\n" +
+					"  - 5\n",
 			},
 		},
 		{

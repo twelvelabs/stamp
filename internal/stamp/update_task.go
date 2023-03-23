@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,96 +28,123 @@ type UpdateTask struct {
 	Pattern string        `validate:"required"`
 	Action  modify.Action `validate:"required" default:"replace"`
 	Content any           ``
+
+	dstPath     string
+	dstBytes    []byte
+	mode        os.FileMode
+	pattern     string
+	replacement any
+	parse       string
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
-	dstRoot := cast.ToString(values["DstPath"])
-	dst, err := t.RenderPath("dst", t.Dst, dstRoot, values)
+	err := t.prepare(ctx, values)
 	if err != nil {
-		ctx.Logger.Failure("fail", dst)
+		ctx.Logger.Failure("fail", t.dstPath)
 		return err
 	}
 
-	if fsutil.PathExists(dst) {
-		if err := t.updateDst(ctx, values, dst); err != nil {
-			ctx.Logger.Failure("fail", dst)
+	if fsutil.PathExists(t.dstPath) {
+		if err := t.updateDst(ctx, values, t.dstPath); err != nil {
+			ctx.Logger.Failure("fail", t.dstPath)
 			return err
 		}
-		ctx.Logger.Success("update", dst)
+		updateMsg := t.dstPath
+		if t.parse != "text" && t.parse != "txt" { //nolint: goconst
+			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.pattern)
+		}
+		ctx.Logger.Success("update", updateMsg)
 		return nil
 	} else if t.Missing == MissingConfigError {
-		ctx.Logger.Failure("fail", dst)
+		ctx.Logger.Failure("fail", t.dstPath)
 		return ErrPathNotFound
 	}
 
 	return nil
 }
 
-func (t *UpdateTask) updateDst(ctx *TaskContext, values map[string]any, dst string) error {
+// prepare post-processes and validates the task YAML fields.
+func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
+	var err error
+
+	dstRoot := cast.ToString(values["DstPath"])
+	t.dstPath, err = t.RenderPath("dst", t.Dst, dstRoot, values)
+	if err != nil {
+		return fmt.Errorf("resolve dst path: %w", err)
+	}
+
+	if fsutil.PathExists(t.dstPath) {
+		t.dstBytes, err = os.ReadFile(t.dstPath)
+		if err != nil {
+			return fmt.Errorf("read dst path: %w", err)
+		}
+	}
+
+	if t.Mode != "" {
+		t.mode, err = t.RenderMode(t.Mode, values)
+		if err != nil {
+			return fmt.Errorf("resolve dst mode: %w", err)
+		}
+	}
+
+	t.pattern, err = t.RenderRequired("pattern", t.Pattern, values)
+	if err != nil {
+		return fmt.Errorf("resolve pattern: %w", err)
+	}
+
+	if s, ok := t.Content.(string); ok {
+		t.replacement = t.Render(s, values)
+	} else {
+		t.replacement = t.Content
+	}
+
+	t.parse = t.Render(cast.ToString(t.Parse), values)
+	if t.parse == "" {
+		// An unspecified parse value implies plain text.
+		t.parse = "text"
+	} else if t.parse == "true" {
+		// "parse: true" is shorthand for "figure out file type from the extension".
+		t.parse = strings.TrimPrefix(filepath.Ext(t.dstPath), ".")
+	}
+
+	return nil
+}
+
+func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) error {
 	if ctx.DryRun {
 		return nil
 	}
 
-	// resolve dst content
-	content, err := os.ReadFile(dst)
-	if err != nil {
-		return fmt.Errorf("read file: %w", err)
-	}
-	// resolve pattern
-	pattern, err := t.RenderRequired("pattern", t.Pattern, values)
-	if err != nil {
-		return fmt.Errorf("resolve pattern: %w", err)
-	}
-	// resolve the replacement value
-	var replacement any
-	if s, ok := t.Content.(string); ok {
-		replacement = t.Render(s, values)
-	} else {
-		replacement = t.Content
-	}
-	// resolve the parse field
-	parse := t.Render(cast.ToString(t.Parse), values)
-	if parse == "" {
-		// An unspecified parse value implies plain text.
-		parse = "text"
-	} else if parse == "true" {
-		// "parse: true" is shorthand for "figure out file type from the extension".
-		parse = strings.TrimPrefix(filepath.Ext(dst), ".")
-	}
-
 	// Update the content (using the pattern and replacement values)
-	switch parse {
+	var err error
+	switch t.parse {
 	case "json":
-		content, err = t.replaceJSON(content, pattern, replacement)
+		t.dstBytes, err = t.replaceJSON(t.dstBytes, t.pattern, t.replacement)
 	case "yaml", "yml":
-		content, err = t.replaceYAML(content, pattern, replacement)
+		t.dstBytes, err = t.replaceYAML(t.dstBytes, t.pattern, t.replacement)
 	case "text", "txt":
-		content, err = t.replaceText(content, pattern, replacement)
+		t.dstBytes, err = t.replaceText(t.dstBytes, t.pattern, t.replacement)
 	default:
-		return fmt.Errorf("unable to parse file type: %s", parse)
+		return fmt.Errorf("unable to parse file type: %s", t.parse)
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
 	}
 
 	// update dst
-	f, err := os.Create(dst)
+	f, err := os.Create(t.dstPath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	_, err = f.Write(content)
+	_, err = f.Write(t.dstBytes)
 	if err != nil {
 		return err
 	}
 
 	// set permissions (if configured)
-	if t.Mode != "" {
-		mode, err := t.RenderMode(t.Mode, values)
-		if err != nil {
-			return fmt.Errorf("resolve mode: %w", err)
-		}
-		err = os.Chmod(dst, mode)
+	if t.mode != 0 {
+		err = os.Chmod(t.dstPath, t.mode)
 		if err != nil {
 			return err
 		}
@@ -164,12 +192,15 @@ func (t *UpdateTask) replaceYAML(content []byte, pattern string, repl any) ([]by
 	}
 
 	// convert back to YAML
-	marshalled, err := yaml.Marshal(data)
+	buf := &bytes.Buffer{}
+	encoder := yaml.NewEncoder(buf)
+	encoder.SetIndent(2)
+	err = encoder.Encode(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return marshalled, nil
+	return buf.Bytes(), nil
 }
 
 func (t *UpdateTask) modifyDataStructure(data any, pattern string, act modify.Action, repl any) (any, error) {
