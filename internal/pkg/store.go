@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+
+	"github.com/hashicorp/go-getter"
 )
 
 const (
@@ -62,6 +64,14 @@ func (s *Store) Stage(src string) (*Package, CleanupFunc, error) {
 	}
 	cleanup := func() {
 		os.RemoveAll(stagingRoot)
+	}
+
+	// Normalize `src` into a fully qualified url (i.e. "." to "file:///${PWD}").
+	// Needed so the update logic can work properly.
+	pwd, _ := os.Getwd()
+	src, err = getter.Detect(src, pwd, getter.Detectors)
+	if err != nil {
+		return nil, cleanup, fmt.Errorf("staging error: %w", err)
 	}
 
 	// Copy `src` into the staging dir.
