@@ -25,7 +25,7 @@ type UpdateTask struct {
 	Missing MissingConfig `validate:"required" default:"ignore"`
 	Mode    string        `validate:"omitempty,posix-mode"`
 	Parse   any           ``
-	Pattern string        `validate:"required"`
+	Pattern string        ``
 	Action  modify.Action `validate:"required" default:"replace"`
 	Content any           ``
 
@@ -87,11 +87,6 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		}
 	}
 
-	t.pattern, err = t.RenderRequired("pattern", t.Pattern, values)
-	if err != nil {
-		return fmt.Errorf("resolve pattern: %w", err)
-	}
-
 	if s, ok := t.Content.(string); ok {
 		t.replacement = t.Render(s, values)
 	} else {
@@ -105,6 +100,17 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	} else if t.parse == "true" {
 		// "parse: true" is shorthand for "figure out file type from the extension".
 		t.parse = strings.TrimPrefix(filepath.Ext(t.dstPath), ".")
+	}
+
+	t.pattern = t.Render(t.Pattern, values)
+	if t.pattern == "" {
+		// Match the entire file if pattern is empty.
+		switch t.parse {
+		case "text", "txt":
+			t.pattern = "(?s)^(.*)$"
+		default:
+			t.pattern = "$"
+		}
 	}
 
 	return nil
@@ -211,12 +217,12 @@ func (t *UpdateTask) modifyDataStructure(data any, pattern string, act modify.Ac
 	}
 	// use the expression to modify the data structure
 	if act == modify.ActionDelete {
-		_, err := exp.Remove(data)
+		data, err = exp.Remove(data)
 		if err != nil {
 			return nil, fmt.Errorf("json path remove: %w", err)
 		}
 	} else {
-		_, err := exp.Modify(data, modify.Modifier(act, repl))
+		data, err = exp.Modify(data, modify.Modifier(act, repl))
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
 		}
@@ -237,9 +243,9 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 	var replacement []byte
 	switch t.Action {
 	case modify.ActionAppend:
-		replacement = append([]byte("$0"), []byte(replStr)...)
+		replacement = append([]byte("${0}"), []byte(replStr)...)
 	case modify.ActionPrepend:
-		replacement = append([]byte(replStr), []byte("$0")...)
+		replacement = append([]byte(replStr), []byte("${0}")...)
 	case modify.ActionReplace:
 		replacement = []byte(replStr)
 	case modify.ActionDelete:

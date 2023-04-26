@@ -26,16 +26,6 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 			Err:  "Dst is a required field",
 		},
 		{
-			Name: "returns an error when pattern field is missing",
-			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.txt",
-				"pattern": "",
-			},
-			Task: nil,
-			Err:  "Pattern is a required field",
-		},
-		{
 			Name: "returns an error when missing field is invalid",
 			TaskData: map[string]any{
 				"type":    "update",
@@ -107,22 +97,19 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
 		},
 		{
-			Desc: "returns an error if pattern evaluates to empty string",
+			Desc: "matches all text if pattern evaluates to empty string",
 			StartFiles: map[string]any{
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
 				"type":    "update",
 				"dst":     "./README.md",
-				"pattern": "{{ .Empty }}",
-			},
-			Values: map[string]any{
-				"Empty": "",
+				"action":  "append",
+				"content": "Goodbye\n",
 			},
 			EndFiles: map[string]any{
-				"README.md": "Hello World\n",
+				"README.md": "Hello World\nGoodbye\n",
 			},
-			Err: "pattern: '{{ .Empty }}' evaluated to an empty string",
 		},
 		{
 			Desc: "returns an error if pattern can not be compiled to regexp",
@@ -373,6 +360,26 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"example.json": `{}`,
+			},
+		},
+		{
+			Desc: "matches root element if pattern evaluates to empty string",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":   "update",
+				"dst":    "example.json",
+				"parse":  "true",
+				"action": "replace",
+				"content": map[string]any{
+					"bar": true,
+				},
+			},
+			EndFiles: map[string]any{
+				"example.json": `{
+    "bar": true
+}`,
 			},
 		},
 
