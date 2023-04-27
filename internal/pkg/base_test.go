@@ -209,8 +209,3 @@ func packageFixturesDir() string {
 func packageFixtureDir(name string) string {
 	return path.Join(packageFixturesDir(), name)
 }
-
-// // Returns the absolute path to metadata file of the named package.
-// func packageFixturePath(name string) string {
-// 	return path.Join(packageFixturesDir(), name, DEFAULT_META_FILE)
-// }

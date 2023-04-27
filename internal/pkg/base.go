@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/edwardrf/symwalk" // cspell:disable-line
+	// cspell:disable-line
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -83,13 +83,16 @@ func LoadPackages(root string, metaFile string) ([]*Package, error) {
 
 	// Note: We're intentionally ignoring FS or package parse errors
 	//       here so that one bad package doesn't break everything.
-	_ = symwalk.Walk(root, func(name string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(root, func(name string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil //nolint:nilerr
 		}
 
-		filename := filepath.Base(name)
-		if filename != metaFile {
+		basename := filepath.Base(name)
+		if info.IsDir() && strings.HasPrefix(basename, "_") {
+			return filepath.SkipDir // Ignore underscore (i.e. private) dirs
+		}
+		if basename != metaFile {
 			return nil // Ignore non-package files
 		}
 
