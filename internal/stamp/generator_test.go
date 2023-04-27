@@ -78,7 +78,7 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 
 		values := gen.Values.GetAll()
 
-		assert.Len(t, values, 2)
+		assert.Len(t, values, 3)
 		assert.Equal(t, "customized.txt", values["FileName"])
 		assert.Equal(t, "custom content", values["FileContent"])
 
@@ -98,8 +98,8 @@ func TestGenerator_AddsValuesFromDelegatedGenerators(t *testing.T) {
 
 		values := gen.Values.GetAll()
 
-		// should only be two values, even though the generator was referenced twice
-		assert.Len(t, values, 2)
+		// should only be three values, even though the generator was referenced twice
+		assert.Len(t, values, 3)
 		// the defaults should be set by the last generator task in the list.
 		assert.Equal(t, "untitled.txt", values["FileName"])
 		assert.Equal(t, "", values["FileContent"])

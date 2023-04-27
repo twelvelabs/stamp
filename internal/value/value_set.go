@@ -60,12 +60,26 @@ func (vs *ValueSet) Partition() ([]*Value, []*Value) {
 	return args, flags
 }
 
-// Add adds a value to the set.
+// Add appends a value to the set.
 // Values are identified by Value.Key and duplicates are overwritten.
 func (vs *ValueSet) Add(value *Value) *ValueSet {
+	return vs.add(value, false)
+}
+
+// Prepend prepends a value to the set.
+// Values are identified by Value.Key and duplicates are overwritten.
+func (vs *ValueSet) Prepend(value *Value) *ValueSet {
+	return vs.add(value, true)
+}
+
+func (vs *ValueSet) add(value *Value, prepend bool) *ValueSet {
 	if value != nil {
 		if _, found := vs.values[value.Key]; !found {
-			vs.keys = append(vs.keys, value.Key)
+			if prepend {
+				vs.keys = append([]string{value.Key}, vs.keys...)
+			} else {
+				vs.keys = append(vs.keys, value.Key)
+			}
 		}
 		vs.values[value.Key] = value.WithValueSet(vs)
 		vs.Cache().Set(value.Key, value.Get())

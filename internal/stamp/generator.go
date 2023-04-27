@@ -56,6 +56,20 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 		gen.Values.Add(v)
 	}
 
+	if len(gen.Values.Args()) == 0 {
+		gen.Values.Prepend(&value.Value{
+			Key:             "DstPath",
+			Name:            "Destination Path",
+			Help:            "The path to generate files to.",
+			DataType:        value.DataTypeString,
+			Default:         ".",
+			InputMode:       value.InputModeArg,
+			PromptConfig:    value.PromptConfigOnEmpty,
+			TransformRules:  "trim,expand-path",
+			ValidationRules: "required",
+		})
+	}
+
 	dstPath, err := filepath.Abs(".")
 	if err != nil {
 		return nil, err

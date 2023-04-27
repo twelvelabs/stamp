@@ -37,6 +37,17 @@ func TestValueSet_AddAndGetValue(t *testing.T) {
 	vs.Add(dupe1)
 	assert.Equal(t, 2, vs.Len())
 	assert.Equal(t, dupe1, vs.Value("value1"))
+
+	// Values can be prepended
+	value0 := &Value{Key: "value0"}
+	vs.Prepend(value0)
+	assert.Equal(t, 3, vs.Len())
+
+	// And `All()` returns values in the correct insertion order.
+	values := vs.All()
+	assert.Equal(t, value0, values[0]) // prepended.
+	assert.Equal(t, dupe1, values[1])  // original insertion order despite overwrite.
+	assert.Equal(t, value2, values[2])
 }
 
 func TestValueSet_ValuesMethods(t *testing.T) {
