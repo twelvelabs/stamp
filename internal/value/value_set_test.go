@@ -459,10 +459,12 @@ func TestValueSet_Prompt(t *testing.T) {
 				{
 					Key:      "v1",
 					DataType: DataTypeBool,
+					If:       "true",
 				},
 				{
 					Key:      "v2",
 					DataType: DataTypeBool,
+					If:       "true",
 				},
 			},
 			setup: func(p *ui.UserInterface) {
@@ -483,10 +485,12 @@ func TestValueSet_Prompt(t *testing.T) {
 				{
 					Key:      "v1",
 					DataType: DataTypeBool,
+					If:       "true",
 				},
 				{
 					Key:      "v2",
 					DataType: DataTypeBool,
+					If:       "true",
 				},
 			},
 			setup: func(p *ui.UserInterface) {

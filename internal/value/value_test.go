@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/twelvelabs/termite/ui"
 )
 
@@ -26,6 +27,7 @@ func TestNewValue(t *testing.T) {
 				PromptConfig: PromptConfigOnUnset,
 				InputMode:    InputModeFlag,
 				Options:      []any{},
+				If:           "true",
 			},
 			Err: "",
 		},
@@ -140,6 +142,61 @@ func TestValue_IsBoolFlag(t *testing.T) {
 func TestValue_Type(t *testing.T) {
 	assert.Equal(t, "string", (&Value{DataType: DataTypeString}).Type())
 	assert.Equal(t, "bool", (&Value{DataType: DataTypeBool}).Type())
+}
+
+func TestValue_IsEnabled(t *testing.T) {
+	valueSet := NewValueSet()
+	valueSet.Add(&Value{
+		Key:      "OtherKey",
+		DataType: DataTypeString,
+		Default:  "OtherValue",
+	})
+	require.Equal(t, "OtherValue", valueSet.Get("OtherKey"))
+
+	tests := []struct {
+		desc     string
+		value    *Value
+		expected bool
+	}{
+		{
+			desc: "returns true when If is true literal",
+			value: &Value{
+				Key: "v1",
+				If:  "true",
+			},
+			expected: true,
+		},
+		{
+			desc: "returns false when If is false literal",
+			value: &Value{
+				Key: "v1",
+				If:  "false",
+			},
+			expected: false,
+		},
+		{
+			desc: "returns true when If evaluates to true",
+			value: &Value{
+				Key: "v1",
+				If:  `{{ eq .OtherKey "OtherValue" }}`,
+			},
+			expected: true,
+		},
+		{
+			desc: "returns false when If evaluates to false",
+			value: &Value{
+				Key: "v1",
+				If:  `{{ eq .OtherKey "does-not-match" }}`,
+			},
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			tt.value = tt.value.WithValueSet(valueSet)
+			assert.Equal(t, tt.expected, tt.value.IsEnabled())
+		})
+	}
 }
 
 func TestValue_IsEmpty(t *testing.T) {
@@ -634,6 +691,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Name: "invalid type",
 			Value: (&Value{
 				DataType: "not-a-type",
+				If:       "true",
 			}),
 			Output: nil,
 			Err:    "not a valid DataType",
@@ -643,6 +701,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "bool",
 				Default:  false,
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -658,6 +717,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "bool",
 				Default:  "{{.WannaDance}}",
+				If:       "true",
 			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
@@ -678,6 +738,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "bool",
 				Default:  false,
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -694,6 +755,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType:     "bool",
 				Default:      false,
 				PromptConfig: PromptConfigNever,
+				If:           "true",
 			}),
 			Output: false,
 			Err:    "",
@@ -704,6 +766,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "int",
 				Default:  1,
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -720,6 +783,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "int",
 				Default:  1,
 				Options:  []any{1, 2, 3},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -735,6 +799,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "int",
 				Default:  "{{ add .Year 1 }}",
+				If:       "true",
 			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
@@ -755,6 +820,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "int",
 				Default:  1,
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -771,6 +837,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "intSlice",
 				Default:  "",
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -787,6 +854,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "intSlice",
 				Default:  "",
 				Options:  []any{1, 2, 3},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -803,6 +871,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "intSlice",
 				Default:  []int{1, 2},
 				Options:  []any{1, 2, 3},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -819,6 +888,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "string",
 				Default:  "foo",
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -834,6 +904,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "string",
 				Default:  "{{.First}} {{.Last}}",
+				If:       "true",
 			}).WithValueCache(DataMap{
 				"First":      "Joey",
 				"Last":       "Ramone",
@@ -855,6 +926,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "string",
 				Default:  "foo",
 				Options:  []any{"foo", "bar", "baz"},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -871,6 +943,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "string",
 				Default:  "foo",
 				Options:  []any{"foo", "bar", "baz"},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -887,6 +960,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 			Value: (&Value{
 				DataType: "stringSlice",
 				Default:  "",
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -903,6 +977,7 @@ func TestValue_Prompt(t *testing.T) { //nolint: maintidx
 				DataType: "stringSlice",
 				Default:  "",
 				Options:  []any{"foo", "bar", "baz"},
+				If:       "true",
 			}),
 			Setup: func(p *ui.UserInterface) {
 				p.RegisterStub(
@@ -948,6 +1023,7 @@ func TestValue_ShouldPrompt(t *testing.T) {
 			Value: (&Value{
 				DataType:     DataTypeString,
 				PromptConfig: PromptConfigNever,
+				If:           "true",
 			}),
 			ShouldPrompt: false,
 		},
@@ -956,15 +1032,27 @@ func TestValue_ShouldPrompt(t *testing.T) {
 			Value: (&Value{
 				DataType:     DataTypeString,
 				PromptConfig: PromptConfigAlways,
+				If:           "true",
 			}),
 			Input:        "bar",
 			ShouldPrompt: true,
+		},
+		{
+			Name: "[always] does not prompt when disabled",
+			Value: (&Value{
+				DataType:     DataTypeString,
+				PromptConfig: PromptConfigAlways,
+				If:           "false",
+			}),
+			Input:        "bar",
+			ShouldPrompt: false,
 		},
 		{
 			Name: "[on-empty] only prompts when value is empty",
 			Value: (&Value{
 				DataType:     DataTypeString,
 				PromptConfig: PromptConfigOnEmpty,
+				If:           "true",
 			}),
 			Input:        "",
 			ShouldPrompt: true,
@@ -975,6 +1063,7 @@ func TestValue_ShouldPrompt(t *testing.T) {
 				DataType:     DataTypeString,
 				Default:      "foo",
 				PromptConfig: PromptConfigOnUnset,
+				If:           "true",
 			}),
 			ShouldPrompt: true,
 		},

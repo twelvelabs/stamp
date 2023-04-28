@@ -53,6 +53,7 @@ type Value struct {
 	TransformRules  string       `mapstructure:"transform"`
 	ValidationRules string       `mapstructure:"validate"`
 	Options         []any        `mapstructure:"options"   default:"[]"`
+	If              string       `mapstructure:"if"        default:"true"`
 
 	data   interface{}
 	values *ValueSet
@@ -107,6 +108,13 @@ func (v *Value) IsUnset() bool {
 	return v.data == nil
 }
 
+// IsEnabled returns true when the `If` field evaluates to true.
+// The user is only prompted for enabled values.
+func (v *Value) IsEnabled() bool {
+	ok, _ := render.String(v.If, v.ValueSet().Cache())
+	return cast.ToBool(ok)
+}
+
 // IsEmpty returns true if the value is empty.
 func (v *Value) IsEmpty() bool {
 	rv := reflect.ValueOf(v.Get())
@@ -125,6 +133,9 @@ func (v *Value) IsEmpty() bool {
 
 // ShouldPrompt returns true if the user should be prompted for a value.
 func (v *Value) ShouldPrompt() bool {
+	if !v.IsEnabled() {
+		return false
+	}
 	switch v.PromptConfig {
 	case PromptConfigAlways:
 		return true

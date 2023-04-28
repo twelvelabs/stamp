@@ -152,6 +152,7 @@ func (a *NewAction) setDefaults(generator *stamp.Generator) {
 		if def, ok := a.Config.Defaults[val.FlagName()]; ok {
 			val.Default = def
 		}
+		_ = val.Get() // hack to force value set cache update
 	}
 }
 
