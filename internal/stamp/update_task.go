@@ -12,6 +12,7 @@ import (
 	"github.com/ohler55/ojg/jp"
 	"github.com/ohler55/ojg/oj"
 	"github.com/spf13/cast"
+	"github.com/twelvelabs/termite/render"
 	"gopkg.in/yaml.v3"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -21,6 +22,7 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
+	Src        string        `mapstructure:"src"`
 	SrcContent any           `mapstructure:"src_content"`
 	Dst        string        `mapstructure:"dst"      validate:"required"`
 	Missing    MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
@@ -67,12 +69,31 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	var err error
 
+	if t.Src != "" && t.SrcContent != nil {
+		return fmt.Errorf("src and src_content fields are mutually exclusive")
+	}
+	if t.Src != "" {
+		srcRoot := cast.ToString(values["SrcPath"])
+		srcPath, err := t.RenderPath("src", t.Src, srcRoot, values)
+		if err != nil {
+			return fmt.Errorf("resolve src path: %w", err)
+		}
+		// render the src template
+		t.replacement, err = render.File(srcPath, values)
+		if err != nil {
+			return fmt.Errorf("render src path: %w", err)
+		}
+	} else if s, ok := t.SrcContent.(string); ok {
+		t.replacement = t.Render(s, values)
+	} else {
+		t.replacement = t.SrcContent
+	}
+
 	dstRoot := cast.ToString(values["DstPath"])
 	t.dstPath, err = t.RenderPath("dst", t.Dst, dstRoot, values)
 	if err != nil {
 		return fmt.Errorf("resolve dst path: %w", err)
 	}
-
 	if fsutil.PathExists(t.dstPath) {
 		t.dstBytes, err = os.ReadFile(t.dstPath)
 		if err != nil {
@@ -85,12 +106,6 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		if err != nil {
 			return fmt.Errorf("resolve dst mode: %w", err)
 		}
-	}
-
-	if s, ok := t.SrcContent.(string); ok {
-		t.replacement = t.Render(s, values)
-	} else {
-		t.replacement = t.SrcContent
 	}
 
 	t.parse = t.Render(cast.ToString(t.Parse), values)

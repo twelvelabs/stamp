@@ -1,6 +1,7 @@
 package stamp
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -74,6 +75,8 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 }
 
 func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
+	// Note: have to do this here since sub-tests are run in a temp dir.
+	srcPath, _ := filepath.Abs(filepath.Join("testdata", "templates"))
 	tests := []struct {
 		Desc       string
 		DryRun     bool
@@ -85,31 +88,49 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		Err        string
 	}{
 		{
+			Desc: "returns an error if src evaluates to empty string",
+			TaskData: map[string]any{
+				"type": "update",
+				"src":  "{{ .Empty }}",
+				"dst":  "./README.md",
+			},
+			Values: map[string]any{
+				"Empty": "",
+			},
+			Err: "src: '{{ .Empty }}' evaluated to an empty string",
+		},
+		{
+			Desc: "returns an error if src can not be rendered",
+			TaskData: map[string]any{
+				"type": "update",
+				"src":  "./render-error.txt",
+				"dst":  "./README.md",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+			},
+			Err: "boom",
+		},
+		{
+			Desc: "returns an error if both src and src_content are provided",
+			TaskData: map[string]any{
+				"type":        "update",
+				"src":         "./some/path",
+				"src_content": "some content",
+				"dst":         "./README.md",
+			},
+			Err: "mutually exclusive",
+		},
+		{
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "{{ .Empty }}",
-				"pattern": "foo",
+				"type": "update",
+				"dst":  "{{ .Empty }}",
 			},
 			Values: map[string]any{
 				"Empty": "",
 			},
 			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
-		},
-		{
-			Desc: "matches all text if pattern evaluates to empty string",
-			StartFiles: map[string]any{
-				"README.md": "Hello World\n",
-			},
-			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"action":      "append",
-				"src_content": "Goodbye\n",
-			},
-			EndFiles: map[string]any{
-				"README.md": "Hello World\nGoodbye\n",
-			},
 		},
 		{
 			Desc: "returns an error if pattern can not be compiled to regexp",
@@ -237,6 +258,21 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		},
 
 		{
+			Desc: "matches all text if pattern evaluates to empty string",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":        "update",
+				"dst":         "./README.md",
+				"action":      "append",
+				"src_content": "Goodbye\n",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello World\nGoodbye\n",
+			},
+		},
+		{
 			Desc: "updates a path and changes file mode",
 			StartFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -271,6 +307,25 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
+			},
+		},
+		{
+			Desc: "updates a path using content from src field",
+			StartFiles: map[string]any{
+				"README.md": "Hello World\n",
+			},
+			TaskData: map[string]any{
+				"type":   "update",
+				"src":    "./valid.txt",
+				"dst":    "./README.md",
+				"action": "replace",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+				"Name":    "Some Person",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello, Some Person",
 			},
 		},
 
