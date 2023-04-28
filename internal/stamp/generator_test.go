@@ -137,3 +137,160 @@ func TestGenerator_SrcPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, srcPath, gen.SrcPath())
 }
+
+func TestGeneratorName(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, tmpDir string)
+		path  string
+		want  string
+	}{
+		{
+			name: "returns empty string if missing path",
+			path: "",
+			want: "",
+		},
+		{
+			name: "returns empty string if not a generator",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/": "",
+				})
+			},
+			path: "aaa",
+			want: "",
+		},
+		{
+			name: "returns non-nested names",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":               "",
+					"aaa/generator.yaml": "name: 'aaa'",
+				})
+			},
+			path: "aaa",
+			want: "aaa",
+		},
+		{
+			name: "returns nested names",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":                       "",
+					"aaa/bbb/":                   "",
+					"aaa/bbb/ccc/":               "",
+					"aaa/bbb/ccc/generator.yaml": "name: 'aaa:bbb:ccc'",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "aaa:bbb:ccc",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testutil.InTempDir(t, func(tmpDir string) {
+				if tt.setup != nil {
+					tt.setup(t, tmpDir)
+				}
+				assert.Equal(t, tt.want, GeneratorName(tt.path))
+			})
+		})
+	}
+}
+
+func TestGeneratorNameForCreate(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(t *testing.T, tmpDir string)
+		path  string
+		want  string
+	}{
+		// {
+		// 	name: "returns empty string if missing path",
+		// 	path: "",
+		// 	want: "",
+		// },
+		{
+			name: "returns immediate dirname when no generator in ancestor tree",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":         "",
+					"aaa/bbb/":     "",
+					"aaa/bbb/ccc/": "",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "ccc",
+		},
+		{
+			name: "returns name prefixed with parent generator",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":                   "",
+					"aaa/bbb/":               "",
+					"aaa/bbb/generator.yaml": "name: 'bbb'",
+					"aaa/bbb/ccc/":           "",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "bbb:ccc",
+		},
+		{
+			name: "returns name prefixed with furthest parent generator",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":                   "",
+					"aaa/generator.yaml":     "name: 'aaa'",
+					"aaa/bbb/":               "",
+					"aaa/bbb/generator.yaml": "name: 'aaa:bbb'",
+					"aaa/bbb/ccc/":           "",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "aaa:bbb:ccc",
+		},
+		{
+			name: "returns name prefixed with furthest parent generator even when gaps",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":               "",
+					"aaa/generator.yaml": "name: 'aaa'",
+					"aaa/bbb/":           "",
+					"aaa/bbb/ccc/":       "",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "aaa:bbb:ccc",
+		},
+		{
+			name: "returns name prefixed with furthest parent generator even when custom name",
+			setup: func(t *testing.T, tmpDir string) {
+				t.Helper()
+				testutil.WritePaths(t, tmpDir, map[string]any{
+					"aaa/":               "",
+					"aaa/generator.yaml": "name: 'foo'",
+					"aaa/bbb/":           "",
+					"aaa/bbb/ccc/":       "",
+				})
+			},
+			path: "aaa/bbb/ccc",
+			want: "foo:bbb:ccc",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testutil.InTempDir(t, func(tmpDir string) {
+				if tt.setup != nil {
+					tt.setup(t, tmpDir)
+				}
+				assert.Equal(t, tt.want, GeneratorNameForCreate(tt.path))
+			})
+		})
+	}
+}

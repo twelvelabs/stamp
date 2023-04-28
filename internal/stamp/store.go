@@ -10,7 +10,7 @@ type Store struct {
 
 func NewStore(root string) *Store {
 	return &Store{
-		Store: pkg.NewStore(root).WithMetaFile("generator.yaml"),
+		Store: pkg.NewStore(root).WithMetaFile(metaFileName),
 	}
 }
 

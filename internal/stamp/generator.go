@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
+
+	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/value"
@@ -12,7 +15,65 @@ import (
 var (
 	ErrNilPackage = errors.New("nil package")
 	ErrNilStore   = errors.New("nil store")
+
+	metaFileName = "generator.yaml"
 )
+
+func init() {
+	funcMap := render.DefaultFuncMap()
+
+	// Allow generators to access to their name in templates.
+	// Primary use case is for the "generator generator" to auto-populate the name on create.
+	funcMap["generatorName"] = GeneratorName
+	funcMap["generatorNameForCreate"] = GeneratorNameForCreate
+
+	render.FuncMap = funcMap
+}
+
+// GeneratorName returns the name (i.e. "foo:bar:baz") for the generator at path.
+// Returns an empty string if path is not a generator.
+func GeneratorName(path string) string {
+	p, err := pkg.LoadPackage(path, metaFileName)
+	if err != nil {
+		return ""
+	}
+	return p.Name()
+}
+
+// GeneratorNameForCreate returns the correct name for a new generator at the given path.
+//
+// It searches for the furthest ancestor directory containing a generator.
+// If found, the name will be prefixed with that generator name.
+// If no ancestor is found then the name will be the segment following
+// the final path separator.
+func GeneratorNameForCreate(path string) string {
+	path, _ = filepath.Abs(path)
+	separator := string(filepath.Separator)
+	segments := strings.Split(path, separator)
+
+	// Find the furthest ancestor that is a generator and start the name from there.
+	// If no ancestor generator, default the immediate directory name.
+	var idx int
+	for idx = range segments {
+		// Reconstruct the path for this segment range.
+		// Note: `filepath.Join` ignores empty segments, so add the leading "/" back in.
+		subpath := filepath.Join(segments[0 : idx+1]...)
+		if !strings.HasPrefix(subpath, separator) {
+			subpath = separator + subpath
+		}
+		// Try loading a package for the subpath.
+		p, err := pkg.LoadPackage(subpath, metaFileName)
+		if err != nil {
+			continue // NOT a valid package
+		}
+		// Found a valid package. Ensure we're using the root package name
+		// (it may be different from the path segment).
+		segments[idx] = p.Name()
+		break
+	}
+
+	return strings.Join(segments[idx:], ":")
+}
 
 func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 	if store == nil {
