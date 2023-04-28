@@ -39,21 +39,21 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.txt",
-				"pattern": "foo",
-				"content": "bar",
+				"type":        "update",
+				"dst":         "example.txt",
+				"pattern":     "foo",
+				"src_content": "bar",
 			},
 			Task: &UpdateTask{
 				Common: Common{
 					If:   "true",
 					Each: "",
 				},
-				Dst:     "example.txt",
-				Missing: "ignore",
-				Pattern: "foo",
-				Action:  "replace",
-				Content: "bar",
+				Dst:        "example.txt",
+				Missing:    "ignore",
+				Pattern:    "foo",
+				Action:     "replace",
+				SrcContent: "bar",
 			},
 			Err: "",
 		},
@@ -102,10 +102,10 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"action":  "append",
-				"content": "Goodbye\n",
+				"type":        "update",
+				"dst":         "./README.md",
+				"action":      "append",
+				"src_content": "Goodbye\n",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\nGoodbye\n",
@@ -132,10 +132,10 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"pattern": "World",
-				"content": struct{}{},
+				"type":        "update",
+				"dst":         "./README.md",
+				"pattern":     "World",
+				"src_content": struct{}{},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -178,11 +178,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"pattern": "aaa",
-				"action":  "prepend",
-				"content": "000 ",
+				"type":        "update",
+				"dst":         "./README.md",
+				"pattern":     "aaa",
+				"action":      "prepend",
+				"src_content": "000 ",
 			},
 			EndFiles: map[string]any{
 				"README.md": "000 aaa bbb ccc\n",
@@ -194,11 +194,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"pattern": "ccc",
-				"action":  "append",
-				"content": " ddd",
+				"type":        "update",
+				"dst":         "./README.md",
+				"pattern":     "ccc",
+				"action":      "append",
+				"src_content": " ddd",
 			},
 			EndFiles: map[string]any{
 				"README.md": "aaa bbb ccc ddd\n",
@@ -210,11 +210,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"pattern": "Hello (\\w+)",
-				"action":  "replace",
-				"content": "Goodbye $1",
+				"type":        "update",
+				"dst":         "./README.md",
+				"pattern":     "Hello (\\w+)",
+				"action":      "replace",
+				"src_content": "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Goodbye World\n",
@@ -242,12 +242,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"mode":    "0755",
-				"pattern": "Hello (\\w+)",
-				"action":  "replace",
-				"content": "Goodbye $1",
+				"type":        "update",
+				"dst":         "./README.md",
+				"mode":        "0755",
+				"pattern":     "Hello (\\w+)",
+				"action":      "replace",
+				"src_content": "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": []any{
@@ -263,11 +263,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"pattern": "Hello (\\w+)",
-				"action":  "replace",
-				"content": "Goodbye $1",
+				"type":        "update",
+				"dst":         "./README.md",
+				"pattern":     "Hello (\\w+)",
+				"action":      "replace",
+				"src_content": "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -280,12 +280,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.json",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "prepend",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.json",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "prepend",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -305,12 +305,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.json",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "append",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.json",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "append",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -330,12 +330,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.json",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "replace",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.json",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "replace",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -372,7 +372,7 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"dst":    "example.json",
 				"parse":  "true",
 				"action": "replace",
-				"content": map[string]any{
+				"src_content": map[string]any{
 					"bar": true,
 				},
 			},
@@ -389,12 +389,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.yml",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "prepend",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.yml",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "prepend",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -411,12 +411,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.yml",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "append",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.yml",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "append",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -433,12 +433,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.yml",
-				"parse":   "true",
-				"pattern": "$.foo",
-				"action":  "replace",
-				"content": []any{4, 5},
+				"type":        "update",
+				"dst":         "example.yml",
+				"parse":       "true",
+				"pattern":     "$.foo",
+				"action":      "replace",
+				"src_content": []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +

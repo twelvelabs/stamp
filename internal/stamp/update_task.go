@@ -21,13 +21,13 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Dst     string        `validate:"required"`
-	Missing MissingConfig `validate:"required" default:"ignore"`
-	Mode    string        `validate:"omitempty,posix-mode"`
-	Parse   any           ``
-	Pattern string        ``
-	Action  modify.Action `validate:"required" default:"replace"`
-	Content any           ``
+	SrcContent any           `mapstructure:"src_content"`
+	Dst        string        `mapstructure:"dst"      validate:"required"`
+	Missing    MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
+	Mode       string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
+	Parse      any           `mapstructure:"parse"`
+	Pattern    string        `mapstructure:"pattern"`
+	Action     modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
 
 	dstPath     string
 	dstBytes    []byte
@@ -87,10 +87,10 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		}
 	}
 
-	if s, ok := t.Content.(string); ok {
+	if s, ok := t.SrcContent.(string); ok {
 		t.replacement = t.Render(s, values)
 	} else {
-		t.replacement = t.Content
+		t.replacement = t.SrcContent
 	}
 
 	t.parse = t.Render(cast.ToString(t.Parse), values)
