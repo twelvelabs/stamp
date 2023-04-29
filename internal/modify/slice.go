@@ -9,14 +9,28 @@ func Slice(subject []any, action Action, arg any) []any {
 		argSlice = append(argSlice, arg)
 	}
 
+	// lookup map
+	lookup := map[any]struct{}{}
+	for _, item := range subject {
+		lookup[item] = struct{}{}
+	}
+
 	var modified []any
 	switch action {
 	case ActionPrepend:
-		modified = append(modified, argSlice...)
+		for _, a := range argSlice {
+			if _, ok := lookup[a]; !ok {
+				modified = append(modified, a)
+			}
+		}
 		modified = append(modified, subject...)
 	case ActionAppend:
 		modified = append(modified, subject...)
-		modified = append(modified, argSlice...)
+		for _, a := range argSlice {
+			if _, ok := lookup[a]; !ok {
+				modified = append(modified, a)
+			}
+		}
 	case ActionReplace:
 		modified = argSlice
 	case ActionDelete:
