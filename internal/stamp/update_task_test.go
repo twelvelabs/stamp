@@ -112,6 +112,18 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "boom",
 		},
 		{
+			Desc: "returns an error if src can not be parsed",
+			TaskData: map[string]any{
+				"type": "update",
+				"src":  "./invalid.json",
+				"dst":  "./something.json",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+			},
+			Err: "unexpected character",
+		},
+		{
 			Desc: "returns an error if both src and src_content are provided",
 			TaskData: map[string]any{
 				"type":        "update",
@@ -400,6 +412,34 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			EndFiles: map[string]any{
 				"example.json": `{
     "bar": true
+}`,
+			},
+		},
+		{
+			Desc: "parses src path content before updating",
+			StartFiles: map[string]any{
+				"example.json": `{"foo":[1,2,3]}`,
+			},
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "example.json",
+				"action":  "append",
+				"pattern": "$.foo",
+				"src":     "valid.json",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+			},
+			EndFiles: map[string]any{
+				"example.json": `{
+    "foo": [
+        1,
+        2,
+        3,
+        "aaa",
+        "bbb",
+        "ccc"
+    ]
 }`,
 			},
 		},

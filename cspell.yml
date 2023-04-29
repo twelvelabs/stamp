@@ -47,6 +47,7 @@ words:
   - mapstructure
   - markdownlint
   - matryer
+  - nestif
   - nilerr
   - nolint
   - oneof
