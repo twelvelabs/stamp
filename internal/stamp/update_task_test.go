@@ -163,35 +163,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			Err: "unable to cast struct",
 		},
-		{
-			Desc: "returns an error if asked to parse an unsupported file type",
-			StartFiles: map[string]any{
-				"main.go": "lol",
-			},
-			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./main.go",
-				"pattern": "something",
-				"parse":   "true",
-			},
-			EndFiles: map[string]any{
-				"main.go": "lol",
-			},
-			Err: "unable to parse file type: go",
-		},
-		{
-			Desc: "does not error if parse is passed as a bool",
-			StartFiles: map[string]any{
-				"example.json": "{}",
-			},
-			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./example.json",
-				"pattern": "something",
-				"parse":   true,
-			},
-			Err: "",
-		},
 
 		{
 			Desc: "prepends a string in dst",
@@ -337,7 +308,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.json",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "prepend",
 				"src_content": []any{4, 5},
@@ -362,7 +332,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.json",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "append",
 				"src_content": []any{4, 5},
@@ -387,7 +356,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.json",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "replace",
 				"src_content": []any{4, 5},
@@ -409,7 +377,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":    "update",
 				"dst":     "example.json",
-				"parse":   "true",
 				"pattern": "$.foo",
 				"action":  "delete",
 			},
@@ -425,7 +392,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":   "update",
 				"dst":    "example.json",
-				"parse":  "true",
 				"action": "replace",
 				"src_content": map[string]any{
 					"bar": true,
@@ -446,7 +412,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.yml",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "prepend",
 				"src_content": []any{4, 5},
@@ -468,7 +433,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.yml",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "append",
 				"src_content": []any{4, 5},
@@ -490,7 +454,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":        "update",
 				"dst":         "example.yml",
-				"parse":       "true",
 				"pattern":     "$.foo",
 				"action":      "replace",
 				"src_content": []any{4, 5},
@@ -509,7 +472,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			TaskData: map[string]any{
 				"type":    "update",
 				"dst":     "example.yml",
-				"parse":   "true",
 				"pattern": "$.foo",
 				"action":  "delete",
 			},

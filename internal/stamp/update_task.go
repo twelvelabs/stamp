@@ -27,16 +27,15 @@ type UpdateTask struct {
 	Dst        string        `mapstructure:"dst"      validate:"required"`
 	Missing    MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
 	Mode       string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
-	Parse      any           `mapstructure:"parse"`
 	Pattern    string        `mapstructure:"pattern"`
 	Action     modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
+	FileType   string        `mapstructure:"file_type"`
 
 	dstPath     string
 	dstBytes    []byte
 	mode        os.FileMode
 	pattern     string
 	replacement any
-	parse       string
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -52,7 +51,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			return err
 		}
 		updateMsg := t.dstPath
-		if t.parse != "text" && t.parse != "txt" { //nolint: goconst
+		if t.isStructuredFileType() {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.pattern)
 		}
 		ctx.Logger.Success("update", updateMsg)
@@ -63,6 +62,15 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	}
 
 	return nil
+}
+
+func (t *UpdateTask) isStructuredFileType() bool {
+	switch t.FileType {
+	case "json", "yaml", "yml":
+		return true
+	default:
+		return false
+	}
 }
 
 // prepare post-processes and validates the task YAML fields.
@@ -108,23 +116,18 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		}
 	}
 
-	t.parse = t.Render(cast.ToString(t.Parse), values)
-	if t.parse == "" {
-		// An unspecified parse value implies plain text.
-		t.parse = "text"
-	} else if t.parse == "true" {
-		// "parse: true" is shorthand for "figure out file type from the extension".
-		t.parse = strings.TrimPrefix(filepath.Ext(t.dstPath), ".")
+	if t.FileType == "" {
+		// No explicit file type provided, infer from file extension.
+		t.FileType = strings.TrimPrefix(filepath.Ext(t.dstPath), ".")
 	}
 
 	t.pattern = t.Render(t.Pattern, values)
 	if t.pattern == "" {
 		// Match the entire file if pattern is empty.
-		switch t.parse {
-		case "text", "txt":
-			t.pattern = "(?s)^(.*)$"
-		default:
+		if t.isStructuredFileType() {
 			t.pattern = "$"
+		} else {
+			t.pattern = "(?s)^(.*)$"
 		}
 	}
 
@@ -138,15 +141,13 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 
 	// Update the content (using the pattern and replacement values)
 	var err error
-	switch t.parse {
+	switch t.FileType {
 	case "json":
 		t.dstBytes, err = t.replaceJSON(t.dstBytes, t.pattern, t.replacement)
 	case "yaml", "yml":
 		t.dstBytes, err = t.replaceYAML(t.dstBytes, t.pattern, t.replacement)
-	case "text", "txt":
-		t.dstBytes, err = t.replaceText(t.dstBytes, t.pattern, t.replacement)
 	default:
-		return fmt.Errorf("unable to parse file type: %s", t.parse)
+		t.dstBytes, err = t.replaceText(t.dstBytes, t.pattern, t.replacement)
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
