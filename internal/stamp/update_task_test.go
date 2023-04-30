@@ -197,11 +197,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"match":  "ccc",
-				"action": "append",
-				"src":    " ddd",
+				"type":        "update",
+				"dst":         "./README.md",
+				"match":       "ccc",
+				"action":      "append",
+				"src":         " ddd",
+				"description": "append ddd",
 			},
 			EndFiles: map[string]any{
 				"README.md": "aaa bbb ccc ddd\n",

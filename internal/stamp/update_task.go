@@ -29,13 +29,14 @@ const (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src      any           `mapstructure:"src"`
-	Dst      string        `mapstructure:"dst"      validate:"required"`
-	Match    any           `mapstructure:"match"`
-	Missing  MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
-	Mode     string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
-	Action   modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
-	FileType string        `mapstructure:"file_type"`
+	Src         any           `mapstructure:"src"`
+	Dst         string        `mapstructure:"dst"      validate:"required"`
+	Match       any           `mapstructure:"match"`
+	Missing     MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
+	Mode        string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
+	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
+	FileType    string        `mapstructure:"file_type"`
+	Description string        `mapstructure:"description"`
 
 	dstPath     string
 	dstBytes    []byte
@@ -62,7 +63,9 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			return err
 		}
 		updateMsg := t.dstPath
-		if t.isStructured(t.FileType) {
+		if t.Description != "" {
+			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.Description)
+		} else if t.isStructured(t.FileType) {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Path)
 		}
 		ctx.Logger.Success("update", updateMsg)
@@ -178,6 +181,8 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			t.match.Path = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
+
+	t.Description = t.Render(t.Description, values)
 
 	return nil
 }
