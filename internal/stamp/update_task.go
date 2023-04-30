@@ -37,6 +37,7 @@ type UpdateTask struct {
 	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
 	FileType    string        `mapstructure:"file_type"`
 	Description string        `mapstructure:"description"`
+	Upsert      bool          `mapstructure:"upsert"`
 
 	dstPath     string
 	dstBytes    []byte
@@ -299,7 +300,8 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 				return nil, fmt.Errorf("json path set default: %w", err)
 			}
 		}
-		data, err = exp.Modify(data, modify.Modifier(t.Action, repl))
+		modifier := modify.Modifier(t.Action, repl, modify.WithUpsert(t.Upsert))
+		data, err = exp.Modify(data, modifier)
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
 		}
@@ -318,19 +320,30 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("pattern: %w", err)
 	}
+	reMatchBytes := []byte("${0}")
+
 	replStr, err := cast.ToStringE(repl)
 	if err != nil {
 		return nil, fmt.Errorf("replacement: %w", err)
 	}
+	replBytes := []byte(replStr)
+
+	shouldPerformAction := !t.Upsert || (t.Upsert && !bytes.Contains(content, replBytes))
 
 	var replacement []byte
 	switch t.Action {
 	case modify.ActionAppend:
-		replacement = append([]byte("${0}"), []byte(replStr)...)
+		replacement = append(replacement, reMatchBytes...)
+		if shouldPerformAction {
+			replacement = append(replacement, replBytes...)
+		}
 	case modify.ActionPrepend:
-		replacement = append([]byte(replStr), []byte("${0}")...)
+		if shouldPerformAction {
+			replacement = append(replacement, replBytes...)
+		}
+		replacement = append(replacement, reMatchBytes...)
 	case modify.ActionReplace:
-		replacement = []byte(replStr)
+		replacement = append(replacement, replBytes...)
 	case modify.ActionDelete:
 		replacement = []byte{}
 	}

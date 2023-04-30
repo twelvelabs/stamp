@@ -215,6 +215,7 @@ func TestModify_Slice(t *testing.T) {
 		subject  []any
 		action   Action
 		arg      any
+		upsert   bool
 		expected []any
 	}{
 		{
@@ -244,7 +245,14 @@ func TestModify_Slice(t *testing.T) {
 		{
 			subject:  []any{1, 2, 3},
 			action:   "append",
-			arg:      2, // already added
+			arg:      2,
+			expected: []any{1, 2, 3, 2},
+		},
+		{
+			subject:  []any{1, 2, 3},
+			action:   "append",
+			arg:      2,
+			upsert:   true,
 			expected: []any{1, 2, 3},
 		},
 		{
@@ -269,7 +277,7 @@ func TestModify_Slice(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%v/%v/%v", tt.subject, tt.action, tt.arg)
 		t.Run(name, func(t *testing.T) {
-			modifier := Modifier(tt.action, tt.arg)
+			modifier := Modifier(tt.action, tt.arg, WithUpsert(tt.upsert))
 			altered, changed := modifier(tt.subject)
 			assert.Equal(t, tt.expected, altered)
 			assert.Equal(t, true, changed)

@@ -1,6 +1,6 @@
 package modify
 
-func String(subject string, action Action, arg string) string {
+func String(subject string, action Action, arg string, _ ModifierConf) string {
 	var modified string
 	switch action {
 	case ActionPrepend:

@@ -1,6 +1,6 @@
 package modify
 
-func Map(subject map[string]any, action Action, arg map[string]any) map[string]any {
+func Map(subject map[string]any, action Action, arg map[string]any, _ ModifierConf) map[string]any {
 	modified := map[string]any{}
 
 	switch action {

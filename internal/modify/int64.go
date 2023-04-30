@@ -1,6 +1,6 @@
 package modify
 
-func Int64(subject int64, action Action, arg int64) int64 {
+func Int64(subject int64, action Action, arg int64, _ ModifierConf) int64 {
 	var modified int64
 	switch action {
 	case ActionPrepend:

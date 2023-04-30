@@ -39,38 +39,43 @@ type ModifierFunc func(element any) (altered any, changed bool)
 //	modified, changed = modify(someStruct)
 //	print(modified) // => someStruct
 //	print(changed) // => false
-func Modifier(action Action, arg any) ModifierFunc {
+func Modifier(action Action, arg any, opts ...ModifierOpt) ModifierFunc {
+	conf := ModifierConf{}
+	for _, opt := range opts {
+		conf = opt(conf)
+	}
+
 	return func(element any) (any, bool) {
 		var altered any
 		var changed bool
 
 		switch v := element.(type) {
 		case bool:
-			altered = Bool(v, action, cast.ToBool(arg))
+			altered = Bool(v, action, cast.ToBool(arg), conf)
 			changed = true
 		case float32:
-			altered = Float64(float64(v), action, cast.ToFloat64(arg))
+			altered = Float64(float64(v), action, cast.ToFloat64(arg), conf)
 			changed = true
 		case float64:
-			altered = Float64(v, action, cast.ToFloat64(arg))
+			altered = Float64(v, action, cast.ToFloat64(arg), conf)
 			changed = true
 		case int:
-			altered = Int64(int64(v), action, cast.ToInt64(arg))
+			altered = Int64(int64(v), action, cast.ToInt64(arg), conf)
 			changed = true
 		case int32:
-			altered = Int64(int64(v), action, cast.ToInt64(arg))
+			altered = Int64(int64(v), action, cast.ToInt64(arg), conf)
 			changed = true
 		case int64:
-			altered = Int64(v, action, cast.ToInt64(arg))
+			altered = Int64(v, action, cast.ToInt64(arg), conf)
 			changed = true
 		case map[string]any:
-			altered = Map(v, action, cast.ToStringMap(arg))
+			altered = Map(v, action, cast.ToStringMap(arg), conf)
 			changed = true
 		case []any:
-			altered = Slice(v, action, arg)
+			altered = Slice(v, action, arg, conf)
 			changed = true
 		case string:
-			altered = String(v, action, cast.ToString(arg))
+			altered = String(v, action, cast.ToString(arg), conf)
 			changed = true
 		default:
 			altered = element
@@ -78,5 +83,21 @@ func Modifier(action Action, arg any) ModifierFunc {
 		}
 
 		return altered, changed
+	}
+}
+
+type ModifierConf struct {
+	Upsert bool
+}
+
+type ModifierOpt func(conf ModifierConf) ModifierConf
+
+// WithUpsert returns a ModifierOpt that configures the upsert option.
+// When upsert is enabled, Slice appends and prepends only occur
+// if the value is not already present.
+func WithUpsert(upsert bool) ModifierOpt {
+	return func(c ModifierConf) ModifierConf {
+		c.Upsert = upsert
+		return c
 	}
 }
