@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/ohler55/ojg/jp"
 	"github.com/ohler55/ojg/oj"
 	"github.com/spf13/cast"
@@ -31,17 +32,22 @@ type UpdateTask struct {
 	Src        string        `mapstructure:"src"`
 	SrcContent any           `mapstructure:"src_content"`
 	Dst        string        `mapstructure:"dst"      validate:"required"`
+	Match      any           `mapstructure:"match"`
 	Missing    MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
 	Mode       string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
-	Pattern    string        `mapstructure:"pattern"`
 	Action     modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
 	FileType   string        `mapstructure:"file_type"`
 
 	dstPath     string
 	dstBytes    []byte
+	match       matchConfig
 	mode        os.FileMode
-	pattern     string
 	replacement any
+}
+
+type matchConfig struct {
+	Path    string `mapstructure:"path"`
+	Default any    `mapstructure:"default"`
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -58,7 +64,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 		}
 		updateMsg := t.dstPath
 		if t.isStructured(t.FileType) {
-			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.pattern)
+			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Path)
 		}
 		ctx.Logger.Success("update", updateMsg)
 		return nil
@@ -105,15 +111,20 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	if t.Src != "" && t.SrcContent != nil { //nolint:nestif
 		return fmt.Errorf("src and src_content fields are mutually exclusive")
 	} else if t.Src != "" {
+		// src: 'foo/{{ .Bar }}/baz.ext'
+		// Render the path.
 		srcRoot := cast.ToString(values["SrcPath"])
 		srcPath, err := t.RenderPath("src", t.Src, srcRoot, values)
 		if err != nil {
 			return fmt.Errorf("resolve src path: %w", err)
 		}
+		// Render the content located at the path.
 		srcContent, err := render.File(srcPath, values)
 		if err != nil {
 			return fmt.Errorf("render src path: %w", err)
 		}
+		// If the dst is a structured file, then parse the src content
+		// otherwise, the content itself is the replacement.
 		t.replacement = srcContent
 		if t.isStructured(t.FileType) {
 			t.replacement, err = t.parse([]byte(srcContent))
@@ -122,8 +133,13 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			}
 		}
 	} else if s, ok := t.SrcContent.(string); ok {
+		// src_content: 'Foo {{ .Bar}} Baz.'
 		t.replacement = t.Render(s, values)
 	} else {
+		// src_content:
+		//   - foo
+		//   - bar
+		//   - baz
 		t.replacement = t.SrcContent
 	}
 
@@ -134,14 +150,31 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		}
 	}
 
+	// Match config can be provided as either a string or an object in YAML.
+	t.match = matchConfig{}
+	if m, ok := t.Match.(map[string]any); ok {
+		// match:
+		//   path: $.items
+		//   default: []
+		err := mapstructure.Decode(m, &t.match)
+		if err != nil {
+			return fmt.Errorf("parse match: %w", err)
+		}
+	} else {
+		// match: $.items
+		// match: ^foo(\w+)$
+		// match: 123
+		t.match.Path = cast.ToString(t.Match)
+	}
+
+	// Render the match path (default to matching everything if none provided).
 	// Depends on: FileType
-	t.pattern = t.Render(t.Pattern, values)
-	if t.pattern == "" {
-		// Match the entire file if pattern is empty.
+	t.match.Path = t.Render(t.match.Path, values)
+	if t.match.Path == "" {
 		if t.isStructured(t.FileType) {
-			t.pattern = "$"
+			t.match.Path = "$" // root node
 		} else {
-			t.pattern = "(?s)^(.*)$"
+			t.match.Path = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
 
@@ -156,9 +189,9 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 	// Update the content (using the pattern and replacement values)
 	var err error
 	if t.isStructured(t.FileType) {
-		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.pattern, t.replacement)
+		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Path, t.replacement)
 	} else {
-		t.dstBytes, err = t.replaceText(t.dstBytes, t.pattern, t.replacement)
+		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Path, t.replacement)
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
@@ -248,12 +281,18 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 		return nil, fmt.Errorf("json path parse: %w", err)
 	}
 	// use the expression to modify the data structure
-	if t.Action == modify.ActionDelete {
+	if t.Action == modify.ActionDelete { //nolint:nestif
 		data, err = exp.Remove(data)
 		if err != nil {
 			return nil, fmt.Errorf("json path remove: %w", err)
 		}
 	} else {
+		if !exp.Has(data) && t.match.Default != nil {
+			err = exp.Set(data, t.match.Default)
+			if err != nil {
+				return nil, fmt.Errorf("json path set default: %w", err)
+			}
+		}
 		data, err = exp.Modify(data, modify.Modifier(t.Action, repl))
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
