@@ -29,14 +29,13 @@ const (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src        string        `mapstructure:"src"`
-	SrcContent any           `mapstructure:"src_content"`
-	Dst        string        `mapstructure:"dst"      validate:"required"`
-	Match      any           `mapstructure:"match"`
-	Missing    MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
-	Mode       string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
-	Action     modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
-	FileType   string        `mapstructure:"file_type"`
+	Src      any           `mapstructure:"src"`
+	Dst      string        `mapstructure:"dst"      validate:"required"`
+	Match    any           `mapstructure:"match"`
+	Missing  MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
+	Mode     string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
+	Action   modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
+	FileType string        `mapstructure:"file_type"`
 
 	dstPath     string
 	dstBytes    []byte
@@ -107,40 +106,42 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		t.FileType = strings.ToLower(strings.TrimPrefix(filepath.Ext(t.dstPath), "."))
 	}
 
+	// Src can be a few different things:
+	// - A path to a template file containing the source content.
+	// - A string literal to render and use as source content.
+	// - Structured data.
 	// Depends on: FileType
-	if t.Src != "" && t.SrcContent != nil { //nolint:nestif
-		return fmt.Errorf("src and src_content fields are mutually exclusive")
-	} else if t.Src != "" {
-		// src: 'foo/{{ .Bar }}/baz.ext'
-		// Render the path.
+	if src, ok := t.Src.(string); ok { //nolint:nestif
+		// Try rendering as a file path.
 		srcRoot := cast.ToString(values["SrcPath"])
-		srcPath, err := t.RenderPath("src", t.Src, srcRoot, values)
+		srcPath, err := t.RenderPath("src", src, srcRoot, values)
 		if err != nil {
 			return fmt.Errorf("resolve src path: %w", err)
 		}
-		// Render the content located at the path.
-		srcContent, err := render.File(srcPath, values)
-		if err != nil {
-			return fmt.Errorf("render src path: %w", err)
-		}
-		// If the dst is a structured file, then parse the src content
-		// otherwise, the content itself is the replacement.
-		t.replacement = srcContent
-		if t.isStructured(t.FileType) {
-			t.replacement, err = t.parse([]byte(srcContent))
+
+		if fsutil.PathExists(srcPath) {
+			// Render the content located at the path.
+			srcContent, err := render.File(srcPath, values)
 			if err != nil {
-				return fmt.Errorf("parse src path: %w", err)
+				return fmt.Errorf("render src path: %w", err)
 			}
+			// Parse the src content if we need structured data,
+			// otherwise the content itself is the replacement.
+			t.replacement = srcContent
+			// TODO: move this
+			if t.isStructured(t.FileType) {
+				t.replacement, err = t.parse([]byte(srcContent))
+				if err != nil {
+					return fmt.Errorf("parse src path: %w", err)
+				}
+			}
+		} else {
+			// Path didn't exist, just render as content.
+			t.replacement = t.Render(src, values)
 		}
-	} else if s, ok := t.SrcContent.(string); ok {
-		// src_content: 'Foo {{ .Bar}} Baz.'
-		t.replacement = t.Render(s, values)
 	} else {
-		// src_content:
-		//   - foo
-		//   - bar
-		//   - baz
-		t.replacement = t.SrcContent
+		// Not a string, so must be structured data.
+		t.replacement = t.Src
 	}
 
 	if t.Mode != "" {

@@ -40,21 +40,19 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.txt",
-				"match":       "foo",
-				"src_content": "bar",
+				"type":  "update",
+				"dst":   "example.txt",
+				"match": "foo",
 			},
 			Task: &UpdateTask{
 				Common: Common{
 					If:   "true",
 					Each: "",
 				},
-				Dst:        "example.txt",
-				Missing:    "ignore",
-				Match:      "foo",
-				Action:     "replace",
-				SrcContent: "bar",
+				Dst:     "example.txt",
+				Missing: "ignore",
+				Match:   "foo",
+				Action:  "replace",
 			},
 			Err: "",
 		},
@@ -124,16 +122,6 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "unexpected character",
 		},
 		{
-			Desc: "returns an error if both src and src_content are provided",
-			TaskData: map[string]any{
-				"type":        "update",
-				"src":         "./some/path",
-				"src_content": "some content",
-				"dst":         "./README.md",
-			},
-			Err: "mutually exclusive",
-		},
-		{
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
 				"type": "update",
@@ -176,10 +164,10 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "World",
-				"src_content": struct{}{},
+				"type":  "update",
+				"dst":   "./README.md",
+				"match": "World",
+				"src":   struct{}{},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -193,11 +181,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "aaa",
-				"action":      "prepend",
-				"src_content": "000 ",
+				"type":   "update",
+				"dst":    "./README.md",
+				"match":  "aaa",
+				"action": "prepend",
+				"src":    "000 ",
 			},
 			EndFiles: map[string]any{
 				"README.md": "000 aaa bbb ccc\n",
@@ -209,11 +197,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "ccc",
-				"action":      "append",
-				"src_content": " ddd",
+				"type":   "update",
+				"dst":    "./README.md",
+				"match":  "ccc",
+				"action": "append",
+				"src":    " ddd",
 			},
 			EndFiles: map[string]any{
 				"README.md": "aaa bbb ccc ddd\n",
@@ -225,11 +213,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "Hello (\\w+)",
-				"action":      "replace",
-				"src_content": "Goodbye $1",
+				"type":   "update",
+				"dst":    "./README.md",
+				"match":  "Hello (\\w+)",
+				"action": "replace",
+				"src":    "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Goodbye World\n",
@@ -257,10 +245,10 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"action":      "append",
-				"src_content": "Goodbye\n",
+				"type":   "update",
+				"dst":    "./README.md",
+				"action": "append",
+				"src":    "Goodbye\n",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\nGoodbye\n",
@@ -272,12 +260,12 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"mode":        "0755",
-				"match":       "Hello (\\w+)",
-				"action":      "replace",
-				"src_content": "Goodbye $1",
+				"type":   "update",
+				"dst":    "./README.md",
+				"mode":   "0755",
+				"match":  "Hello (\\w+)",
+				"action": "replace",
+				"src":    "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": []any{
@@ -293,11 +281,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "Hello (\\w+)",
-				"action":      "replace",
-				"src_content": "Goodbye $1",
+				"type":   "update",
+				"dst":    "./README.md",
+				"match":  "Hello (\\w+)",
+				"action": "replace",
+				"src":    "Goodbye $1",
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -329,11 +317,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.json",
-				"match":       "$.foo",
-				"action":      "prepend",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.json",
+				"match":  "$.foo",
+				"action": "prepend",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -353,11 +341,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.json",
-				"match":       "$.foo",
-				"action":      "append",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.json",
+				"match":  "$.foo",
+				"action": "append",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -377,11 +365,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.json",
-				"match":       "$.foo",
-				"action":      "replace",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.json",
+				"match":  "$.foo",
+				"action": "replace",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -416,7 +404,7 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"type":   "update",
 				"dst":    "example.json",
 				"action": "replace",
-				"src_content": map[string]any{
+				"src": map[string]any{
 					"bar": true,
 				},
 			},
@@ -489,11 +477,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.yml",
-				"match":       "$.foo",
-				"action":      "prepend",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.yml",
+				"match":  "$.foo",
+				"action": "prepend",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -510,11 +498,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.yml",
-				"match":       "$.foo",
-				"action":      "append",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.yml",
+				"match":  "$.foo",
+				"action": "append",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -531,11 +519,11 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "example.yml",
-				"match":       "$.foo",
-				"action":      "replace",
-				"src_content": []any{4, 5},
+				"type":   "update",
+				"dst":    "example.yml",
+				"match":  "$.foo",
+				"action": "replace",
+				"src":    []any{4, 5},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
