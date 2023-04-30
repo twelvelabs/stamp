@@ -41,6 +41,8 @@ type UpdateTask struct {
 
 	dstPath     string
 	dstBytes    []byte
+	description string
+	fileType    string
 	match       matchConfig
 	mode        os.FileMode
 	replacement any
@@ -64,9 +66,9 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			return err
 		}
 		updateMsg := t.dstPath
-		if t.Description != "" {
-			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.Description)
-		} else if t.isStructured(t.FileType) {
+		if t.description != "" {
+			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.description)
+		} else if t.isStructured(t.fileType) {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Path)
 		}
 		ctx.Logger.Success("update", updateMsg)
@@ -105,9 +107,10 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	}
 
 	// Depends on: DstPath
-	if t.FileType == "" {
+	t.fileType = t.FileType
+	if t.fileType == "" {
 		// No explicit file type provided, infer from file extension.
-		t.FileType = strings.ToLower(strings.TrimPrefix(filepath.Ext(t.dstPath), "."))
+		t.fileType = strings.ToLower(strings.TrimPrefix(filepath.Ext(t.dstPath), "."))
 	}
 
 	// Src can be a few different things:
@@ -133,7 +136,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			// otherwise the content itself is the replacement.
 			t.replacement = srcContent
 			// TODO: move this
-			if t.isStructured(t.FileType) {
+			if t.isStructured(t.fileType) {
 				t.replacement, err = t.parse([]byte(srcContent))
 				if err != nil {
 					return fmt.Errorf("parse src path: %w", err)
@@ -176,14 +179,14 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	// Depends on: FileType
 	t.match.Path = t.Render(t.match.Path, values)
 	if t.match.Path == "" {
-		if t.isStructured(t.FileType) {
+		if t.isStructured(t.fileType) {
 			t.match.Path = "$" // root node
 		} else {
 			t.match.Path = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
 
-	t.Description = t.Render(t.Description, values)
+	t.description = t.Render(t.Description, values)
 
 	return nil
 }
@@ -195,7 +198,7 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 
 	// Update the content (using the pattern and replacement values)
 	var err error
-	if t.isStructured(t.FileType) {
+	if t.isStructured(t.fileType) {
 		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Path, t.replacement)
 	} else {
 		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Path, t.replacement)
@@ -230,7 +233,7 @@ func (t *UpdateTask) parse(content []byte) (any, error) {
 	var data any
 	var err error
 
-	switch t.FileType {
+	switch t.fileType {
 	case fileTypeJSON:
 		data, err = oj.Parse(content)
 		if err != nil {
@@ -252,7 +255,7 @@ func (t *UpdateTask) marshal(data any) ([]byte, error) {
 	var content []byte
 	var err error
 
-	switch t.FileType {
+	switch t.fileType {
 	case fileTypeJSON:
 		// Note: using standard lib to marshal because it sorts JSON object keys
 		// (oj does not and it looks ugly when adding new keys).
