@@ -147,32 +147,38 @@ func TestModify_Map(t *testing.T) {
 			subject: map[string]any{
 				"aaa": 111,
 				"bbb": 111,
+				"ddd": []any{1, 1},
 			},
 			action: "prepend",
 			arg: map[string]any{
 				"bbb": 222,
 				"ccc": 222,
+				"ddd": []any{2, 2},
 			},
 			expected: map[string]any{
 				"aaa": 111,
 				"bbb": 111,
 				"ccc": 222,
+				"ddd": []any{2, 2, 1, 1},
 			},
 		},
 		{
 			subject: map[string]any{
 				"aaa": 111,
 				"bbb": 111,
+				"ddd": []any{1, 1},
 			},
 			action: "append",
 			arg: map[string]any{
 				"bbb": 222,
 				"ccc": 222,
+				"ddd": []any{2, 2},
 			},
 			expected: map[string]any{
 				"aaa": 111,
 				"bbb": 222,
 				"ccc": 222,
+				"ddd": []any{1, 1, 2, 2},
 			},
 		},
 		{
