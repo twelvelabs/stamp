@@ -47,19 +47,18 @@ func (ts *TaskSet) Execute(ctx *TaskContext, data map[string]any) error {
 	}
 
 	for _, t := range ts.All() {
-		if !t.ShouldExecute(values) {
-			continue
-		}
-		if iter := t.Iterator(values); iter != nil {
+		if iter := t.Iterator(values); iter != nil { //nolint: nestif
 			for i, item := range iter {
 				values["_Index"] = i
 				values["_Item"] = item
-				err := t.Execute(ctx, values)
-				if err != nil {
-					return err
+				if t.ShouldExecute(values) {
+					err := t.Execute(ctx, values)
+					if err != nil {
+						return err
+					}
 				}
 			}
-		} else {
+		} else if t.ShouldExecute(values) {
 			err := t.Execute(ctx, values)
 			if err != nil {
 				return err
