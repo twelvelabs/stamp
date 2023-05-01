@@ -256,6 +256,13 @@ func TestModify_Slice(t *testing.T) {
 			expected: []any{1, 2, 3},
 		},
 		{
+			subject:  []any{[]any{1}, []any{2}, []any{3}},
+			action:   "append",
+			arg:      []any{[]any{2}},
+			upsert:   true,
+			expected: []any{[]any{1}, []any{2}, []any{3}},
+		},
+		{
 			subject:  []any{1, 1, 1},
 			action:   "replace",
 			arg:      []any{2, 2, 2},

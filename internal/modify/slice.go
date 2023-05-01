@@ -1,5 +1,7 @@
 package modify
 
+import "fmt"
+
 func Slice(subject []any, action Action, arg any, conf ModifierConf) []any {
 	// ensure arg is a slice
 	var argSlice []any
@@ -9,14 +11,21 @@ func Slice(subject []any, action Action, arg any, conf ModifierConf) []any {
 		argSlice = append(argSlice, arg)
 	}
 
-	// lookup map
+	// Simple lookup map for subject slice content.
 	lookup := map[any]struct{}{}
 	for _, item := range subject {
-		lookup[item] = struct{}{}
+		// Maps and nested slices are not allowed as map keys.
+		// Go-syntax representation probably isn't bulletproof,
+		// but should be good enough for the relatively simple
+		// data loaded from `generator.yaml` files.
+		key := fmt.Sprintf("%#v", item)
+		lookup[key] = struct{}{}
 	}
 
-	shouldPerformAction := func(arg any) bool {
-		_, exists := lookup[arg]
+	// Helper to decide whether to perform append/prepend based on upsert config.
+	shouldPerformAction := func(item any) bool {
+		key := fmt.Sprintf("%#v", item)
+		_, exists := lookup[key]
 		return !conf.Upsert || (conf.Upsert && !exists)
 	}
 
