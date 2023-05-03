@@ -21,23 +21,24 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src         any           `mapstructure:"src"`
+	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
+	Description string        `mapstructure:"description"`
 	Dst         string        `mapstructure:"dst"      validate:"required"`
+	FileType    string        `mapstructure:"file_type"`
 	Match       any           `mapstructure:"match"`
 	Missing     MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
 	Mode        string        `mapstructure:"mode"     validate:"omitempty"`
-	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
-	FileType    string        `mapstructure:"file_type"`
-	Description string        `mapstructure:"description"`
-	Upsert      bool          `mapstructure:"upsert"`
+	Src         any           `mapstructure:"src"`
 
-	dstPath     string
-	dstBytes    []byte
+	Upsert bool `mapstructure:"upsert"`
+
 	description string
+	dstBytes    []byte
+	dstPath     string
 	fileType    FileType
 	match       matchConfig
 	mode        os.FileMode
-	replacement any
+	src         any
 }
 
 type matchConfig struct {
@@ -54,7 +55,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	}
 
 	if fsutil.PathExists(t.dstPath) {
-		if err := t.updateDst(ctx, values, t.dstPath); err != nil {
+		if err := t.updateDst(ctx); err != nil {
 			ctx.Logger.Failure("fail", t.dstPath)
 			return err
 		}
@@ -121,21 +122,21 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			}
 			// Parse the src content if we need structured data,
 			// otherwise the content itself is the replacement.
-			t.replacement = srcContent
+			t.src = srcContent
 			// TODO: move this
 			if t.fileType.IsStructured() {
-				t.replacement, err = t.parse([]byte(srcContent))
+				t.src, err = t.parse([]byte(srcContent))
 				if err != nil {
 					return fmt.Errorf("parse src path: %w", err)
 				}
 			}
 		} else {
 			// Path didn't exist, just render as content.
-			t.replacement = t.Render(src, values)
+			t.src = t.Render(src, values)
 		}
 	} else {
 		// Not a string, so must be structured data.
-		t.replacement = t.Src
+		t.src = t.Src
 	}
 
 	if t.Mode != "" {
@@ -179,7 +180,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	return nil
 }
 
-func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) error {
+func (t *UpdateTask) updateDst(ctx *TaskContext) error {
 	if ctx.DryRun {
 		return nil
 	}
@@ -187,9 +188,9 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 	// Update the content (using the pattern and replacement values)
 	var err error
 	if t.fileType.IsStructured() {
-		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Pattern, t.replacement)
+		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Pattern, t.src)
 	} else {
-		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Pattern, t.replacement)
+		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Pattern, t.src)
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
