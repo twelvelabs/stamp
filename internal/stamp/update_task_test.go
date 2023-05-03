@@ -174,6 +174,24 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			Err: "unable to cast struct",
 		},
+		{
+			Desc: "returns an error file_type can not be parsed",
+			TaskData: map[string]any{
+				"type":      "update",
+				"dst":       "./README.md",
+				"file_type": "unknown",
+			},
+			Err: "unknown is not a valid FileType",
+		},
+		{
+			Desc: "returns an error mode can not be parsed",
+			TaskData: map[string]any{
+				"type": "update",
+				"dst":  "README.md",
+				"mode": "unknown",
+			},
+			Err: "invalid syntax",
+		},
 
 		{
 			Desc: "prepends a string in dst",

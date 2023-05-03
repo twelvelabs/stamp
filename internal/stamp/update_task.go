@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/ohler55/ojg/jp"
@@ -20,12 +18,6 @@ import (
 	"github.com/twelvelabs/stamp/internal/modify"
 )
 
-const (
-	fileTypeJSON = "json"
-	fileTypeYAML = "yaml"
-	fileTypeYML  = "yml"
-)
-
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
@@ -33,7 +25,7 @@ type UpdateTask struct {
 	Dst         string        `mapstructure:"dst"      validate:"required"`
 	Match       any           `mapstructure:"match"`
 	Missing     MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
-	Mode        string        `mapstructure:"mode"     validate:"omitempty,posix-mode"`
+	Mode        string        `mapstructure:"mode"     validate:"omitempty"`
 	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
 	FileType    string        `mapstructure:"file_type"`
 	Description string        `mapstructure:"description"`
@@ -42,7 +34,7 @@ type UpdateTask struct {
 	dstPath     string
 	dstBytes    []byte
 	description string
-	fileType    string
+	fileType    FileType
 	match       matchConfig
 	mode        os.FileMode
 	replacement any
@@ -68,7 +60,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 		updateMsg := t.dstPath
 		if t.description != "" {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.description)
-		} else if t.isStructured(t.fileType) {
+		} else if t.fileType.IsStructured() {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Path)
 		}
 		ctx.Logger.Success("update", updateMsg)
@@ -79,15 +71,6 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	}
 
 	return nil
-}
-
-func (t *UpdateTask) isStructured(fileType string) bool {
-	switch fileType {
-	case fileTypeJSON, fileTypeYAML, fileTypeYML:
-		return true
-	default:
-		return false
-	}
 }
 
 // prepare post-processes and validates the task YAML fields.
@@ -107,10 +90,13 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	}
 
 	// Depends on: DstPath
-	t.fileType = t.FileType
-	if t.fileType == "" {
-		// No explicit file type provided, infer from file extension.
-		t.fileType = strings.ToLower(strings.TrimPrefix(filepath.Ext(t.dstPath), "."))
+	if t.FileType != "" {
+		t.fileType, err = ParseFileType(t.FileType)
+	} else {
+		t.fileType, err = ParseFileTypeFromPath(t.dstPath)
+	}
+	if err != nil {
+		return fmt.Errorf("parse file_type: %w", err)
 	}
 
 	// Src can be a few different things:
@@ -136,7 +122,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			// otherwise the content itself is the replacement.
 			t.replacement = srcContent
 			// TODO: move this
-			if t.isStructured(t.fileType) {
+			if t.fileType.IsStructured() {
 				t.replacement, err = t.parse([]byte(srcContent))
 				if err != nil {
 					return fmt.Errorf("parse src path: %w", err)
@@ -154,7 +140,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	if t.Mode != "" {
 		t.mode, err = t.RenderMode(t.Mode, values)
 		if err != nil {
-			return fmt.Errorf("resolve dst mode: %w", err)
+			return fmt.Errorf("parse mode: %w", err)
 		}
 	}
 
@@ -179,7 +165,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	// Depends on: FileType
 	t.match.Path = t.Render(t.match.Path, values)
 	if t.match.Path == "" {
-		if t.isStructured(t.fileType) {
+		if t.fileType.IsStructured() {
 			t.match.Path = "$" // root node
 		} else {
 			t.match.Path = "(?s)^(.*)$" // `?s` causes . to match newlines
@@ -198,7 +184,7 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 
 	// Update the content (using the pattern and replacement values)
 	var err error
-	if t.isStructured(t.fileType) {
+	if t.fileType.IsStructured() {
 		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Path, t.replacement)
 	} else {
 		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Path, t.replacement)
@@ -234,12 +220,12 @@ func (t *UpdateTask) parse(content []byte) (any, error) {
 	var err error
 
 	switch t.fileType {
-	case fileTypeJSON:
+	case FileTypeJson:
 		data, err = oj.Parse(content)
 		if err != nil {
 			return nil, fmt.Errorf("json parse: %w", err)
 		}
-	case fileTypeYAML, fileTypeYML:
+	case FileTypeYaml:
 		err := yaml.Unmarshal(content, &data)
 		if err != nil {
 			return nil, fmt.Errorf("yaml parse: %w", err)
@@ -256,14 +242,14 @@ func (t *UpdateTask) marshal(data any) ([]byte, error) {
 	var err error
 
 	switch t.fileType {
-	case fileTypeJSON:
+	case FileTypeJson:
 		// Note: using standard lib to marshal because it sorts JSON object keys
 		// (oj does not and it looks ugly when adding new keys).
 		content, err = json.MarshalIndent(data, "", "    ")
 		if err != nil {
 			return nil, fmt.Errorf("json marshal: %w", err)
 		}
-	case fileTypeYAML, fileTypeYML:
+	case FileTypeYaml:
 		b := &bytes.Buffer{}
 		encoder := yaml.NewEncoder(b)
 		encoder.SetIndent(2)

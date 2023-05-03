@@ -76,6 +76,70 @@ func (x *ConflictConfig) UnmarshalText(text []byte) error {
 }
 
 const (
+	// FileTypeJson is a FileType of type json.
+	FileTypeJson FileType = "json"
+	// FileTypeYaml is a FileType of type yaml.
+	FileTypeYaml FileType = "yaml"
+	// FileTypeText is a FileType of type text.
+	FileTypeText FileType = "text"
+)
+
+var ErrInvalidFileType = fmt.Errorf("not a valid FileType, try [%s]", strings.Join(_FileTypeNames, ", "))
+
+var _FileTypeNames = []string{
+	string(FileTypeJson),
+	string(FileTypeYaml),
+	string(FileTypeText),
+}
+
+// FileTypeNames returns a list of possible string values of FileType.
+func FileTypeNames() []string {
+	tmp := make([]string, len(_FileTypeNames))
+	copy(tmp, _FileTypeNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x FileType) String() string {
+	return string(x)
+}
+
+// String implements the Stringer interface.
+func (x FileType) IsValid() bool {
+	_, err := ParseFileType(string(x))
+	return err == nil
+}
+
+var _FileTypeValue = map[string]FileType{
+	"json": FileTypeJson,
+	"yaml": FileTypeYaml,
+	"text": FileTypeText,
+}
+
+// ParseFileType attempts to convert a string to a FileType.
+func ParseFileType(name string) (FileType, error) {
+	if x, ok := _FileTypeValue[name]; ok {
+		return x, nil
+	}
+	return FileType(""), fmt.Errorf("%s is %w", name, ErrInvalidFileType)
+}
+
+// MarshalText implements the text marshaller method.
+func (x FileType) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *FileType) UnmarshalText(text []byte) error {
+	tmp, err := ParseFileType(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// MissingConfigIgnore is a MissingConfig of type ignore.
 	MissingConfigIgnore MissingConfig = "ignore"
 	// MissingConfigError is a MissingConfig of type error.
