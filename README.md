@@ -7,6 +7,7 @@ Stamp is a CLI tool for scaffolding new projects.
 
 Project templates are packaged as generators, and are easy to create and share
 (they're just a directory with [a generator.yaml file](https://github.com/gostamp/generator-app/blob/main/generator.yaml)).
+Documentation for how to create your own generators can be found in [docs](./docs/README.md).
 
 ## Usage
 
