@@ -290,7 +290,11 @@ func TestModify_Slice(t *testing.T) {
 	for _, tt := range tests {
 		name := fmt.Sprintf("%v/%v/%v", tt.subject, tt.action, tt.arg)
 		t.Run(name, func(t *testing.T) {
-			modifier := Modifier(tt.action, tt.arg, WithUpsert(tt.upsert))
+			merge := SliceMergeConcat
+			if tt.upsert {
+				merge = SliceMergeUpsert
+			}
+			modifier := Modifier(tt.action, tt.arg, WithSliceMerge(merge))
 			altered, changed := modifier(tt.subject)
 			assert.Equal(t, tt.expected, altered)
 			assert.Equal(t, true, changed)

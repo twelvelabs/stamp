@@ -87,17 +87,15 @@ func Modifier(action Action, arg any, opts ...ModifierOpt) ModifierFunc {
 }
 
 type ModifierConf struct {
-	Upsert bool
+	SliceMerge SliceMerge
 }
 
 type ModifierOpt func(conf ModifierConf) ModifierConf
 
-// WithUpsert returns a ModifierOpt that configures the upsert option.
-// When upsert is enabled, Slice appends and prepends only occur
-// if the value is not already present.
-func WithUpsert(upsert bool) ModifierOpt {
+// SliceMerge returns a ModifierOpt that configures slice merge behavior.
+func WithSliceMerge(value SliceMerge) ModifierOpt {
 	return func(c ModifierConf) ModifierConf {
-		c.Upsert = upsert
+		c.SliceMerge = value
 		return c
 	}
 }

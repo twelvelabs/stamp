@@ -9,23 +9,6 @@ import (
 // dummy tests that exercise all the generated enum methods
 // and ensure that coverage numbers don't take a hit.
 
-func TestArrayMerge(t *testing.T) {
-	name := ArrayMergeNames()[0]
-	enum := ArrayMerge(name)
-
-	assert.Equal(t, true, enum.IsValid())
-	assert.Equal(t, name, enum.String())
-
-	buf, err := enum.MarshalText()
-	assert.NoError(t, err)
-	assert.Equal(t, []byte(name), buf)
-
-	err = (&enum).UnmarshalText(buf)
-	assert.NoError(t, err)
-	err = (&enum).UnmarshalText([]byte{})
-	assert.Error(t, err)
-}
-
 func TestConflictConfig(t *testing.T) {
 	name := ConflictConfigNames()[0]
 	enum := ConflictConfig(name)

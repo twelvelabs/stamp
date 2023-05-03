@@ -6,7 +6,6 @@ require (
 	github.com/creasty/defaults v1.7.0
 	github.com/gobuffalo/flect v1.0.2
 	github.com/hashicorp/go-getter v1.7.1
-	github.com/imdario/mergo v0.3.15
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ohler55/ojg v1.18.4
@@ -50,6 +49,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
+	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect

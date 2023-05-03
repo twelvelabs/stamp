@@ -78,3 +78,67 @@ func (x *Action) UnmarshalText(text []byte) error {
 	*x = tmp
 	return nil
 }
+
+const (
+	// SliceMergeConcat is a SliceMerge of type concat.
+	SliceMergeConcat SliceMerge = "concat"
+	// SliceMergeUpsert is a SliceMerge of type upsert.
+	SliceMergeUpsert SliceMerge = "upsert"
+	// SliceMergeReplace is a SliceMerge of type replace.
+	SliceMergeReplace SliceMerge = "replace"
+)
+
+var ErrInvalidSliceMerge = fmt.Errorf("not a valid SliceMerge, try [%s]", strings.Join(_SliceMergeNames, ", "))
+
+var _SliceMergeNames = []string{
+	string(SliceMergeConcat),
+	string(SliceMergeUpsert),
+	string(SliceMergeReplace),
+}
+
+// SliceMergeNames returns a list of possible string values of SliceMerge.
+func SliceMergeNames() []string {
+	tmp := make([]string, len(_SliceMergeNames))
+	copy(tmp, _SliceMergeNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x SliceMerge) String() string {
+	return string(x)
+}
+
+// String implements the Stringer interface.
+func (x SliceMerge) IsValid() bool {
+	_, err := ParseSliceMerge(string(x))
+	return err == nil
+}
+
+var _SliceMergeValue = map[string]SliceMerge{
+	"concat":  SliceMergeConcat,
+	"upsert":  SliceMergeUpsert,
+	"replace": SliceMergeReplace,
+}
+
+// ParseSliceMerge attempts to convert a string to a SliceMerge.
+func ParseSliceMerge(name string) (SliceMerge, error) {
+	if x, ok := _SliceMergeValue[name]; ok {
+		return x, nil
+	}
+	return SliceMerge(""), fmt.Errorf("%s is %w", name, ErrInvalidSliceMerge)
+}
+
+// MarshalText implements the text marshaller method.
+func (x SliceMerge) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *SliceMerge) UnmarshalText(text []byte) error {
+	tmp, err := ParseSliceMerge(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}

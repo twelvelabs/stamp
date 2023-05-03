@@ -43,8 +43,8 @@ type UpdateTask struct {
 }
 
 type actionConfig struct {
-	Type       modify.Action `mapstructure:"type"`
-	ArrayMerge ArrayMerge    `mapstructure:"array_merge"`
+	Type       modify.Action     `mapstructure:"type"`
+	SliceMerge modify.SliceMerge `mapstructure:"array_merge"`
 }
 
 type matchConfig struct {
@@ -155,7 +155,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	// Action config can be provided as either a string or an object in YAML.
 	t.action = actionConfig{
 		Type:       modify.ActionReplace,
-		ArrayMerge: ArrayMergeConcat,
+		SliceMerge: modify.SliceMergeConcat,
 	}
 	if obj, ok := t.Action.(map[string]any); ok {
 		// action:
@@ -316,8 +316,8 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 				return nil, fmt.Errorf("json path set default: %w", err)
 			}
 		}
-		upsert := t.action.ArrayMerge == ArrayMergeUpsert
-		modifier := modify.Modifier(t.action.Type, repl, modify.WithUpsert(upsert))
+		modifierOpt := modify.WithSliceMerge(t.action.SliceMerge)
+		modifier := modify.Modifier(t.action.Type, repl, modifierOpt)
 		data, err = exp.Modify(data, modifier)
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
