@@ -52,7 +52,6 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 				Dst:     "example.txt",
 				Missing: "ignore",
 				Match:   "foo",
-				Action:  "replace",
 			},
 			Err: "",
 		},
@@ -173,6 +172,15 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			Err: "unable to cast struct",
+		},
+		{
+			Desc: "returns an error action can not be parsed",
+			TaskData: map[string]any{
+				"type":   "update",
+				"dst":    "./README.md",
+				"action": "unknown",
+			},
+			Err: "unknown is not a valid Action",
 		},
 		{
 			Desc: "returns an error file_type can not be parsed",
@@ -534,6 +542,35 @@ the
 			},
 			Values: map[string]any{
 				"SrcPath": srcPath,
+			},
+			EndFiles: map[string]any{
+				"example.json": `{
+    "foo": [
+        "aaa",
+        "bbb",
+        "ccc"
+    ]
+}`,
+			},
+		},
+		{
+			Desc: "does not append duplicate items when array_mode is upsert",
+			StartFiles: map[string]any{
+				"example.json": `{"foo": ["aaa"]}`,
+			},
+			TaskData: map[string]any{
+				"type":  "update",
+				"dst":   "example.json",
+				"match": "$.foo",
+				"action": map[string]any{
+					"type":        "append",
+					"array_merge": "upsert",
+				},
+				"src": []any{
+					"aaa",
+					"bbb",
+					"ccc",
+				},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{

@@ -21,7 +21,7 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action      modify.Action `mapstructure:"action"   validate:"required" default:"replace"`
+	Action      any           `mapstructure:"action"   default:"replace"`
 	Description string        `mapstructure:"description"`
 	Dst         string        `mapstructure:"dst"      validate:"required"`
 	FileType    string        `mapstructure:"file_type"`
@@ -32,6 +32,7 @@ type UpdateTask struct {
 
 	Upsert bool `mapstructure:"upsert"`
 
+	action      actionConfig
 	description string
 	dstBytes    []byte
 	dstPath     string
@@ -39,6 +40,11 @@ type UpdateTask struct {
 	match       matchConfig
 	mode        os.FileMode
 	src         any
+}
+
+type actionConfig struct {
+	Type       modify.Action `mapstructure:"type"`
+	ArrayMerge ArrayMerge    `mapstructure:"array_merge"`
 }
 
 type matchConfig struct {
@@ -146,13 +152,31 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		}
 	}
 
+	// Action config can be provided as either a string or an object in YAML.
+	t.action = actionConfig{
+		Type:       modify.ActionReplace,
+		ArrayMerge: ArrayMergeConcat,
+	}
+	if obj, ok := t.Action.(map[string]any); ok {
+		// action:
+		//   type: append
+		//   array_merge: upsert
+		err = mapstructure.Decode(obj, &t.action)
+	} else if str, ok := t.Action.(string); ok {
+		// action: append
+		t.action.Type, err = modify.ParseAction(str)
+	}
+	if err != nil {
+		return fmt.Errorf("parse action: %w", err)
+	}
+
 	// Match config can be provided as either a string or an object in YAML.
 	t.match = matchConfig{}
-	if m, ok := t.Match.(map[string]any); ok {
+	if obj, ok := t.Match.(map[string]any); ok {
 		// match:
 		//   pattern: $.items
 		//   default: []
-		err := mapstructure.Decode(m, &t.match)
+		err = mapstructure.Decode(obj, &t.match)
 		if err != nil {
 			return fmt.Errorf("parse match: %w", err)
 		}
@@ -280,7 +304,7 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 		return nil, fmt.Errorf("json path parse: %w", err)
 	}
 	// use the expression to modify the data structure
-	if t.Action == modify.ActionDelete { //nolint:nestif
+	if t.action.Type == modify.ActionDelete { //nolint:nestif
 		data, err = exp.Remove(data)
 		if err != nil {
 			return nil, fmt.Errorf("json path remove: %w", err)
@@ -292,7 +316,8 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 				return nil, fmt.Errorf("json path set default: %w", err)
 			}
 		}
-		modifier := modify.Modifier(t.Action, repl, modify.WithUpsert(t.Upsert))
+		upsert := t.action.ArrayMerge == ArrayMergeUpsert
+		modifier := modify.Modifier(t.action.Type, repl, modify.WithUpsert(upsert))
 		data, err = exp.Modify(data, modifier)
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
@@ -323,7 +348,7 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 	shouldPerformAction := !t.Upsert || (t.Upsert && !bytes.Contains(content, replBytes))
 
 	var replacement []byte
-	switch t.Action {
+	switch t.action.Type {
 	case modify.ActionAppend:
 		replacement = append(replacement, reMatchBytes...)
 		if shouldPerformAction {

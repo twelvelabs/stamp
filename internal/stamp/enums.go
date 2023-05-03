@@ -7,6 +7,10 @@ import (
 
 //go:generate go-enum -f=$GOFILE --marshal --names
 
+// ArrayMerge determines how to merge arrays when updating structured data.
+// ENUM(concat, upsert, replace).
+type ArrayMerge string
+
 // ConflictConfig determines what to do when destination paths already exist.
 // ENUM(keep, replace, prompt).
 type ConflictConfig string

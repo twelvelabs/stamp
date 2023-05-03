@@ -12,6 +12,70 @@ import (
 )
 
 const (
+	// ArrayMergeConcat is a ArrayMerge of type concat.
+	ArrayMergeConcat ArrayMerge = "concat"
+	// ArrayMergeUpsert is a ArrayMerge of type upsert.
+	ArrayMergeUpsert ArrayMerge = "upsert"
+	// ArrayMergeReplace is a ArrayMerge of type replace.
+	ArrayMergeReplace ArrayMerge = "replace"
+)
+
+var ErrInvalidArrayMerge = fmt.Errorf("not a valid ArrayMerge, try [%s]", strings.Join(_ArrayMergeNames, ", "))
+
+var _ArrayMergeNames = []string{
+	string(ArrayMergeConcat),
+	string(ArrayMergeUpsert),
+	string(ArrayMergeReplace),
+}
+
+// ArrayMergeNames returns a list of possible string values of ArrayMerge.
+func ArrayMergeNames() []string {
+	tmp := make([]string, len(_ArrayMergeNames))
+	copy(tmp, _ArrayMergeNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x ArrayMerge) String() string {
+	return string(x)
+}
+
+// String implements the Stringer interface.
+func (x ArrayMerge) IsValid() bool {
+	_, err := ParseArrayMerge(string(x))
+	return err == nil
+}
+
+var _ArrayMergeValue = map[string]ArrayMerge{
+	"concat":  ArrayMergeConcat,
+	"upsert":  ArrayMergeUpsert,
+	"replace": ArrayMergeReplace,
+}
+
+// ParseArrayMerge attempts to convert a string to a ArrayMerge.
+func ParseArrayMerge(name string) (ArrayMerge, error) {
+	if x, ok := _ArrayMergeValue[name]; ok {
+		return x, nil
+	}
+	return ArrayMerge(""), fmt.Errorf("%s is %w", name, ErrInvalidArrayMerge)
+}
+
+// MarshalText implements the text marshaller method.
+func (x ArrayMerge) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *ArrayMerge) UnmarshalText(text []byte) error {
+	tmp, err := ParseArrayMerge(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// ConflictConfigKeep is a ConflictConfig of type keep.
 	ConflictConfigKeep ConflictConfig = "keep"
 	// ConflictConfigReplace is a ConflictConfig of type replace.
