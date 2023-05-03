@@ -9,6 +9,8 @@ import (
 
 	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
+
+	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 const (
@@ -38,12 +40,8 @@ func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return err
 	}
 
-	info, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	if info.IsDir() {
+	info, _ := os.Stat(src)
+	if info != nil && info.IsDir() {
 		src = strings.TrimSuffix(src, "/")
 		// src is a dir; walk and call dispatch on each file
 		return filepath.Walk(src, func(srcPath string, srcPathInfo fs.FileInfo, err error) error {
@@ -57,7 +55,8 @@ func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			return t.dispatch(ctx, values, srcPath, dstPath)
 		})
 	}
-	// src is a single file
+
+	// src is a single file (or inline content)
 	return t.dispatch(ctx, values, src, dst)
 }
 
@@ -140,10 +139,17 @@ func (t *CreateTask) createDst(values map[string]any, src string, dst string) er
 		return err
 	}
 
-	// render the src template
-	rendered, err := render.File(src, values)
-	if err != nil {
-		return err
+	var rendered string
+	// Src can be:
+	// - A path to a template file containing the source content.
+	// - An inline string literal to render and use as source content.
+	if fsutil.PathExists(src) {
+		rendered, err = render.File(src, values)
+		if err != nil {
+			return err
+		}
+	} else {
+		rendered = t.Render(t.Src, values)
 	}
 
 	// create base dst dirs

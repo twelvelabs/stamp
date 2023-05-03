@@ -139,19 +139,6 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			},
 			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
 		},
-		{
-			Desc: "returns an error if src does not exist",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "missing.md",
-				"dst":  "README.md",
-			},
-			Values: map[string]any{
-				"SrcPath": templatesDir,
-				"DstPath": ".",
-			},
-			Err: "missing.md: no such file or directory",
-		},
 
 		{
 			Desc: "generates a single file",
@@ -188,6 +175,22 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 					"# My Project\n",
 					0o755,
 				},
+			},
+			Err: "",
+		},
+		{
+			Desc: "generates a single file from inline content",
+			TaskData: map[string]any{
+				"type": "create",
+				"src":  "Hello!",
+				"dst":  "README.md",
+			},
+			Values: map[string]any{
+				"SrcPath": templatesDir,
+				"DstPath": ".",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Hello!",
 			},
 			Err: "",
 		},
