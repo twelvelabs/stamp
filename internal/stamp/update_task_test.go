@@ -138,10 +138,10 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"type": "update",
 				"dst":  "./README.md",
 				"match": map[string]any{
-					"path": true,
+					"pattern": true,
 				},
 			},
-			Err: "'path' expected type 'string', got unconvertible type 'bool'",
+			Err: "expected type 'string', got unconvertible type 'bool'",
 		},
 		{
 			Desc: "returns an error if pattern can not be compiled to regexp",
@@ -472,7 +472,7 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"action": "append",
 				"src":    "valid.json",
 				"match": map[string]any{
-					"path":    "$.foo",
+					"pattern": "$.foo",
 					"default": []any{},
 				},
 			},

@@ -41,7 +41,7 @@ type UpdateTask struct {
 }
 
 type matchConfig struct {
-	Path    string `mapstructure:"path"`
+	Pattern string `mapstructure:"pattern"`
 	Default any    `mapstructure:"default"`
 }
 
@@ -61,7 +61,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 		if t.description != "" {
 			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.description)
 		} else if t.fileType.IsStructured() {
-			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Path)
+			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Pattern)
 		}
 		ctx.Logger.Success("update", updateMsg)
 		return nil
@@ -158,17 +158,17 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		// match: $.items
 		// match: ^foo(\w+)$
 		// match: 123
-		t.match.Path = cast.ToString(t.Match)
+		t.match.Pattern = cast.ToString(t.Match)
 	}
 
 	// Render the match path (default to matching everything if none provided).
 	// Depends on: FileType
-	t.match.Path = t.Render(t.match.Path, values)
-	if t.match.Path == "" {
+	t.match.Pattern = t.Render(t.match.Pattern, values)
+	if t.match.Pattern == "" {
 		if t.fileType.IsStructured() {
-			t.match.Path = "$" // root node
+			t.match.Pattern = "$" // root node
 		} else {
-			t.match.Path = "(?s)^(.*)$" // `?s` causes . to match newlines
+			t.match.Pattern = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
 
@@ -185,9 +185,9 @@ func (t *UpdateTask) updateDst(ctx *TaskContext, _ map[string]any, _ string) err
 	// Update the content (using the pattern and replacement values)
 	var err error
 	if t.fileType.IsStructured() {
-		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Path, t.replacement)
+		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Pattern, t.replacement)
 	} else {
-		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Path, t.replacement)
+		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Pattern, t.replacement)
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
