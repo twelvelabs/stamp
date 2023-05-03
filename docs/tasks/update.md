@@ -13,6 +13,7 @@ Updates an existing file in the destination directory.
 | [`dst`](#dst)                              | string     |            |
 | [`file_type`](#file_type)                  | string     | _inferred_ |
 | [`match`](#match)                          | any        |            |
+| [`match.default`](#matchdefault)           | any        | nil        |
 | [`match.multiline`](#matchmultiline)       | bool       | false      |
 | [`match.pattern`](#matchpattern)           | string     | _all_      |
 | [`missing`](#missing)                      | enum       | ignore     |
@@ -129,11 +130,44 @@ An optional match pattern to target. It has two forms:
   match: "^foo$"
   ```
 
+### `match.default`
+
+> Only used when the [file type](#file_type) is `json` or `yaml`.
+
+Configures a value to set (prior to update) if the
+[JSON path expression](#matchpattern) is not found.
+Defaults to `nil`.
+
+For example:
+
+```yaml
+# Would normally be a noop if config.yaml contained only `{}`,
+# Because nothing matched.
+- type: update
+  dst: config.yaml
+  match: $.tags
+  action: append
+  src:
+    - foo
+
+# While this would result in `{ tags: [foo] }`
+- type: update
+  dst: config.yaml
+  match:
+    pattern: $.tags
+    default: []
+  action: append
+  src:
+    - foo
+```
+
 ### `match.multiline`
 
-Determines whether to apply the [match pattern](#matchpattern) to the content
+> Only used when the [file type](#file_type) is `text`.
+
+Determines whether to apply the [regular expression](#matchpattern) to the content
 of the destination path in one pass, or whether to apply the pattern to each line.
-Only used when the [file type](#file_type) is `text`. Defaults to `false`.
+Defaults to `false`.
 
 ### `match.pattern`
 
