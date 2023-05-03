@@ -41,8 +41,9 @@ type UpdateTask struct {
 }
 
 type matchConfig struct {
-	Pattern string `mapstructure:"pattern"`
-	Default any    `mapstructure:"default"`
+	Pattern string      `mapstructure:"pattern"`
+	Default any         `mapstructure:"default"`
+	Source  MatchSource `mapstructure:"source"`
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -148,7 +149,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	t.match = matchConfig{}
 	if m, ok := t.Match.(map[string]any); ok {
 		// match:
-		//   path: $.items
+		//   pattern: $.items
 		//   default: []
 		err := mapstructure.Decode(m, &t.match)
 		if err != nil {
@@ -168,6 +169,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 		if t.fileType.IsStructured() {
 			t.match.Pattern = "$" // root node
 		} else {
+			t.match.Source = MatchSourceFile
 			t.match.Pattern = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
@@ -337,5 +339,13 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 		replacement = []byte{}
 	}
 
-	return re.ReplaceAll(content, replacement), nil
+	if t.match.Source == MatchSourceFile {
+		return re.ReplaceAll(content, replacement), nil
+	}
+	newline := []byte("\n")
+	updatedLines := [][]byte{}
+	for _, line := range bytes.Split(content, newline) {
+		updatedLines = append(updatedLines, re.ReplaceAll(line, replacement))
+	}
+	return bytes.Join(updatedLines, newline), nil
 }

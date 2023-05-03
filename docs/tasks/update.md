@@ -14,8 +14,8 @@ Updates an existing file in the destination directory.
 | [`file_type`](#file_type)                  | string     | _inferred_ |
 | [`match`](#match)                          | any        |            |
 | [`match.default`](#matchdefault)           | any        | nil        |
-| [`match.multiline`](#matchmultiline)       | bool       | false      |
 | [`match.pattern`](#matchpattern)           | string     | _all_      |
+| [`match.source`](#matchsource)             | enum       | line       |
 | [`missing`](#missing)                      | enum       | ignore     |
 | [`mode`](#mode)                            | string     |            |
 | [`src`](#src)                              | any        |            |
@@ -120,7 +120,7 @@ An optional match pattern to target. It has two forms:
     # (the ?s flag causes `.` to match newlines).
     pattern: "(?s)foo(.*)bar"
     # Apply the pattern to the entire file, not each line.
-    multiline: true
+    source: file
   ```
 
 - And a "short form" version that just specifies a [match pattern](#matchpattern):
@@ -161,14 +161,6 @@ For example:
     - foo
 ```
 
-### `match.multiline`
-
-> Only used when the [file type](#file_type) is `text`.
-
-Determines whether to apply the [regular expression](#matchpattern) to the content
-of the destination path in one pass, or whether to apply the pattern to each line.
-Defaults to `false`.
-
 ### `match.pattern`
 
 An optional match pattern to target in the destination path. The default
@@ -178,6 +170,25 @@ The pattern format depends on the [file type](#file_type):
 
 - If `dst` is a text file, then `match` should be a [Go regular expression](https://pkg.go.dev/regexp/syntax).
 - If `dst` is a JSON or YAML file, then `match` should be a [JSON path expression](https://goessner.net/articles/JsonPath/).
+
+### `match.source`
+
+> Only used when the [file type](#file_type) is `text`.
+
+Determines the source material the [regular expression](#matchpattern)
+will search. Can be one of:
+
+- `file`: Search the entire file at once.
+- `line`: Search each line of the file individually (default).
+
+The default makes it easier to mimic the behavior of tools like `grep` and
+`sed` (where ^ and $ match the line), without having to remember to add regexp
+flags to the beginning of the expression. The downside is that multi-line
+operations are not possible.
+
+To perform multi-line operations, set the source to `file` and remember to
+use the `(?m)` and `(?s)` [regexp flags](https://pkg.go.dev/regexp/syntax#hdr-Syntax)
+when appropriate.
 
 ### `missing`
 
@@ -250,7 +261,7 @@ Delete three specific lines that appear together:
   dst: file.txt
   match:
     pattern: "foo\nbar\nbaz\n"
-    multiline: true
+    source: file
   action: delete
 ```
 

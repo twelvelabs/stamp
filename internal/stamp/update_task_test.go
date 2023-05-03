@@ -329,6 +329,62 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello, Some Person",
 			},
 		},
+		{
+			Desc: "matches patterns by line by default",
+			StartFiles: map[string]any{
+				"README.md": `
+the first line might be foo
+the second line might be bar
+the third line might be baz
+`,
+			},
+			TaskData: map[string]any{
+				"type": "update",
+				"dst":  "README.md",
+				"match": map[string]any{
+					"pattern": `^the (\w+) line might be (\w+)$`,
+				},
+				"src": "the ${1} line IS ${2}",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+			},
+			EndFiles: map[string]any{
+				"README.md": `
+the first line IS foo
+the second line IS bar
+the third line IS baz
+`,
+			},
+		},
+		{
+			Desc: "matches patterns multiline if configured",
+			StartFiles: map[string]any{
+				"README.md": `
+the first line might be foo
+the second line might be bar
+the third line might be baz
+`,
+			},
+			TaskData: map[string]any{
+				"type": "update",
+				"dst":  "README.md",
+				"match": map[string]any{
+					"pattern": `(?ms) second(.+)baz$`,
+					"source":  "file",
+				},
+				"action": "delete",
+			},
+			Values: map[string]any{
+				"SrcPath": srcPath,
+			},
+			EndFiles: map[string]any{
+				"README.md": `
+the first line might be foo
+the
+`,
+			},
+		},
 
 		{
 			Desc: "prepends JSON data in dst",

@@ -140,6 +140,66 @@ func (x *FileType) UnmarshalText(text []byte) error {
 }
 
 const (
+	// MatchSourceFile is a MatchSource of type file.
+	MatchSourceFile MatchSource = "file"
+	// MatchSourceLine is a MatchSource of type line.
+	MatchSourceLine MatchSource = "line"
+)
+
+var ErrInvalidMatchSource = fmt.Errorf("not a valid MatchSource, try [%s]", strings.Join(_MatchSourceNames, ", "))
+
+var _MatchSourceNames = []string{
+	string(MatchSourceFile),
+	string(MatchSourceLine),
+}
+
+// MatchSourceNames returns a list of possible string values of MatchSource.
+func MatchSourceNames() []string {
+	tmp := make([]string, len(_MatchSourceNames))
+	copy(tmp, _MatchSourceNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x MatchSource) String() string {
+	return string(x)
+}
+
+// String implements the Stringer interface.
+func (x MatchSource) IsValid() bool {
+	_, err := ParseMatchSource(string(x))
+	return err == nil
+}
+
+var _MatchSourceValue = map[string]MatchSource{
+	"file": MatchSourceFile,
+	"line": MatchSourceLine,
+}
+
+// ParseMatchSource attempts to convert a string to a MatchSource.
+func ParseMatchSource(name string) (MatchSource, error) {
+	if x, ok := _MatchSourceValue[name]; ok {
+		return x, nil
+	}
+	return MatchSource(""), fmt.Errorf("%s is %w", name, ErrInvalidMatchSource)
+}
+
+// MarshalText implements the text marshaller method.
+func (x MatchSource) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *MatchSource) UnmarshalText(text []byte) error {
+	tmp, err := ParseMatchSource(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+const (
 	// MissingConfigIgnore is a MissingConfig of type ignore.
 	MissingConfigIgnore MissingConfig = "ignore"
 	// MissingConfigError is a MissingConfig of type error.

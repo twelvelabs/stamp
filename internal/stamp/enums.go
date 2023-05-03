@@ -11,6 +11,9 @@ import (
 // ENUM(keep, replace, prompt).
 type ConflictConfig string
 
+// ENUM(file, line).
+type MatchSource string
+
 // MissingConfig determines what to do when destination paths are missing.
 // ENUM(ignore, error).
 type MissingConfig string
