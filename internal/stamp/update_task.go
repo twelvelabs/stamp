@@ -30,8 +30,6 @@ type UpdateTask struct {
 	Mode        string        `mapstructure:"mode"     validate:"omitempty"`
 	Src         any           `mapstructure:"src"`
 
-	Upsert bool `mapstructure:"upsert"`
-
 	action      actionConfig
 	description string
 	dstBytes    []byte
@@ -343,41 +341,45 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("pattern: %w", err)
 	}
-	reMatchBytes := []byte("${0}")
 
 	replStr, err := cast.ToStringE(repl)
 	if err != nil {
 		return nil, fmt.Errorf("replacement: %w", err)
 	}
-	replBytes := []byte(replStr)
 
-	shouldPerformAction := !t.Upsert || (t.Upsert && !bytes.Contains(content, replBytes))
+	srcBytes := []byte(replStr)
+	replacerFunc := func(dst []byte) []byte {
+		// The src content may contain capture group placeholders ("${1}", etc).
+		// We need to expand those manually.
+		matches := re.FindSubmatchIndex(dst)
+		srcExpanded := re.Expand([]byte{}, srcBytes, dst, matches)
 
-	var replacement []byte
-	switch t.action.Type {
-	case modify.ActionAppend:
-		replacement = append(replacement, reMatchBytes...)
-		if shouldPerformAction {
-			replacement = append(replacement, replBytes...)
-		}
-	case modify.ActionPrepend:
-		if shouldPerformAction {
-			replacement = append(replacement, replBytes...)
-		}
-		replacement = append(replacement, reMatchBytes...)
-	case modify.ActionReplace:
-		replacement = append(replacement, replBytes...)
-	case modify.ActionDelete:
-		replacement = []byte{}
+		// The modifier doesn't yet know how to handle byte arrays...
+		srcStr := string(srcExpanded)
+		dstStr := string(dst)
+
+		// Use the expanded src content to create a modifier func,
+		// then use it to modify the dst content.
+		// This allows us to use the same modification logic
+		// (and merge behavior) as when working with structured data.
+		modifierOpt := modify.WithSliceMerge(t.action.SliceMerge)
+		modifier := modify.Modifier(t.action.Type, srcStr, modifierOpt)
+		modified, _ := modifier(dstStr)
+
+		// Finally return the modified dst content back to the regexp
+		// so that it can be used to replace the current match.
+		dstStr = modified.(string)
+		return []byte(dstStr)
 	}
 
 	if t.match.Source == MatchSourceFile {
-		return re.ReplaceAll(content, replacement), nil
+		return re.ReplaceAllFunc(content, replacerFunc), nil
 	}
 	newline := []byte("\n")
 	updatedLines := [][]byte{}
 	for _, line := range bytes.Split(content, newline) {
-		updatedLines = append(updatedLines, re.ReplaceAll(line, replacement))
+		updatedLine := re.ReplaceAllFunc(line, replacerFunc)
+		updatedLines = append(updatedLines, updatedLine)
 	}
 	return bytes.Join(updatedLines, newline), nil
 }
