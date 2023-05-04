@@ -8,7 +8,7 @@ Updates an existing file in the destination directory.
 | ------------------------------------------ | ---------- | ---------- |
 | [`action`](#action)                        | any        |            |
 | [`action.type`](#actiontype)               | enum       | replace    |
-| [`action.array_merge`](#actionarray_merge) | enum       | concat     |
+| [`action.merge`](#actionmerge)             | enum       | concat     |
 | [`description`](#description)              | string     |            |
 | [`dst`](#dst)                              | string     |            |
 | [`file_type`](#file_type)                  | string     | _inferred_ |
@@ -29,7 +29,7 @@ The type of update to perform is configured via the `action` field. It has two f
   ```yaml
   action:
     type: "append"
-    array_merge: "upsert"
+    merge: "upsert"
   ```
 
 - And a "short form" version that just specifies the [action type](#actiontype):
@@ -58,7 +58,7 @@ target [type](#file_type):
 Both the destination target and the source content must be (or be coercible to)
 the same type.
 
-### `action.array_merge`
+### `action.merge`
 
 Determines the logic to use when merging arrays. Can be one of:
 
@@ -286,6 +286,6 @@ Merge the object in `overrides.yaml` into `config.yaml`. Note that:
   dst: config.yaml
   action:
     type: append
-    array_merge: replace
+    merge: replace
   src: overrides.yaml
 ```

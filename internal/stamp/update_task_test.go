@@ -563,8 +563,8 @@ the
 				"dst":   "example.json",
 				"match": "$.foo",
 				"action": map[string]any{
-					"type":        "append",
-					"array_merge": "upsert",
+					"type":  "append",
+					"merge": "upsert",
 				},
 				"src": []any{
 					"aaa",

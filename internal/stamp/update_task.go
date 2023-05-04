@@ -42,7 +42,7 @@ type UpdateTask struct {
 
 type actionConfig struct {
 	Type      modify.Action    `mapstructure:"type"`
-	MergeType modify.MergeType `mapstructure:"array_merge"`
+	MergeType modify.MergeType `mapstructure:"merge"`
 }
 
 type matchConfig struct {
@@ -164,7 +164,7 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	if obj, ok := t.Action.(map[string]any); ok {
 		// action:
 		//   type: append
-		//   array_merge: upsert
+		//   merge: upsert
 		err = mapstructure.Decode(obj, &t.action)
 	} else if str, ok := t.Action.(string); ok {
 		// action: append
