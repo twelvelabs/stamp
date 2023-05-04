@@ -38,18 +38,18 @@ func MergeMap(dst, src map[string]any, conf ModifierConf) map[string]any {
 }
 
 // MergeSlice merges src into dst and returns the result.
-// Merge logic depends on conf.SliceMerge, which can be one of:
+// Merge logic depends on conf.MergeType, which can be one of:
 //
-//   - SliceMergeConcat: concatenate the two slices (default).
-//   - SliceMergeUpsert: insert source items only if they are not already present in dst.
-//   - SliceMergeReplace: fully replace src with dst.
+//   - MergeTypeConcat: concatenate the two slices (default).
+//   - MergeTypeUpsert: insert source items only if they are not already present in dst.
+//   - MergeTypeReplace: fully replace src with dst.
 func MergeSlice(dst, src []any, conf ModifierConf) []any {
 	// Slice merge behavior is configurable.
-	// Defaults to `SliceMergeConcat`.
-	switch conf.SliceMerge {
-	case SliceMergeReplace:
+	// Defaults to `MergeTypeConcat`.
+	switch conf.MergeType {
+	case MergeTypeReplace:
 		return src
-	case SliceMergeUpsert:
+	case MergeTypeUpsert:
 		// Note: not just doing a set intersection because we don't want to remove
 		// pre-existing dupes from the dst slice - just prevent new ones.
 		set := NewSet(dst...)

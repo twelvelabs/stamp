@@ -41,8 +41,8 @@ type UpdateTask struct {
 }
 
 type actionConfig struct {
-	Type       modify.Action     `mapstructure:"type"`
-	SliceMerge modify.SliceMerge `mapstructure:"array_merge"`
+	Type      modify.Action    `mapstructure:"type"`
+	MergeType modify.MergeType `mapstructure:"array_merge"`
 }
 
 type matchConfig struct {
@@ -158,8 +158,8 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 
 	// Action config can be provided as either a string or an object in YAML.
 	t.action = actionConfig{
-		Type:       modify.ActionReplace,
-		SliceMerge: modify.SliceMergeConcat,
+		Type:      modify.ActionReplace,
+		MergeType: modify.MergeTypeConcat,
 	}
 	if obj, ok := t.Action.(map[string]any); ok {
 		// action:
@@ -320,7 +320,7 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 				return nil, fmt.Errorf("json path set default: %w", err)
 			}
 		}
-		modifierOpt := modify.WithSliceMerge(t.action.SliceMerge)
+		modifierOpt := modify.WithMergeType(t.action.MergeType)
 		modifier := modify.Modifier(t.action.Type, repl, modifierOpt)
 		data, err = exp.Modify(data, modifier)
 		if err != nil {
@@ -362,7 +362,7 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 		// then use it to modify the dst content.
 		// This allows us to use the same modification logic
 		// (and merge behavior) as when working with structured data.
-		modifierOpt := modify.WithSliceMerge(t.action.SliceMerge)
+		modifierOpt := modify.WithMergeType(t.action.MergeType)
 		modifier := modify.Modifier(t.action.Type, srcStr, modifierOpt)
 		modified, _ := modifier(dstStr)
 

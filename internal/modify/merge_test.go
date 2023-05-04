@@ -36,7 +36,7 @@ func TestMerge(t *testing.T) {
 			src:      []any{3, 4, 5},
 			expected: []any{3, 4, 5},
 			conf: ModifierConf{
-				SliceMerge: SliceMergeReplace,
+				MergeType: MergeTypeReplace,
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestMerge(t *testing.T) {
 			src:      []any{3, 4, 5},
 			expected: []any{1, 2, 3, 4, 5},
 			conf: ModifierConf{
-				SliceMerge: SliceMergeUpsert,
+				MergeType: MergeTypeUpsert,
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestMerge(t *testing.T) {
 			src:      []any{3, 4, 5},
 			expected: []any{1, 1, 1, 3, 4, 5},
 			conf: ModifierConf{
-				SliceMerge: SliceMergeUpsert,
+				MergeType: MergeTypeUpsert,
 			},
 		},
 
@@ -114,7 +114,7 @@ func TestMerge(t *testing.T) {
 				"555": "new",
 			},
 			conf: ModifierConf{
-				SliceMerge: SliceMergeUpsert,
+				MergeType: MergeTypeUpsert,
 			},
 		},
 	}

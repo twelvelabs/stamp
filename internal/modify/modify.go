@@ -87,15 +87,15 @@ func Modifier(action Action, arg any, opts ...ModifierOpt) ModifierFunc {
 }
 
 type ModifierConf struct {
-	SliceMerge SliceMerge
+	MergeType MergeType
 }
 
 type ModifierOpt func(conf ModifierConf) ModifierConf
 
-// SliceMerge returns a ModifierOpt that configures slice merge behavior.
-func WithSliceMerge(value SliceMerge) ModifierOpt {
+// MergeType returns a ModifierOpt that configures slice merge behavior.
+func WithMergeType(value MergeType) ModifierOpt {
 	return func(c ModifierConf) ModifierConf {
-		c.SliceMerge = value
+		c.MergeType = value
 		return c
 	}
 }

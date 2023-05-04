@@ -23,9 +23,9 @@ func TestAction(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestSliceMerge(t *testing.T) {
-	name := SliceMergeNames()[0]
-	enum := SliceMerge(name)
+func TestMergeType(t *testing.T) {
+	name := MergeTypeNames()[0]
+	enum := MergeType(name)
 
 	assert.Equal(t, true, enum.IsValid())
 	assert.Equal(t, name, enum.String())

@@ -80,62 +80,62 @@ func (x *Action) UnmarshalText(text []byte) error {
 }
 
 const (
-	// SliceMergeConcat is a SliceMerge of type concat.
-	SliceMergeConcat SliceMerge = "concat"
-	// SliceMergeUpsert is a SliceMerge of type upsert.
-	SliceMergeUpsert SliceMerge = "upsert"
-	// SliceMergeReplace is a SliceMerge of type replace.
-	SliceMergeReplace SliceMerge = "replace"
+	// MergeTypeConcat is a MergeType of type concat.
+	MergeTypeConcat MergeType = "concat"
+	// MergeTypeUpsert is a MergeType of type upsert.
+	MergeTypeUpsert MergeType = "upsert"
+	// MergeTypeReplace is a MergeType of type replace.
+	MergeTypeReplace MergeType = "replace"
 )
 
-var ErrInvalidSliceMerge = fmt.Errorf("not a valid SliceMerge, try [%s]", strings.Join(_SliceMergeNames, ", "))
+var ErrInvalidMergeType = fmt.Errorf("not a valid MergeType, try [%s]", strings.Join(_MergeTypeNames, ", "))
 
-var _SliceMergeNames = []string{
-	string(SliceMergeConcat),
-	string(SliceMergeUpsert),
-	string(SliceMergeReplace),
+var _MergeTypeNames = []string{
+	string(MergeTypeConcat),
+	string(MergeTypeUpsert),
+	string(MergeTypeReplace),
 }
 
-// SliceMergeNames returns a list of possible string values of SliceMerge.
-func SliceMergeNames() []string {
-	tmp := make([]string, len(_SliceMergeNames))
-	copy(tmp, _SliceMergeNames)
+// MergeTypeNames returns a list of possible string values of MergeType.
+func MergeTypeNames() []string {
+	tmp := make([]string, len(_MergeTypeNames))
+	copy(tmp, _MergeTypeNames)
 	return tmp
 }
 
 // String implements the Stringer interface.
-func (x SliceMerge) String() string {
+func (x MergeType) String() string {
 	return string(x)
 }
 
 // String implements the Stringer interface.
-func (x SliceMerge) IsValid() bool {
-	_, err := ParseSliceMerge(string(x))
+func (x MergeType) IsValid() bool {
+	_, err := ParseMergeType(string(x))
 	return err == nil
 }
 
-var _SliceMergeValue = map[string]SliceMerge{
-	"concat":  SliceMergeConcat,
-	"upsert":  SliceMergeUpsert,
-	"replace": SliceMergeReplace,
+var _MergeTypeValue = map[string]MergeType{
+	"concat":  MergeTypeConcat,
+	"upsert":  MergeTypeUpsert,
+	"replace": MergeTypeReplace,
 }
 
-// ParseSliceMerge attempts to convert a string to a SliceMerge.
-func ParseSliceMerge(name string) (SliceMerge, error) {
-	if x, ok := _SliceMergeValue[name]; ok {
+// ParseMergeType attempts to convert a string to a MergeType.
+func ParseMergeType(name string) (MergeType, error) {
+	if x, ok := _MergeTypeValue[name]; ok {
 		return x, nil
 	}
-	return SliceMerge(""), fmt.Errorf("%s is %w", name, ErrInvalidSliceMerge)
+	return MergeType(""), fmt.Errorf("%s is %w", name, ErrInvalidMergeType)
 }
 
 // MarshalText implements the text marshaller method.
-func (x SliceMerge) MarshalText() ([]byte, error) {
+func (x MergeType) MarshalText() ([]byte, error) {
 	return []byte(string(x)), nil
 }
 
 // UnmarshalText implements the text unmarshaller method.
-func (x *SliceMerge) UnmarshalText(text []byte) error {
-	tmp, err := ParseSliceMerge(string(text))
+func (x *MergeType) UnmarshalText(text []byte) error {
+	tmp, err := ParseMergeType(string(text))
 	if err != nil {
 		return err
 	}

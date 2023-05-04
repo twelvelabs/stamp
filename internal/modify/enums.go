@@ -6,6 +6,6 @@ package modify
 // ENUM(append, prepend, replace, delete).
 type Action string
 
-// SliceMerge determines slice merge behavior.
+// MergeType determines slice merge behavior.
 // ENUM(concat, upsert, replace).
-type SliceMerge string
+type MergeType string
