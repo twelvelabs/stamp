@@ -138,11 +138,17 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 			}
 		} else {
 			// Path didn't exist, just render as content.
-			t.src = t.Render(src, values)
+			t.src, err = render.String(src, values)
+			if err != nil {
+				return fmt.Errorf("render src: %w", err)
+			}
 		}
 	} else {
 		// Not a string, so must be structured data.
-		t.src = t.Src
+		t.src, err = render.Any(t.Src, values)
+		if err != nil {
+			return fmt.Errorf("render src: %w", err)
+		}
 	}
 
 	if t.Mode != "" {
