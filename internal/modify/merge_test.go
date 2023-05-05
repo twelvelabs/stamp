@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMerge(t *testing.T) {
+func Test_mergeMapValue(t *testing.T) {
 	tests := []struct {
 		desc     string
 		dst      any
@@ -85,42 +85,104 @@ func TestMerge(t *testing.T) {
 		{
 			desc: "maps: when common value types",
 			dst: map[string]any{
-				"111": "original",
+				"111": "old",
 				"222": []any{1, 2, 3},
 				"333": map[string]any{
-					"333.111": true,
-					"333.222": "original",
+					"333.111": "old",
+					"333.222": "old",
 				},
-				"444": "untouched",
 			},
 			src: map[string]any{
-				"111": "replaced",
-				"222": []any{3, 4, 3, 5},
+				"111": "new",
+				"222": []any{2, 3, 4},
 				"333": map[string]any{
-					"333.222": "replaced",
+					"333.222": "new",
 					"333.333": "new",
 				},
-				"555": "new",
+				"444": "new",
 			},
 			expected: map[string]any{
-				"111": "replaced",
-				"222": []any{1, 2, 3, 4, 5},
+				"111": "new",
+				"222": []any{1, 2, 3, 2, 3, 4},
 				"333": map[string]any{
-					"333.111": true,
-					"333.222": "replaced",
+					"333.111": "old",
+					"333.222": "new",
 					"333.333": "new",
 				},
-				"444": "untouched",
-				"555": "new",
+				"444": "new",
+			},
+			conf: ModifierConf{
+				MergeType: MergeTypeConcat,
+			},
+		},
+		{
+			desc: "maps: upsert should prevent duplicate slice values",
+			dst: map[string]any{
+				"111": "old",
+				"222": []any{1, 2, 3},
+				"333": map[string]any{
+					"333.111": "old",
+				},
+			},
+			src: map[string]any{
+				"111": "new",
+				"222": []any{2, 3, 4},
+				"333": map[string]any{
+					"333.111": "new",
+					"333.222": "new",
+				},
+				"444": "new",
+			},
+			expected: map[string]any{
+				"111": "new",
+				"222": []any{1, 2, 3, 4},
+				"333": map[string]any{
+					"333.111": "new",
+					"333.222": "new",
+				},
+				"444": "new",
 			},
 			conf: ModifierConf{
 				MergeType: MergeTypeUpsert,
 			},
 		},
+		{
+			desc: "maps: replace should replace slice values",
+			dst: map[string]any{
+				"111": "old",
+				"222": []any{1, 2, 3},
+				"333": map[string]any{
+					"333.111": "old",
+				},
+				"555": "old",
+			},
+			src: map[string]any{
+				"111": "new",
+				"222": []any{2, 3, 4},
+				"333": map[string]any{
+					"333.111": "new",
+					"333.222": "new",
+				},
+				"444": "new",
+			},
+			expected: map[string]any{
+				"111": "new",
+				"222": []any{2, 3, 4},
+				"333": map[string]any{
+					"333.111": "new",
+					"333.222": "new",
+				},
+				"444": "new",
+				"555": "old",
+			},
+			conf: ModifierConf{
+				MergeType: MergeTypeReplace,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			assert.Equal(t, tt.expected, Merge(tt.dst, tt.src, tt.conf))
+			assert.Equal(t, tt.expected, mergeMapValue(tt.dst, tt.src, tt.conf))
 		})
 	}
 }
