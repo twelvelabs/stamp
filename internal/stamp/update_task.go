@@ -346,30 +346,28 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("replacement: %w", err)
 	}
-
 	srcBytes := []byte(replStr)
+
+	// Using this replacement func (as opposed to a simple call to `re.ReplaceAll`)
+	// because it allows us to use the `modify` package, and thus get the same
+	// merge behavior as when working with structured data.
 	replacerFunc := func(dst []byte) []byte {
 		// The src content may contain capture group placeholders ("${1}", etc).
 		// We need to expand those manually.
 		matches := re.FindSubmatchIndex(dst)
 		srcExpanded := re.Expand([]byte{}, srcBytes, dst, matches)
 
-		// The modifier doesn't yet know how to handle byte arrays...
-		srcStr := string(srcExpanded)
-		dstStr := string(dst)
-
-		// Use the expanded src content to create a modifier func,
-		// then use it to modify the dst content.
-		// This allows us to use the same modification logic
-		// (and merge behavior) as when working with structured data.
-		modifierOpt := modify.WithMergeType(t.action.MergeType)
-		modifier := modify.Modifier(t.action.Type, srcStr, modifierOpt)
-		modified, _ := modifier(dstStr)
+		// Modify the dst content with the src content.
+		modifyFunc := modify.Modifier(
+			t.action.Type,
+			srcExpanded,
+			modify.WithMergeType(t.action.MergeType),
+		)
+		modified, _ := modifyFunc(dst)
 
 		// Finally return the modified dst content back to the regexp
 		// so that it can be used to replace the current match.
-		dstStr = modified.(string)
-		return []byte(dstStr)
+		return modified.([]byte)
 	}
 
 	if t.match.Source == MatchSourceFile {
