@@ -1,24 +1,62 @@
 package modify
 
-func Slice(subject []any, action Action, arg any, conf ModifierConf) []any {
-	// ensure arg is a slice
-	var argSlice []any
-	if a, ok := arg.([]any); ok {
-		argSlice = a
+func Slice(dst []any, action Action, src any, conf ModifierConf) []any {
+	var result []any
+
+	// The source can be either a single element, or a slice of elements.
+	// Lazily wrap single elements in a slice so we can use that same
+	// logic for both.
+	var srcSlice []any
+	if a, ok := src.([]any); ok {
+		srcSlice = a
 	} else {
-		argSlice = append(argSlice, arg)
+		srcSlice = append(srcSlice, src)
 	}
 
-	var modified []any
 	switch action {
 	case ActionPrepend:
-		modified = MergeSlice(argSlice, subject, conf)
+		result = PrependSlice(dst, srcSlice, conf)
 	case ActionAppend:
-		modified = MergeSlice(subject, argSlice, conf)
+		result = AppendSlice(dst, srcSlice, conf)
 	case ActionReplace:
-		modified = argSlice
+		result = srcSlice
 	case ActionDelete:
 	}
 
-	return modified
+	return result
+}
+
+func PrependSlice(dst, src []any, conf ModifierConf) []any {
+	switch conf.MergeType {
+	case MergeTypeReplace:
+		return src
+	case MergeTypeUpsert:
+		dstSet := NewSet(dst...)
+		head := []any{}
+		for _, item := range src {
+			if !dstSet.Contains(item) {
+				head = append(head, item)
+			}
+		}
+		return append(head, dst...)
+	default: // case MergeTypeConcat:
+		return append(src, dst...)
+	}
+}
+
+func AppendSlice(dst, src []any, conf ModifierConf) []any {
+	switch conf.MergeType {
+	case MergeTypeReplace:
+		return src
+	case MergeTypeUpsert:
+		set := NewSet(dst...)
+		for _, item := range src {
+			if !set.Contains(item) {
+				dst = append(dst, item)
+			}
+		}
+		return dst
+	default: // case MergeTypeConcat:
+		return append(dst, src...)
+	}
 }

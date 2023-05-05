@@ -50,6 +50,18 @@ func Modifier(action Action, arg any, opts ...ModifierOpt) ModifierFunc {
 		var changed bool
 
 		switch v := element.(type) {
+		case []byte:
+			switch a := arg.(type) {
+			case []byte:
+				altered = Bytes(v, action, a, conf)
+				changed = true
+			case string:
+				altered = Bytes(v, action, []byte(a), conf)
+				changed = true
+			default:
+				altered = element
+				changed = false
+			}
 		case bool:
 			altered = Bool(v, action, cast.ToBool(arg), conf)
 			changed = true

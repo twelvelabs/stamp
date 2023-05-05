@@ -1,15 +1,17 @@
 package modify
 
-func Bool(subject bool, action Action, arg bool, _ ModifierConf) bool {
-	var modified bool
+func Bool(dst bool, action Action, src bool, _ ModifierConf) bool {
+	var result bool
+
 	switch action {
 	case ActionPrepend:
-		modified = arg && subject
+		result = src && dst
 	case ActionAppend:
-		modified = subject && arg
+		result = dst && src
 	case ActionReplace:
-		modified = arg
+		result = src
 	case ActionDelete:
 	}
-	return modified
+
+	return result
 }

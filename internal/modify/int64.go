@@ -1,15 +1,17 @@
 package modify
 
-func Int64(subject int64, action Action, arg int64, _ ModifierConf) int64 {
-	var modified int64
+func Int64(dst int64, action Action, src int64, _ ModifierConf) int64 {
+	var result int64
+
 	switch action {
 	case ActionPrepend:
-		modified = arg + subject
+		result = src + dst
 	case ActionAppend:
-		modified = subject + arg
+		result = dst + src
 	case ActionReplace:
-		modified = arg
+		result = src
 	case ActionDelete:
 	}
-	return modified
+
+	return result
 }
