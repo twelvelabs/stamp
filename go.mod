@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.1
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/ohler55/ojg v1.18.4
+	github.com/ohler55/ojg v1.18.5
 	github.com/otiai10/copy v1.10.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
