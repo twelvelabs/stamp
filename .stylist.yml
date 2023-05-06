@@ -3,6 +3,7 @@ excludes:
   - .cspellcache
   - coverage.*
   - go.{mod,sum}
+  - TODO.md
 processors:
   - preset: cspell
   - preset: gitleaks

@@ -226,8 +226,8 @@ Examples:
   src:
     foo: true
     bar:
-      - 1
-      - 2
+      - "Content for {{ .Name }} 1"
+      - "Content for {{ .Name }} 2"
 ```
 
 ## Examples

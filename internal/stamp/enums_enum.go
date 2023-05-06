@@ -202,6 +202,8 @@ func (x *MatchSource) UnmarshalText(text []byte) error {
 const (
 	// MissingConfigIgnore is a MissingConfig of type ignore.
 	MissingConfigIgnore MissingConfig = "ignore"
+	// MissingConfigTouch is a MissingConfig of type touch.
+	MissingConfigTouch MissingConfig = "touch"
 	// MissingConfigError is a MissingConfig of type error.
 	MissingConfigError MissingConfig = "error"
 )
@@ -210,6 +212,7 @@ var ErrInvalidMissingConfig = fmt.Errorf("not a valid MissingConfig, try [%s]", 
 
 var _MissingConfigNames = []string{
 	string(MissingConfigIgnore),
+	string(MissingConfigTouch),
 	string(MissingConfigError),
 }
 
@@ -233,6 +236,7 @@ func (x MissingConfig) IsValid() bool {
 
 var _MissingConfigValue = map[string]MissingConfig{
 	"ignore": MissingConfigIgnore,
+	"touch":  MissingConfigTouch,
 	"error":  MissingConfigError,
 }
 

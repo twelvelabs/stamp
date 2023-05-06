@@ -15,7 +15,7 @@ type ConflictConfig string
 type MatchSource string
 
 // MissingConfig determines what to do when destination paths are missing.
-// ENUM(ignore, error).
+// ENUM(ignore, touch, error).
 type MissingConfig string
 
 // ENUM(json, yaml, text).

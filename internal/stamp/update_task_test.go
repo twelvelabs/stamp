@@ -174,7 +174,7 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "unable to cast struct",
 		},
 		{
-			Desc: "returns an error action can not be parsed",
+			Desc: "returns an error if action can not be parsed",
 			TaskData: map[string]any{
 				"type":   "update",
 				"dst":    "./README.md",
@@ -183,7 +183,7 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "unknown is not a valid Action",
 		},
 		{
-			Desc: "returns an error file_type can not be parsed",
+			Desc: "returns an error if file_type can not be parsed",
 			TaskData: map[string]any{
 				"type":      "update",
 				"dst":       "./README.md",
@@ -192,13 +192,23 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			Err: "unknown is not a valid FileType",
 		},
 		{
-			Desc: "returns an error mode can not be parsed",
+			Desc: "returns an error if mode can not be parsed",
 			TaskData: map[string]any{
 				"type": "update",
 				"dst":  "README.md",
 				"mode": "unknown",
 			},
 			Err: "invalid syntax",
+		},
+		{
+			Desc: "returns an error if dst can not be touched",
+			TaskData: map[string]any{
+				"type":    "update",
+				"dst":     "invalid\x00file.txt",
+				"missing": "touch",
+				"src":     "Hello",
+			},
+			Err: "invalid argument",
 		},
 
 		{
@@ -279,6 +289,18 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\nGoodbye\n",
+			},
+		},
+		{
+			Desc: "creates and updates a path when missing set to touch",
+			TaskData: map[string]any{
+				"type":    "update",
+				"missing": "touch",
+				"dst":     "README.md",
+				"src":     "Howdy",
+			},
+			EndFiles: map[string]any{
+				"README.md": "Howdy",
 			},
 		},
 		{

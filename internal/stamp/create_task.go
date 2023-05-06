@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	DstDirMode os.FileMode = 0755
+	DstDirMode  os.FileMode = 0755
+	DstFileMode os.FileMode = 0666
 )
 
 type CreateTask struct {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 const (
@@ -17,7 +18,13 @@ const (
 
 func NoPathExists(path string) bool {
 	_, err := os.Stat(path)
-	return errors.Is(err, os.ErrNotExist)
+	// for some reason os.ErrInvalid sometimes != syscall.EINVAL :shrug:
+	if errors.Is(err, os.ErrNotExist) ||
+		errors.Is(err, os.ErrInvalid) ||
+		errors.Is(err, syscall.EINVAL) {
+		return true
+	}
+	return false
 }
 
 func PathExists(path string) bool {

@@ -27,7 +27,7 @@ type UpdateTask struct {
 	FileType    string        `mapstructure:"file_type"`
 	Match       any           `mapstructure:"match"`
 	Missing     MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
-	Mode        string        `mapstructure:"mode"     validate:"omitempty"`
+	Mode        string        `mapstructure:"mode"`
 	Src         any           `mapstructure:"src"`
 
 	action      actionConfig
@@ -87,6 +87,12 @@ func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
 	t.dstPath, err = t.RenderPath("dst", t.Dst, dstRoot, values)
 	if err != nil {
 		return fmt.Errorf("resolve dst path: %w", err)
+	}
+	if fsutil.NoPathExists(t.dstPath) && t.Missing == MissingConfigTouch {
+		err = os.WriteFile(t.dstPath, []byte{}, DstFileMode)
+		if err != nil {
+			return fmt.Errorf("touch dst path: %w", err)
+		}
 	}
 	if fsutil.PathExists(t.dstPath) {
 		t.dstBytes, err = os.ReadFile(t.dstPath)
