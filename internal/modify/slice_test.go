@@ -145,3 +145,14 @@ func TestSlice(t *testing.T) {
 		})
 	}
 }
+
+func TestSlice_DoesNotMutateArguments(t *testing.T) {
+	dst := []any{1, 2}
+	src := []any{3, 4}
+
+	result := Slice(dst, ActionAppend, src, ModifierConf{})
+
+	assert.Equal(t, []any{1, 2, 3, 4}, result)
+	assert.Equal(t, []any{1, 2}, dst, "dst should not have changed")
+	assert.Equal(t, []any{3, 4}, src, "src should not have changed")
+}

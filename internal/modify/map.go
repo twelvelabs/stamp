@@ -1,7 +1,7 @@
 package modify
 
 func Map(dst map[string]any, action Action, src map[string]any, conf ModifierConf) map[string]any {
-	result := map[string]any{}
+	var result map[string]any
 
 	switch action {
 	case ActionPrepend:
@@ -9,6 +9,7 @@ func Map(dst map[string]any, action Action, src map[string]any, conf ModifierCon
 	case ActionAppend:
 		result = AppendMap(dst, src, conf)
 	case ActionReplace:
+		result = map[string]any{}
 		for k, v := range src {
 			result[k] = v
 		}
@@ -20,17 +21,29 @@ func Map(dst map[string]any, action Action, src map[string]any, conf ModifierCon
 }
 
 func PrependMap(dst, src map[string]any, conf ModifierConf) map[string]any {
-	for k, v := range dst {
-		src[k] = appendMapValue(src[k], v, conf)
+	result := map[string]any{}
+
+	for k, v := range src {
+		result[k] = v
 	}
-	return src
+	for k, v := range dst {
+		result[k] = appendMapValue(result[k], v, conf)
+	}
+
+	return result
 }
 
 func AppendMap(dst, src map[string]any, conf ModifierConf) map[string]any {
-	for k, v := range src {
-		dst[k] = appendMapValue(dst[k], v, conf)
+	result := map[string]any{}
+
+	for k, v := range dst {
+		result[k] = v
 	}
-	return dst
+	for k, v := range src {
+		result[k] = appendMapValue(result[k], v, conf)
+	}
+
+	return result
 }
 
 // merges src into dst and returns the result.

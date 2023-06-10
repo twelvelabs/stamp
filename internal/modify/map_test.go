@@ -364,3 +364,30 @@ func TestMap(t *testing.T) { //nolint:maintidx
 		})
 	}
 }
+
+func TestMap_DoesNotMutateArguments(t *testing.T) {
+	dst := map[string]any{
+		"aaa": "aaa.dst",
+		"bbb": []any{1, 2},
+	}
+	src := map[string]any{
+		"bbb": []any{3, 4},
+		"ccc": "ccc.src",
+	}
+
+	result := Map(dst, ActionAppend, src, ModifierConf{})
+
+	assert.Equal(t, map[string]any{
+		"aaa": "aaa.dst",
+		"bbb": []any{1, 2, 3, 4},
+		"ccc": "ccc.src",
+	}, result)
+	assert.Equal(t, map[string]any{
+		"aaa": "aaa.dst",
+		"bbb": []any{1, 2},
+	}, dst, "dst should not have changed")
+	assert.Equal(t, map[string]any{
+		"bbb": []any{3, 4},
+		"ccc": "ccc.src",
+	}, src, "src should not have changed")
+}
