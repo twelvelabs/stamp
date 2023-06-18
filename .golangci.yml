@@ -2,6 +2,7 @@ linters:
   enable-all: true
   disable:
     - cyclop
+    - depguard
     - dupl
     - goerr113
     - exhaustivestruct
@@ -18,6 +19,7 @@ linters:
     - gomnd
     - nlreturn
     - paralleltest
+    - tagalign
     - tagliatelle
     - testpackage
     - varnamelen

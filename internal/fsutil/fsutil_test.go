@@ -30,6 +30,20 @@ func TestPathExists(t *testing.T) {
 	})
 }
 
+func TestPathIsDir(t *testing.T) {
+	testutil.InTempDir(t, func(dir string) {
+		assert.NoDirExists(t, "foo")
+		assert.Equal(t, false, PathIsDir("foo"))
+
+		testutil.WriteFile(t, "foo", []byte(""), 0600)
+		assert.Equal(t, false, PathIsDir("foo"))
+		testutil.RemoveAll(t, "foo")
+
+		testutil.MkdirAll(t, "foo", 0777)
+		assert.Equal(t, true, PathIsDir("foo"))
+	})
+}
+
 func TestNormalizePath(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
 	workingDir, _ := filepath.Abs(".")
@@ -147,6 +161,12 @@ func TestEnsurePathRelativeToRoot(t *testing.T) {
 			desc:     "handles relative roots without error",
 			path:     "bbb",
 			root:     "./testdata/aaa",
+			expected: filepath.Join(rootDir, "bbb"),
+		},
+		{
+			desc:     "handles absolute paths without mangling",
+			path:     filepath.Join(rootDir, "bbb"),
+			root:     rootDir,
 			expected: filepath.Join(rootDir, "bbb"),
 		},
 		{

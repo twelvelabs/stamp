@@ -31,6 +31,11 @@ func PathExists(path string) bool {
 	return !NoPathExists(path)
 }
 
+func PathIsDir(path string) bool {
+	info, _ := os.Stat(path)
+	return info != nil && info.IsDir()
+}
+
 // NormalizePath ensures that name is an absolute path.
 // Environment variables (and the ~ string) are expanded.
 func NormalizePath(name string) (string, error) {
@@ -81,15 +86,19 @@ func EnsureDirWritable(path string) error {
 // EnsurePathRelativeToRoot ensures that the relative path exists inside the trusted root,
 // and returns it's absolute path. Returns an error if the path traverses outside the root.
 func EnsurePathRelativeToRoot(path string, root string) (string, error) {
+	path = filepath.FromSlash(path)
+
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return "", err
 	}
 
-	path = filepath.FromSlash(path)
-	absPath, err := filepath.Abs(filepath.Join(absRoot, path))
-	if err != nil {
-		return "", err
+	absPath := path
+	if !filepath.IsAbs(absPath) {
+		absPath, err = filepath.Abs(filepath.Join(absRoot, path))
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// EvalSymlinks returns an lstat error if path does not exist.

@@ -3,6 +3,8 @@ package stamp
 import (
 	"path/filepath"
 	"strings"
+
+	"github.com/twelvelabs/stamp/internal/encode"
 )
 
 //go:generate go-enum -f=$GOFILE --marshal --names
@@ -21,6 +23,15 @@ type MissingConfig string
 // ENUM(json, yaml, text).
 type FileType string
 
+// ParseFileTypeWithFallback parses value into a FileType or,
+// if value is empty, attempts to infer the FileType from the given path.
+func ParseFileTypeWithFallback(value string, path string) (FileType, error) {
+	if value != "" {
+		return ParseFileType(value)
+	}
+	return ParseFileTypeFromPath(path)
+}
+
 // ParseFileTypeFromPath returns the correct file type for the given path.
 func ParseFileTypeFromPath(path string) (FileType, error) {
 	ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(path), "."))
@@ -31,6 +42,17 @@ func ParseFileTypeFromPath(path string) (FileType, error) {
 		return FileTypeYaml, nil
 	default:
 		return FileTypeText, nil
+	}
+}
+
+func (ft FileType) Encoder() encode.Encoder { //nolint: ireturn
+	switch ft {
+	case FileTypeJson:
+		return &encode.JSONEncoder{}
+	case FileTypeYaml:
+		return &encode.YAMLEncoder{}
+	default: // FileTypeText
+		return &encode.TextEncoder{}
 	}
 }
 

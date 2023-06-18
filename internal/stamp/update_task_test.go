@@ -13,59 +13,39 @@ func TestNewTask_WhenTypeIsUpdate(t *testing.T) {
 	tests := []struct {
 		Name     string
 		TaskData map[string]any
-		Task     Task
 		Err      string
 	}{
 		{
-			Name: "returns an error when dst field is missing",
-			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "",
-				"match": "foo",
-			},
-			Task: nil,
-			Err:  "Dst is a required field",
-		},
-		{
 			Name: "returns an error when missing field is invalid",
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "example.txt",
-				"missing": "unknown",
-				"match":   "foo",
+				"type": "update",
+				"dst": map[string]any{
+					"path":    "example.txt",
+					"missing": "unknown",
+				},
 			},
-			Task: nil,
-			Err:  "unknown is not a valid MissingConfig",
+			Err: "unknown is not a valid MissingConfig",
 		},
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "example.txt",
-				"match": "foo",
-			},
-			Task: &UpdateTask{
-				Common: Common{
-					If:   "true",
-					Each: "",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.txt",
 				},
-				Dst:     "example.txt",
-				Missing: "ignore",
-				Match:   "foo",
 			},
-			Err: "",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			actual, err := NewTask(test.TaskData)
-
-			assert.Equal(t, test.Task, actual)
 			if test.Err == "" {
 				assert.NoError(t, err)
+				assert.NotNil(t, actual)
 			} else {
 				assert.ErrorContains(t, err, test.Err)
+				assert.Nil(t, actual)
 			}
 		})
 	}
@@ -85,62 +65,41 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		Err        string
 	}{
 		{
-			Desc: "returns an error if src evaluates to empty string",
+			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
 				"type": "update",
-				"src":  "{{ .Empty }}",
-				"dst":  "./README.md",
+				"dst": map[string]any{
+					"path": "{{ .Empty }}",
+				},
 			},
 			Values: map[string]any{
 				"Empty": "",
 			},
-			Err: "src: '{{ .Empty }}' evaluated to an empty string",
+			Err: "evaluated to an empty string",
 		},
 		{
-			Desc: "returns an error if src can not be rendered",
+			Desc: "returns an error if src fails to render",
 			TaskData: map[string]any{
 				"type": "update",
-				"src":  "./render-error.txt",
-				"dst":  "./README.md",
-			},
-			Values: map[string]any{
-				"SrcPath": srcPath,
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"src": map[string]any{
+					"path": `{{ fail "boom" }}`,
+				},
 			},
 			Err: "boom",
 		},
 		{
-			Desc: "returns an error if src can not be parsed",
+			Desc: "returns an error if description fails to render",
 			TaskData: map[string]any{
 				"type": "update",
-				"src":  "./invalid.json",
-				"dst":  "./something.json",
-			},
-			Values: map[string]any{
-				"SrcPath": srcPath,
-			},
-			Err: "unexpected character",
-		},
-		{
-			Desc: "returns an error if dst evaluates to empty string",
-			TaskData: map[string]any{
-				"type": "update",
-				"dst":  "{{ .Empty }}",
-			},
-			Values: map[string]any{
-				"Empty": "",
-			},
-			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
-		},
-		{
-			Desc: "returns an error if match can not be decoded into config",
-			TaskData: map[string]any{
-				"type": "update",
-				"dst":  "./README.md",
-				"match": map[string]any{
-					"pattern": true,
+				"dst": map[string]any{
+					"path": "README.md",
 				},
+				"description": `{{ fail "boom" }}`,
 			},
-			Err: "expected type 'string', got unconvertible type 'bool'",
+			Err: "boom",
 		},
 		{
 			Desc: "returns an error if pattern can not be compiled to regexp",
@@ -148,9 +107,13 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "./README.md",
-				"match": "(.}",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "(.}",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -163,50 +126,30 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "./README.md",
-				"match": "World",
-				"src":   struct{}{},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "World",
+				},
+				"src": map[string]any{
+					"content": struct{}{},
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
 			},
-			Err: "unable to cast struct",
-		},
-		{
-			Desc: "returns an error if action can not be parsed",
-			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"action": "unknown",
-			},
-			Err: "unknown is not a valid Action",
-		},
-		{
-			Desc: "returns an error if file_type can not be parsed",
-			TaskData: map[string]any{
-				"type":      "update",
-				"dst":       "./README.md",
-				"file_type": "unknown",
-			},
-			Err: "unknown is not a valid FileType",
-		},
-		{
-			Desc: "returns an error if mode can not be parsed",
-			TaskData: map[string]any{
-				"type": "update",
-				"dst":  "README.md",
-				"mode": "unknown",
-			},
-			Err: "invalid syntax",
+			Err: "unable to cast",
 		},
 		{
 			Desc: "returns an error if dst can not be touched",
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "invalid\x00file.txt",
-				"missing": "touch",
-				"src":     "Hello",
+				"type": "update",
+				"dst": map[string]any{
+					"path":    "invalid\x00file.txt",
+					"missing": "touch",
+				},
 			},
 			Err: "invalid argument",
 		},
@@ -217,11 +160,19 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"match":  "aaa",
-				"action": "prepend",
-				"src":    "000 ",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "aaa",
+				},
+				"action": map[string]any{
+					"type": "prepend",
+				},
+				"src": map[string]any{
+					"content": "000 ",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "000 aaa bbb ccc\n",
@@ -233,11 +184,19 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "aaa bbb ccc\n",
 			},
 			TaskData: map[string]any{
-				"type":        "update",
-				"dst":         "./README.md",
-				"match":       "ccc",
-				"action":      "append",
-				"src":         " ddd",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "ccc",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
+				"src": map[string]any{
+					"content": " ddd",
+				},
 				"description": "append ddd",
 			},
 			EndFiles: map[string]any{
@@ -250,11 +209,19 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"match":  "Hello (\\w+)",
-				"action": "replace",
-				"src":    "Goodbye $1",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "Hello (\\w+)",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"content": "Goodbye $1",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Goodbye World\n",
@@ -266,10 +233,16 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"match":  "(?m)\\s*(\\w+)$",
-				"action": "delete",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "(?m)\\s*(\\w+)$",
+				},
+				"action": map[string]any{
+					"type": "delete",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello\n",
@@ -282,10 +255,16 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"action": "append",
-				"src":    "Goodbye\n",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
+				"src": map[string]any{
+					"content": "Goodbye\n",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\nGoodbye\n",
@@ -294,10 +273,14 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 		{
 			Desc: "creates and updates a path when missing set to touch",
 			TaskData: map[string]any{
-				"type":    "update",
-				"missing": "touch",
-				"dst":     "README.md",
-				"src":     "Howdy",
+				"type": "update",
+				"dst": map[string]any{
+					"path":    "README.md",
+					"missing": "touch",
+				},
+				"src": map[string]any{
+					"content": "Howdy",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Howdy",
@@ -309,12 +292,20 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"mode":   "0755",
-				"match":  "Hello (\\w+)",
-				"action": "replace",
-				"src":    "Goodbye $1",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+					"mode": "0755",
+				},
+				"match": map[string]any{
+					"pattern": "Hello (\\w+)",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"content": "Goodbye $1",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": []any{
@@ -330,11 +321,19 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "./README.md",
-				"match":  "Hello (\\w+)",
-				"action": "replace",
-				"src":    "Goodbye $1",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "Hello (\\w+)",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"content": "Goodbye $1",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": "Hello World\n",
@@ -346,10 +345,16 @@ func TestUpdateTask_Execute(t *testing.T) { //nolint: maintidx
 				"README.md": "Hello World\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"src":    "./valid.txt",
-				"dst":    "./README.md",
-				"action": "replace",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"path": "valid.txt",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": srcPath,
@@ -370,11 +375,15 @@ the third line might be baz
 			},
 			TaskData: map[string]any{
 				"type": "update",
-				"dst":  "README.md",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 				"match": map[string]any{
 					"pattern": `^the (\w+) line might be (\w+)$`,
 				},
-				"src": "the ${1} line IS ${2}",
+				"src": map[string]any{
+					"content": "the ${1} line IS ${2}",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": srcPath,
@@ -398,12 +407,16 @@ the third line might be baz
 			},
 			TaskData: map[string]any{
 				"type": "update",
-				"dst":  "README.md",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 				"match": map[string]any{
 					"pattern": `(?ms) second(.+)baz$`,
 					"source":  "file",
 				},
-				"action": "delete",
+				"action": map[string]any{
+					"type": "delete",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": srcPath,
@@ -422,11 +435,19 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"match":  "$.foo",
-				"action": "prepend",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "prepend",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -446,11 +467,19 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"match":  "$.foo",
-				"action": "append",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -470,11 +499,19 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"match":  "$.foo",
-				"action": "replace",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{
@@ -491,10 +528,16 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"match":  "$.foo",
-				"action": "delete",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "delete",
+				},
 			},
 			EndFiles: map[string]any{
 				"example.json": `{}`,
@@ -506,11 +549,17 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"action": "replace",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
 				"src": map[string]any{
-					"bar": true,
+					"content": map[string]any{
+						"bar": true,
+					},
 				},
 			},
 			EndFiles: map[string]any{
@@ -525,11 +574,19 @@ the
 				"example.json": `{"foo":[1,2,3]}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"action": "append",
-				"match":  "$.foo",
-				"src":    "valid.json",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"src": map[string]any{
+					"path": "valid.json",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": srcPath,
@@ -553,13 +610,19 @@ the
 				"example.json": `{}`,
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.json",
-				"action": "append",
-				"src":    "valid.json",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
 				"match": map[string]any{
 					"pattern": "$.foo",
 					"default": []any{},
+				},
+				"src": map[string]any{
+					"path": "valid.json",
 				},
 			},
 			Values: map[string]any{
@@ -581,17 +644,23 @@ the
 				"example.json": `{"foo": ["aaa"]}`,
 			},
 			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "example.json",
-				"match": "$.foo",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.json",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
 				"action": map[string]any{
 					"type":  "append",
 					"merge": "upsert",
 				},
-				"src": []any{
-					"aaa",
-					"bbb",
-					"ccc",
+				"src": map[string]any{
+					"content": []any{
+						"aaa",
+						"bbb",
+						"ccc",
+					},
 				},
 			},
 			EndFiles: map[string]any{
@@ -611,11 +680,19 @@ the
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.yml",
-				"match":  "$.foo",
-				"action": "prepend",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.yml",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "prepend",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -632,11 +709,19 @@ the
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.yml",
-				"match":  "$.foo",
-				"action": "append",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.yml",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "append",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -653,11 +738,19 @@ the
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.yml",
-				"match":  "$.foo",
-				"action": "replace",
-				"src":    []any{4, 5},
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.yml",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "replace",
+				},
+				"src": map[string]any{
+					"content": []any{4, 5},
+				},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "foo:\n" +
@@ -671,10 +764,16 @@ the
 				"example.yml": "foo: [1,2,3]\n",
 			},
 			TaskData: map[string]any{
-				"type":   "update",
-				"dst":    "example.yml",
-				"match":  "$.foo",
-				"action": "delete",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "example.yml",
+				},
+				"match": map[string]any{
+					"pattern": "$.foo",
+				},
+				"action": map[string]any{
+					"type": "delete",
+				},
 			},
 			EndFiles: map[string]any{
 				"example.yml": "{}\n",
@@ -684,9 +783,13 @@ the
 		{
 			Desc: "[missing:ignore] ignores missing paths",
 			TaskData: map[string]any{
-				"type":  "update",
-				"dst":   "./README.md",
-				"match": "foo",
+				"type": "update",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
+				"match": map[string]any{
+					"pattern": "foo",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": false,
@@ -695,10 +798,14 @@ the
 		{
 			Desc: "[missing:error] returns an error when path is missing",
 			TaskData: map[string]any{
-				"type":    "update",
-				"dst":     "./README.md",
-				"missing": "error",
-				"match":   "foo",
+				"type": "update",
+				"dst": map[string]any{
+					"path":    "README.md",
+					"missing": "error",
+				},
+				"match": map[string]any{
+					"pattern": "foo",
+				},
 			},
 			EndFiles: map[string]any{
 				"README.md": false,

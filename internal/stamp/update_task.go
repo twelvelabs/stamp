@@ -2,214 +2,117 @@ package stamp
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/ohler55/ojg/jp"
-	"github.com/ohler55/ojg/oj"
-	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
-	"gopkg.in/yaml.v3"
 
-	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/modify"
 )
 
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action      any           `mapstructure:"action"   default:"replace"`
-	Description string        `mapstructure:"description"`
-	Dst         string        `mapstructure:"dst"      validate:"required"`
-	FileType    string        `mapstructure:"file_type"`
-	Match       any           `mapstructure:"match"`
-	Missing     MissingConfig `mapstructure:"missing"  validate:"required" default:"ignore"`
-	Mode        string        `mapstructure:"mode"`
-	Src         any           `mapstructure:"src"`
-
-	action      actionConfig
-	description string
-	dstBytes    []byte
-	dstPath     string
-	fileType    FileType
-	match       matchConfig
-	mode        os.FileMode
-	src         any
+	Action      UpdateAction    `mapstructure:"action"`
+	Description render.Template `mapstructure:"description"`
+	Dst         Destination     `mapstructure:"dst"`
+	Match       UpdateMatch     `mapstructure:"match"`
+	Src         Source          `mapstructure:"src"`
 }
 
-type actionConfig struct {
-	Type      modify.Action    `mapstructure:"type"`
-	MergeType modify.MergeType `mapstructure:"merge"`
+type UpdateAction struct {
+	Type      modify.Action    `mapstructure:"type" default:"replace"`
+	MergeType modify.MergeType `mapstructure:"merge" default:"concat"`
 }
 
-type matchConfig struct {
-	Pattern string      `mapstructure:"pattern"`
-	Default any         `mapstructure:"default"`
-	Source  MatchSource `mapstructure:"source"`
+type UpdateMatch struct {
+	PatternTpl render.Template `mapstructure:"pattern"`
+	Default    any             `mapstructure:"default"`
+	Source     MatchSource     `mapstructure:"source" default:"line"`
+
+	pattern string
+}
+
+// Returns the rendered match pattern. SetPattern must be called first.
+func (um *UpdateMatch) Pattern() string {
+	return um.pattern
+}
+
+// SetPattern sets the given match pattern.
+// Matches everything if the pattern is empty.
+func (um *UpdateMatch) SetPattern(pat string, ct FileType) {
+	if pat != "" {
+		um.pattern = pat
+	} else {
+		if ct.IsStructured() {
+			um.pattern = "$" // root node
+		} else {
+			um.Source = MatchSourceFile
+			um.pattern = "(?s)^(.*)$" // `?s` causes . to match newlines
+		}
+	}
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
-	err := t.prepare(ctx, values)
-	if err != nil {
-		ctx.Logger.Failure("fail", t.dstPath)
+	// Render the source and destination.
+	if err := t.Dst.SetValues(values); err != nil {
+		ctx.Logger.Failure("fail", t.Dst.Path())
+		return err
+	}
+	if err := t.Src.SetValues(values); err != nil {
+		ctx.Logger.Failure("fail", t.Dst.Path())
 		return err
 	}
 
-	if fsutil.PathExists(t.dstPath) {
-		if err := t.updateDst(ctx); err != nil {
-			ctx.Logger.Failure("fail", t.dstPath)
-			return err
-		}
-		updateMsg := t.dstPath
-		if t.description != "" {
-			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.description)
-		} else if t.fileType.IsStructured() {
-			updateMsg = fmt.Sprintf("%s (%s)", t.dstPath, t.match.Pattern)
-		}
-		ctx.Logger.Success("update", updateMsg)
-		return nil
-	} else if t.Missing == MissingConfigError {
-		ctx.Logger.Failure("fail", t.dstPath)
-		return ErrPathNotFound
-	}
-
-	return nil
-}
-
-// prepare post-processes and validates the task YAML fields.
-func (t *UpdateTask) prepare(_ *TaskContext, values map[string]any) error {
-	var err error
-
-	dstRoot := cast.ToString(values["DstPath"])
-	t.dstPath, err = t.RenderPath("dst", t.Dst, dstRoot, values)
+	// Render description.
+	desc, err := t.Description.Render(values)
 	if err != nil {
-		return fmt.Errorf("resolve dst path: %w", err)
-	}
-	if fsutil.NoPathExists(t.dstPath) && t.Missing == MissingConfigTouch {
-		err = os.WriteFile(t.dstPath, []byte{}, DstFileMode)
-		if err != nil {
-			return fmt.Errorf("touch dst path: %w", err)
-		}
-	}
-	if fsutil.PathExists(t.dstPath) {
-		t.dstBytes, err = os.ReadFile(t.dstPath)
-		if err != nil {
-			return fmt.Errorf("read dst path: %w", err)
-		}
+		ctx.Logger.Failure("fail", t.Dst.Path())
+		return err
 	}
 
-	// Depends on: DstPath
-	if t.FileType != "" {
-		t.fileType, err = ParseFileType(t.FileType)
-	} else {
-		t.fileType, err = ParseFileTypeFromPath(t.dstPath)
-	}
+	// Render the match pattern.
+	pattern, err := t.Match.PatternTpl.Render(values)
 	if err != nil {
-		return fmt.Errorf("parse file_type: %w", err)
+		ctx.Logger.Failure("fail", t.Dst.Path())
+		return err
 	}
+	t.Match.SetPattern(pattern, t.Dst.ContentType())
 
-	// Src can be a few different things:
-	// - A path to a template file containing the source content.
-	// - A string literal to render and use as source content.
-	// - Structured data.
-	// Depends on: FileType
-	if src, ok := t.Src.(string); ok { //nolint:nestif
-		// Try rendering as a file path.
-		srcRoot := cast.ToString(values["SrcPath"])
-		srcPath, err := t.RenderPath("src", src, srcRoot, values)
-		if err != nil {
-			return fmt.Errorf("resolve src path: %w", err)
-		}
-
-		if fsutil.PathExists(srcPath) {
-			// Render the content located at the path.
-			srcContent, err := render.File(srcPath, values)
-			if err != nil {
-				return fmt.Errorf("render src path: %w", err)
+	// Handle missing destination path.
+	if !t.Dst.Exists() {
+		switch t.Dst.Missing {
+		case MissingConfigError:
+			ctx.Logger.Failure("fail", t.Dst.Path())
+			return ErrPathNotFound
+		case MissingConfigTouch:
+			if err := os.WriteFile(t.Dst.Path(), []byte{}, DstFileMode); err != nil {
+				ctx.Logger.Failure("fail", t.Dst.Path())
+				return err
 			}
-			// Parse the src content if we need structured data,
-			// otherwise the content itself is the replacement.
-			t.src = srcContent
-			// TODO: move this
-			if t.fileType.IsStructured() {
-				t.src, err = t.parse([]byte(srcContent))
-				if err != nil {
-					return fmt.Errorf("parse src path: %w", err)
-				}
-			}
-		} else {
-			// Path didn't exist, just render as content.
-			t.src, err = render.String(src, values)
-			if err != nil {
-				return fmt.Errorf("render src: %w", err)
-			}
-		}
-	} else {
-		// Not a string, so must be structured data.
-		t.src, err = render.Any(t.Src, values)
-		if err != nil {
-			return fmt.Errorf("render src: %w", err)
+		default: // MissingConfigIgnore:
+			return nil
 		}
 	}
 
-	if t.Mode != "" {
-		t.mode, err = t.RenderMode(t.Mode, values)
-		if err != nil {
-			return fmt.Errorf("parse mode: %w", err)
-		}
+	// Update the file.
+	if err := t.updateDst(ctx); err != nil {
+		ctx.Logger.Failure("fail", t.Dst.Path())
+		return err
 	}
 
-	// Action config can be provided as either a string or an object in YAML.
-	t.action = actionConfig{
-		Type:      modify.ActionReplace,
-		MergeType: modify.MergeTypeConcat,
+	// Log success.
+	updateMsg := t.Dst.Path()
+	if desc != "" {
+		// Include custom, generator supplied description.
+		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.Path(), desc)
+	} else if t.Dst.ContentType().IsStructured() {
+		// Or the JSON path expression.
+		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.Path(), t.Match.Pattern())
 	}
-	if obj, ok := t.Action.(map[string]any); ok {
-		// action:
-		//   type: append
-		//   merge: upsert
-		err = mapstructure.Decode(obj, &t.action)
-	} else if str, ok := t.Action.(string); ok {
-		// action: append
-		t.action.Type, err = modify.ParseAction(str)
-	}
-	if err != nil {
-		return fmt.Errorf("parse action: %w", err)
-	}
-
-	// Match config can be provided as either a string or an object in YAML.
-	t.match = matchConfig{}
-	if obj, ok := t.Match.(map[string]any); ok {
-		// match:
-		//   pattern: $.items
-		//   default: []
-		err = mapstructure.Decode(obj, &t.match)
-		if err != nil {
-			return fmt.Errorf("parse match: %w", err)
-		}
-	} else {
-		// match: $.items
-		// match: ^foo(\w+)$
-		// match: 123
-		t.match.Pattern = cast.ToString(t.Match)
-	}
-
-	// Render the match path (default to matching everything if none provided).
-	// Depends on: FileType
-	t.match.Pattern = t.Render(t.match.Pattern, values)
-	if t.match.Pattern == "" {
-		if t.fileType.IsStructured() {
-			t.match.Pattern = "$" // root node
-		} else {
-			t.match.Source = MatchSourceFile
-			t.match.Pattern = "(?s)^(.*)$" // `?s` causes . to match newlines
-		}
-	}
-
-	t.description = t.Render(t.Description, values)
+	ctx.Logger.Success("update", updateMsg)
 
 	return nil
 }
@@ -219,94 +122,29 @@ func (t *UpdateTask) updateDst(ctx *TaskContext) error {
 		return nil
 	}
 
-	// Update the content (using the pattern and replacement values)
+	var updated any
 	var err error
-	if t.fileType.IsStructured() {
-		t.dstBytes, err = t.replaceStructured(t.dstBytes, t.match.Pattern, t.src)
+
+	if t.Dst.ContentType().IsStructured() {
+		updated, err = t.replaceStructured()
 	} else {
-		t.dstBytes, err = t.replaceText(t.dstBytes, t.match.Pattern, t.src)
+		updated, err = t.replaceText()
 	}
 	if err != nil {
 		return fmt.Errorf("update content: %w", err)
 	}
 
-	// update dst
-	f, err := os.Create(t.dstPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.Write(t.dstBytes)
-	if err != nil {
-		return err
-	}
-
-	// set permissions (if configured)
-	if t.mode != 0 {
-		err = os.Chmod(t.dstPath, t.mode)
-		if err != nil {
-			return err
-		}
+	if err := t.Dst.Write(updated); err != nil {
+		return fmt.Errorf("update content: %w", err)
 	}
 
 	return nil
 }
 
-func (t *UpdateTask) parse(content []byte) (any, error) {
-	var data any
-	var err error
-
-	switch t.fileType {
-	case FileTypeJson:
-		data, err = oj.Parse(content)
-		if err != nil {
-			return nil, fmt.Errorf("json parse: %w", err)
-		}
-	case FileTypeYaml:
-		err := yaml.Unmarshal(content, &data)
-		if err != nil {
-			return nil, fmt.Errorf("yaml parse: %w", err)
-		}
-	default:
-		data = content
-	}
-
-	return data, nil
-}
-
-func (t *UpdateTask) marshal(data any) ([]byte, error) {
-	var content []byte
-	var err error
-
-	switch t.fileType {
-	case FileTypeJson:
-		// Note: using standard lib to marshal because it sorts JSON object keys
-		// (oj does not and it looks ugly when adding new keys).
-		content, err = json.MarshalIndent(data, "", "    ")
-		if err != nil {
-			return nil, fmt.Errorf("json marshal: %w", err)
-		}
-	case FileTypeYaml:
-		b := &bytes.Buffer{}
-		encoder := yaml.NewEncoder(b)
-		encoder.SetIndent(2)
-		err = encoder.Encode(data)
-		if err != nil {
-			return nil, fmt.Errorf("yaml marshal: %w", err)
-		}
-		content = b.Bytes()
-	default:
-		content = data.([]byte)
-	}
-
-	return content, nil
-}
-
-func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any) ([]byte, error) {
-	data, err := t.parse(content)
-	if err != nil {
-		return nil, err
-	}
+func (t *UpdateTask) replaceStructured() (any, error) {
+	data := t.Dst.Content()
+	pattern := t.Match.Pattern()
+	repl := t.Src.Content()
 
 	// parse pattern as a JSON path expression
 	exp, err := jp.ParseString(pattern)
@@ -314,45 +152,44 @@ func (t *UpdateTask) replaceStructured(content []byte, pattern string, repl any)
 		return nil, fmt.Errorf("json path parse: %w", err)
 	}
 	// use the expression to modify the data structure
-	if t.action.Type == modify.ActionDelete { //nolint:nestif
+	if t.Action.Type == modify.ActionDelete { //nolint:nestif
 		data, err = exp.Remove(data)
 		if err != nil {
 			return nil, fmt.Errorf("json path remove: %w", err)
 		}
 	} else {
-		if !exp.Has(data) && t.match.Default != nil {
-			err = exp.Set(data, t.match.Default)
+		if !exp.Has(data) && t.Match.Default != nil {
+			err = exp.Set(data, t.Match.Default)
 			if err != nil {
 				return nil, fmt.Errorf("json path set default: %w", err)
 			}
 		}
-		modifierOpt := modify.WithMergeType(t.action.MergeType)
-		modifier := modify.Modifier(t.action.Type, repl, modifierOpt)
+		modifierOpt := modify.WithMergeType(t.Action.MergeType)
+		modifier := modify.Modifier(t.Action.Type, repl, modifierOpt)
 		data, err = exp.Modify(data, modifier)
 		if err != nil {
 			return nil, fmt.Errorf("json path modify: %w", err)
 		}
 	}
 
-	marshalled, err := t.marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return marshalled, nil
+	return data, nil
 }
 
-func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]byte, error) {
-	re, err := regexp.Compile(pattern)
+func (t *UpdateTask) replaceText() (any, error) {
+	dstBytes, err := t.Dst.ContentBytes()
 	if err != nil {
-		return nil, fmt.Errorf("pattern: %w", err)
+		return nil, fmt.Errorf("dst bytes: %w", err)
 	}
 
-	replStr, err := cast.ToStringE(repl)
+	re, err := regexp.Compile(t.Match.Pattern())
 	if err != nil {
-		return nil, fmt.Errorf("replacement: %w", err)
+		return nil, fmt.Errorf("match pattern: %w", err)
 	}
-	srcBytes := []byte(replStr)
+
+	srcBytes, err := t.Src.ContentBytes()
+	if err != nil {
+		return nil, fmt.Errorf("src bytes: %w", err)
+	}
 
 	// Using this replacement func (as opposed to a simple call to `re.ReplaceAll`)
 	// because it allows us to use the `modify` package, and thus get the same
@@ -365,9 +202,9 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 
 		// Modify the dst content with the src content.
 		modifyFunc := modify.Modifier(
-			t.action.Type,
+			t.Action.Type,
 			srcExpanded,
-			modify.WithMergeType(t.action.MergeType),
+			modify.WithMergeType(t.Action.MergeType),
 		)
 		modified, _ := modifyFunc(dst)
 
@@ -376,12 +213,12 @@ func (t *UpdateTask) replaceText(content []byte, pattern string, repl any) ([]by
 		return modified.([]byte)
 	}
 
-	if t.match.Source == MatchSourceFile {
-		return re.ReplaceAllFunc(content, replacerFunc), nil
+	if t.Match.Source == MatchSourceFile {
+		return re.ReplaceAllFunc(dstBytes, replacerFunc), nil
 	}
 	newline := []byte("\n")
 	updatedLines := [][]byte{}
-	for _, line := range bytes.Split(content, newline) {
+	for _, line := range bytes.Split(dstBytes, newline) {
 		updatedLine := re.ReplaceAllFunc(line, replacerFunc)
 		updatedLines = append(updatedLines, updatedLine)
 	}

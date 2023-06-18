@@ -11,5 +11,7 @@ values:
 
 tasks:
   - type: create
-    src: "template.txt"
-    dst: "{{ .FileName }}"
+    src:
+      path: "template.txt"
+    dst:
+      path: "{{ .FileName }}"

@@ -1,16 +1,10 @@
 package stamp
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/spf13/cast"
-	"github.com/twelvelabs/termite/render"
-
-	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 const (
@@ -21,166 +15,129 @@ const (
 type CreateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src      string         `validate:"required"`
-	Dst      string         `validate:"required"`
-	Mode     string         `validate:"required,posix-mode" default:"0666"`
-	Conflict ConflictConfig `validate:"required" default:"prompt"`
+	Src Source      `mapstructure:"src" validate:"required"`
+	Dst Destination `mapstructure:"dst" validate:"required"`
 }
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
-	t.DryRun = ctx.DryRun
-
-	srcRoot := cast.ToString(values["SrcPath"])
-	src, err := t.RenderPath("src", t.Src, srcRoot, values)
-	if err != nil {
+	if err := t.Dst.SetValues(values); err != nil {
+		ctx.Logger.Failure("fail", t.Dst.Path())
 		return err
 	}
-	dstRoot := cast.ToString(values["DstPath"])
-	dst, err := t.RenderPath("dst", t.Dst, dstRoot, values)
-	if err != nil {
+	if err := t.Src.SetValues(values); err != nil {
+		ctx.Logger.Failure("fail", t.Dst.Path())
 		return err
 	}
 
-	info, _ := os.Stat(src)
-	if info != nil && info.IsDir() {
-		src = strings.TrimSuffix(src, "/")
+	if t.Src.IsDir() {
 		// src is a dir; walk and call dispatch on each file
-		return filepath.Walk(src, func(srcPath string, srcPathInfo fs.FileInfo, err error) error {
+		srcRoot := strings.TrimSuffix(t.Src.Path(), "/")
+		dstRoot := strings.TrimSuffix(t.Dst.Path(), "/")
+		return filepath.Walk(srcRoot, func(srcPath string, srcPathInfo fs.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			dstPath := filepath.Join(dst, strings.TrimPrefix(srcPath, src))
+			// Construct the dst path by replacing `srcRoot` with `dstRoot`.
+			dstPath := filepath.Join(dstRoot, strings.TrimPrefix(srcPath, srcRoot))
+
+			// If the src path is a dir, create the dst dir and move on.
 			if srcPathInfo.IsDir() {
-				return t.createDstDir(dstPath)
+				return t.createDstDir(ctx, dstPath)
 			}
-			return t.dispatch(ctx, values, srcPath, dstPath)
+
+			// Otherwise create new Source and Destination structs and dispatch.
+			src, err := NewSourceWithValues(srcPath, values)
+			if err != nil {
+				return err
+			}
+			dst, err := NewDestinationWithValues(dstPath, values)
+			if err != nil {
+				return err
+			}
+			return t.dispatch(ctx, src, dst)
 		})
 	}
 
 	// src is a single file (or inline content)
-	return t.dispatch(ctx, values, src, dst)
+	return t.dispatch(ctx, t.Src, t.Dst)
 }
 
 // dispatch looks for conflicts and delegates to the correct generation method.
-func (t *CreateTask) dispatch(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	if _, err := os.Stat(dst); os.IsNotExist(err) && dst != "" {
-		return t.create(ctx, values, src, dst)
+func (t *CreateTask) dispatch(ctx *TaskContext, src Source, dst Destination) error {
+	if !dst.Exists() {
+		return t.create(ctx, src, dst)
 	}
-	switch t.Conflict {
-	case ConflictConfigPrompt:
-		return t.prompt(ctx, values, src, dst)
+	switch t.Dst.Conflict {
 	case ConflictConfigKeep:
-		return t.keep(ctx, values, src, dst)
+		return t.keep(ctx, src, dst)
 	case ConflictConfigReplace:
-		return t.replace(ctx, values, src, dst)
-	default:
-		return fmt.Errorf("unknown conflict type: %v", t.Conflict)
+		return t.replace(ctx, src, dst)
+	default: // ConflictConfigPrompt
+		return t.prompt(ctx, src, dst)
 	}
 }
 
 // create is called to create a non-existing dst file.
-func (t *CreateTask) create(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	if err := t.createDst(values, src, dst); err != nil {
-		ctx.Logger.Failure("fail", dst)
+func (t *CreateTask) create(ctx *TaskContext, src Source, dst Destination) error {
+	if err := t.createDst(ctx, src, dst); err != nil {
+		ctx.Logger.Failure("fail", dst.Path())
 		return err
 	}
-	ctx.Logger.Success("create", dst)
+	ctx.Logger.Success("create", dst.Path())
 	return nil
 }
 
 // keep is called when keeping an existing dst file.
-func (t *CreateTask) keep(ctx *TaskContext, _ map[string]any, _ string, dst string) error {
-	ctx.Logger.Success("keep", dst)
+func (t *CreateTask) keep(ctx *TaskContext, _ Source, dst Destination) error {
+	ctx.Logger.Success("keep", dst.Path())
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
-func (t *CreateTask) replace(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	if err := t.deleteDst(dst); err != nil {
-		ctx.Logger.Failure("fail", dst)
+func (t *CreateTask) replace(ctx *TaskContext, src Source, dst Destination) error {
+	if err := t.deleteDst(ctx, src, dst); err != nil {
+		ctx.Logger.Failure("fail", dst.Path())
 		return err
 	}
-	if err := t.createDst(values, src, dst); err != nil {
-		ctx.Logger.Failure("fail", dst)
+	if err := t.createDst(ctx, src, dst); err != nil {
+		ctx.Logger.Failure("fail", dst.Path())
 		return err
 	}
-	ctx.Logger.Success("replace", dst)
+	ctx.Logger.Success("replace", dst.Path())
 	return nil
 }
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
-func (t *CreateTask) prompt(ctx *TaskContext, values map[string]any, src string, dst string) error {
-	ctx.Logger.Warning("conflict", "%s already exists", dst)
+func (t *CreateTask) prompt(ctx *TaskContext, src Source, dst Destination) error {
+	ctx.Logger.Warning("conflict", "%s already exists", dst.Path())
 	overwrite, err := ctx.UI.Confirm("Overwrite", false)
 	if err != nil {
 		return err
 	}
 	if overwrite {
-		return t.replace(ctx, values, src, dst)
+		return t.replace(ctx, src, dst)
 	}
-	return t.keep(ctx, values, src, dst)
+	return t.keep(ctx, src, dst)
 }
 
-func (t *CreateTask) createDstDir(dst string) error {
-	if t.DryRun {
+func (t *CreateTask) createDstDir(ctx *TaskContext, path string) error {
+	if ctx.DryRun {
 		return nil
 	}
-	return os.MkdirAll(dst, DstDirMode)
+	return os.MkdirAll(path, DstDirMode)
 }
 
-func (t *CreateTask) createDst(values map[string]any, src string, dst string) error {
-	if t.DryRun {
+func (t *CreateTask) createDst(ctx *TaskContext, src Source, dst Destination) error {
+	if ctx.DryRun {
 		return nil
 	}
-
-	// render and parse mode
-	mode, err := t.RenderMode(t.Mode, values)
-	if err != nil {
-		return err
-	}
-
-	var rendered string
-	// Src can be:
-	// - A path to a template file containing the source content.
-	// - An inline string literal to render and use as source content.
-	if fsutil.PathExists(src) {
-		rendered, err = render.File(src, values)
-		if err != nil {
-			return err
-		}
-	} else {
-		rendered = t.Render(t.Src, values)
-	}
-
-	// create base dst dirs
-	if err := os.MkdirAll(filepath.Dir(dst), DstDirMode); err != nil {
-		return err
-	}
-
-	// create dst
-	f, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.WriteString(rendered)
-	if err != nil {
-		return err
-	}
-
-	// set perms
-	err = os.Chmod(dst, mode)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return dst.Write(src.Content())
 }
 
-func (t *CreateTask) deleteDst(dst string) error {
-	if t.DryRun {
+func (t *CreateTask) deleteDst(ctx *TaskContext, _ Source, dst Destination) error {
+	if ctx.DryRun {
 		return nil
 	}
-	return os.Remove(dst)
+	return dst.Delete()
 }

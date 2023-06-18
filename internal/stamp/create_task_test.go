@@ -15,87 +15,45 @@ func TestNewTask_WhenTypeIsCreate(t *testing.T) {
 	tests := []struct {
 		Name     string
 		TaskData map[string]any
-		Task     Task
 		Err      string
 	}{
 		{
-			Name: "returns an error when both src and dst are missing",
-			TaskData: map[string]any{
-				"type": "create",
-			},
-			Task: nil,
-			Err:  "Dst is a required field, Src is a required field",
-		},
-		{
-			Name: "returns an error when dst is missing",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "example.tpl",
-			},
-			Task: nil,
-			Err:  "Dst is a required field",
-		},
-		{
-			Name: "returns an error when src is missing",
-			TaskData: map[string]any{
-				"type": "create",
-				"dst":  "example.txt",
-			},
-			Task: nil,
-			Err:  "Src is a required field",
-		},
-		{
-			Name: "returns an error when mode is invalid",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "example.tpl",
-				"dst":  "example.txt",
-				"mode": "not a posix-mode",
-			},
-			Task: nil,
-			Err:  "Mode must be a valid posix file mode",
-		},
-		{
 			Name: "returns an error when conflict is invalid",
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "example.tpl",
-				"dst":      "example.txt",
-				"conflict": "unknown",
+				"type": "create",
+				"src": map[string]any{
+					"path": "example.tpl",
+				},
+				"dst": map[string]any{
+					"path":     "example.txt",
+					"conflict": "unknown",
+				},
 			},
-			Task: nil,
-			Err:  "unknown is not a valid Conflict",
+			Err: "unknown is not a valid Conflict",
 		},
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "example.tpl",
-				"dst":  "example.txt",
-			},
-			Task: &CreateTask{
-				Common: Common{
-					If:   "true",
-					Each: "",
+				"src": map[string]any{
+					"path": "example.tpl",
 				},
-				Src:      "example.tpl",
-				Dst:      "example.txt",
-				Conflict: "prompt",
-				Mode:     "0666",
+				"dst": map[string]any{
+					"path": "example.txt",
+				},
 			},
-			Err: "",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			actual, err := NewTask(test.TaskData)
-
-			assert.Equal(t, test.Task, actual)
 			if test.Err == "" {
 				assert.NoError(t, err)
+				assert.NotNil(t, actual)
 			} else {
 				assert.ErrorContains(t, err, test.Err)
+				assert.Nil(t, actual)
 			}
 		})
 	}
@@ -114,38 +72,33 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 		Err        string
 	}{
 		{
-			Desc: "returns an error if src evaluates to empty string",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "{{ .Empty }}",
-				"dst":  "README.md",
-			},
-			Values: map[string]any{
-				"DstPath": ".",
-				"Empty":   "",
-			},
-			Err: "src: '{{ .Empty }}' evaluated to an empty string",
-		},
-		{
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "README.md",
-				"dst":  "{{ .Empty }}",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path": "{{ .Empty }}",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": templatesDir,
 				"Empty":   "",
 			},
-			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
+			Err: "evaluated to an empty string",
 		},
 
 		{
 			Desc: "generates a single file",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "README.md",
-				"dst":  "README.md",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -161,9 +114,13 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates a single file with custom permissions",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "README.md",
-				"dst":  "README.md",
-				"mode": "0755",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path": "README.md",
+					"mode": "0755",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -182,8 +139,12 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates a single file from inline content",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "Hello!",
-				"dst":  "README.md",
+				"src": map[string]any{
+					"content": "Hello!",
+				},
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"SrcPath": templatesDir,
@@ -199,8 +160,12 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			DryRun: true,
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "README.md",
-				"dst":  "README.md",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -217,8 +182,12 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			Desc: "generates entire directories of files",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "nested/",
-				"dst":  "nested/",
+				"src": map[string]any{
+					"path": "nested/",
+				},
+				"dst": map[string]any{
+					"path": "nested/",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -238,8 +207,12 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			DryRun: true,
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "nested/",
-				"dst":  "nested/",
+				"src": map[string]any{
+					"path": "nested/",
+				},
+				"dst": map[string]any{
+					"path": "nested/",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -261,10 +234,14 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "README.md",
-				"dst":      "README.md",
-				"conflict": "keep",
+				"type": "create",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path":     "README.md",
+					"conflict": "keep",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -283,10 +260,14 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "README.md",
-				"dst":      "README.md",
-				"conflict": "replace",
+				"type": "create",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path":     "README.md",
+					"conflict": "replace",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -305,10 +286,14 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "README.md",
-				"dst":      "README.md",
-				"conflict": "prompt",
+				"type": "create",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path":     "README.md",
+					"conflict": "prompt",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -332,10 +317,14 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "README.md",
-				"dst":      "README.md",
-				"conflict": "prompt",
+				"type": "create",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path":     "README.md",
+					"conflict": "prompt",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -359,10 +348,14 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 				"README.md": "Pre-existing content",
 			},
 			TaskData: map[string]any{
-				"type":     "create",
-				"src":      "README.md",
-				"dst":      "README.md",
-				"conflict": "prompt",
+				"type": "create",
+				"src": map[string]any{
+					"path": "README.md",
+				},
+				"dst": map[string]any{
+					"path":     "README.md",
+					"conflict": "prompt",
+				},
 			},
 			Values: map[string]any{
 				"ProjectName": "My Project",
@@ -412,33 +405,4 @@ func TestCreateTask_Execute(t *testing.T) { //nolint:maintidx
 			})
 		})
 	}
-}
-
-func TestCreateTask_DispatchErrorsOnInvalidConflict(t *testing.T) {
-	// invalid conflicts should always be caught by `NewTask`,
-	// but testing here for full coverage.
-	task := &CreateTask{
-		Conflict: "unknown",
-	}
-	app := NewTestApp()
-	ctx := NewTaskContext(app)
-	values := map[string]any{}
-
-	err := task.dispatch(ctx, values, "", "")
-	assert.ErrorContains(t, err, "unknown conflict type")
-}
-
-func TestCreateTask_DispatchErrorsOnInvalidMode(t *testing.T) {
-	// invalid modes should always be caught by `NewTask`,
-	// but testing here for full coverage.
-	task := &CreateTask{
-		Mode: "unknown",
-	}
-	app := NewTestApp()
-	ctx := NewTaskContext(app)
-	values := map[string]any{}
-
-	err := task.dispatch(ctx, values, "", "/do-not-create")
-	assert.NoFileExists(t, "/do-not-create")
-	assert.ErrorContains(t, err, "invalid syntax")
 }

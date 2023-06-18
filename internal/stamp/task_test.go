@@ -44,41 +44,15 @@ func TestNewTask(t *testing.T) {
 			Name: "returns an error if decoding fails",
 			TaskData: map[string]any{
 				"type": "create",
-				"src":  "/some/src/path",
-				"dst":  123, // not a string
-			},
-			Task: nil,
-			Err:  "'Dst' expected type 'string', got unconvertible type 'int'",
-		},
-		{
-			Name: "returns an error if validation fails",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "/some/src/path",
-				"dst":  "", // not present
-			},
-			Task: nil,
-			Err:  "Dst is a required field",
-		},
-		{
-			Name: "returns the correct struct for the given type",
-			TaskData: map[string]any{
-				"type": "create",
-				"src":  "/some/src/path",
-				"dst":  "/some/dst/path",
-			},
-			Task: &CreateTask{
-				Common: Common{
-					If:     "true",
-					Each:   "",
-					DryRun: false,
+				"src": map[string]any{
+					"path": "/some/src/path",
 				},
-				Src:      "/some/src/path",
-				Dst:      "/some/dst/path",
-				Mode:     "0666",
-				Conflict: "prompt",
+				"dst": map[string]any{
+					"path": 123, // not a string
+				},
 			},
-			Err: "",
+			Task: nil,
+			Err:  "error(s) decoding",
 		},
 	}
 	for _, tt := range tests {

@@ -12,8 +12,6 @@ type GeneratorTask struct {
 }
 
 func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
-	t.DryRun = ctx.DryRun
-
 	gen, err := t.GetGenerator(ctx.Store)
 	if err != nil {
 		return err

@@ -12,43 +12,27 @@ func TestNewTask_WhenTypeIsDelete(t *testing.T) {
 	tests := []struct {
 		Name     string
 		TaskData map[string]any
-		Task     Task
 		Err      string
 	}{
 		{
-			Name: "returns an error when dst field is missing",
-			TaskData: map[string]any{
-				"type": "delete",
-				"dst":  "",
-			},
-			Task: nil,
-			Err:  "Dst is a required field",
-		},
-		{
 			Name: "returns an error when missing field is invalid",
 			TaskData: map[string]any{
-				"type":    "delete",
-				"dst":     "example.txt",
-				"missing": "unknown",
+				"type": "delete",
+				"dst": map[string]any{
+					"path":    "example.txt",
+					"missing": "unknown",
+				},
 			},
-			Task: nil,
-			Err:  "unknown is not a valid MissingConfig",
+			Err: "unknown is not a valid MissingConfig",
 		},
 		{
 			Name: "returns the task when all fields are valid",
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "example.txt",
-			},
-			Task: &DeleteTask{
-				Common: Common{
-					If:   "true",
-					Each: "",
+				"dst": map[string]any{
+					"path": "example.txt",
 				},
-				Dst:     "example.txt",
-				Missing: "ignore",
 			},
-			Err: "",
 		},
 	}
 
@@ -56,11 +40,12 @@ func TestNewTask_WhenTypeIsDelete(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			actual, err := NewTask(test.TaskData)
 
-			assert.Equal(t, test.Task, actual)
 			if test.Err == "" {
 				assert.NoError(t, err)
+				assert.NotNil(t, actual)
 			} else {
 				assert.ErrorContains(t, err, test.Err)
+				assert.Nil(t, actual)
 			}
 		})
 	}
@@ -81,12 +66,14 @@ func TestDeleteTask_Execute(t *testing.T) {
 			Desc: "returns an error if dst evaluates to empty string",
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "{{ .Empty }}",
+				"dst": map[string]any{
+					"path": "{{ .Empty }}",
+				},
 			},
 			Values: map[string]any{
 				"Empty": "",
 			},
-			Err: "dst: '{{ .Empty }}' evaluated to an empty string",
+			Err: "evaluated to an empty string",
 		},
 
 		{
@@ -96,7 +83,9 @@ func TestDeleteTask_Execute(t *testing.T) {
 			},
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "README.md",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -114,7 +103,9 @@ func TestDeleteTask_Execute(t *testing.T) {
 			},
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "README.md",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -129,7 +120,9 @@ func TestDeleteTask_Execute(t *testing.T) {
 			Desc: "[missing:ignore] ignores missing paths",
 			TaskData: map[string]any{
 				"type": "delete",
-				"dst":  "README.md",
+				"dst": map[string]any{
+					"path": "README.md",
+				},
 			},
 			Values: map[string]any{
 				"DstPath": ".",
@@ -143,9 +136,11 @@ func TestDeleteTask_Execute(t *testing.T) {
 		{
 			Desc: "[missing:error] returns an error when path is missing",
 			TaskData: map[string]any{
-				"type":    "delete",
-				"dst":     "README.md",
-				"missing": "error",
+				"type": "delete",
+				"dst": map[string]any{
+					"path":    "README.md",
+					"missing": "error",
+				},
 			},
 			Values: map[string]any{
 				"DstPath": ".",
