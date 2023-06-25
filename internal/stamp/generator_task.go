@@ -7,8 +7,9 @@ import (
 type GeneratorTask struct {
 	Common `mapstructure:",squash"`
 
-	Name   string         `validate:"required"`
-	Values map[string]any `default:"{}"`
+	Name   string         `mapstructure:"name" validate:"required"`
+	Values map[string]any `mapstructure:"values" default:"{}"`
+	Type   string         `mapstructure:"type" const:"generator" description:"Executes another generator."`
 }
 
 func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {

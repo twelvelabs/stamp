@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/swaggest/jsonschema-go"
 )
 
 // dummy tests that exercise all the generated enum methods
@@ -24,6 +25,9 @@ func TestConflictConfig(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }
 
 func TestMatchSource(t *testing.T) {
@@ -41,6 +45,9 @@ func TestMatchSource(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }
 
 func TestMissingConfig(t *testing.T) {
@@ -58,6 +65,9 @@ func TestMissingConfig(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }
 
 func TestFileType(t *testing.T) {
@@ -75,6 +85,9 @@ func TestFileType(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }
 
 func TestParseFileTypeFromPath(t *testing.T) {

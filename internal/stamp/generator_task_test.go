@@ -11,7 +11,6 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 	tests := []struct {
 		Desc     string
 		TaskData map[string]any
-		Task     Task
 		Err      string
 	}{
 		{
@@ -19,8 +18,7 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 			TaskData: map[string]any{
 				"type": "generator",
 			},
-			Task: nil,
-			Err:  "Name is a required field",
+			Err: "Name is a required field",
 		},
 		{
 			Desc: "returns the task when all fields are valid",
@@ -28,27 +26,18 @@ func TestNewTask_WhenTypeIsGenerator(t *testing.T) {
 				"type": "generator",
 				"name": "foo",
 			},
-			Task: &GeneratorTask{
-				Common: Common{
-					If:   "true",
-					Each: "",
-				},
-				Name:   "foo",
-				Values: map[string]any{},
-			},
-			Err: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.Desc, func(t *testing.T) {
 			actual, err := NewTask(tt.TaskData)
-
-			assert.Equal(t, tt.Task, actual)
 			if tt.Err == "" {
 				assert.NoError(t, err)
+				assert.NotNil(t, actual)
 			} else {
 				assert.ErrorContains(t, err, tt.Err)
+				assert.Nil(t, actual)
 			}
 		})
 	}

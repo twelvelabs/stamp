@@ -9,6 +9,8 @@ package stamp
 import (
 	"fmt"
 	"strings"
+
+	"github.com/swaggest/jsonschema-go"
 )
 
 const (
@@ -40,7 +42,8 @@ func (x ConflictConfig) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x ConflictConfig) IsValid() bool {
 	_, err := ParseConflictConfig(string(x))
 	return err == nil
@@ -75,6 +78,24 @@ func (x *ConflictConfig) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = ConflictConfig("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x ConflictConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("ConflictConfig enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x ConflictConfig) Enum() []any {
+	return []any{
+		"keep",
+		"replace",
+		"prompt",
+	}
+}
+
 const (
 	// FileTypeJson is a FileType of type json.
 	FileTypeJson FileType = "json"
@@ -104,7 +125,8 @@ func (x FileType) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x FileType) IsValid() bool {
 	_, err := ParseFileType(string(x))
 	return err == nil
@@ -139,6 +161,24 @@ func (x *FileType) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = FileType("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x FileType) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("FileType enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x FileType) Enum() []any {
+	return []any{
+		"json",
+		"yaml",
+		"text",
+	}
+}
+
 const (
 	// MatchSourceFile is a MatchSource of type file.
 	MatchSourceFile MatchSource = "file"
@@ -165,7 +205,8 @@ func (x MatchSource) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x MatchSource) IsValid() bool {
 	_, err := ParseMatchSource(string(x))
 	return err == nil
@@ -199,6 +240,23 @@ func (x *MatchSource) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = MatchSource("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x MatchSource) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("MatchSource enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x MatchSource) Enum() []any {
+	return []any{
+		"file",
+		"line",
+	}
+}
+
 const (
 	// MissingConfigIgnore is a MissingConfig of type ignore.
 	MissingConfigIgnore MissingConfig = "ignore"
@@ -228,7 +286,8 @@ func (x MissingConfig) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x MissingConfig) IsValid() bool {
 	_, err := ParseMissingConfig(string(x))
 	return err == nil
@@ -261,4 +320,22 @@ func (x *MissingConfig) UnmarshalText(text []byte) error {
 	}
 	*x = tmp
 	return nil
+}
+
+var _ jsonschema.Preparer = MissingConfig("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x MissingConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("MissingConfig enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x MissingConfig) Enum() []any {
+	return []any{
+		"ignore",
+		"touch",
+		"error",
+	}
 }

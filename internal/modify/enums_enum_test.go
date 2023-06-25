@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/swaggest/jsonschema-go"
 )
 
 func TestAction(t *testing.T) {
@@ -21,6 +22,9 @@ func TestAction(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }
 
 func TestMergeType(t *testing.T) {
@@ -38,4 +42,7 @@ func TestMergeType(t *testing.T) {
 	assert.NoError(t, err)
 	err = (&enum).UnmarshalText([]byte{})
 	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
 }

@@ -9,6 +9,8 @@ package value
 import (
 	"fmt"
 	"strings"
+
+	"github.com/swaggest/jsonschema-go"
 )
 
 const (
@@ -46,7 +48,8 @@ func (x DataType) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x DataType) IsValid() bool {
 	_, err := ParseDataType(string(x))
 	return err == nil
@@ -83,6 +86,26 @@ func (x *DataType) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = DataType("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x DataType) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("DataType enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x DataType) Enum() []any {
+	return []any{
+		"bool",
+		"int",
+		"intSlice",
+		"string",
+		"stringSlice",
+	}
+}
+
 const (
 	// InputModeArg is a InputMode of type arg.
 	InputModeArg InputMode = "arg"
@@ -112,7 +135,8 @@ func (x InputMode) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x InputMode) IsValid() bool {
 	_, err := ParseInputMode(string(x))
 	return err == nil
@@ -147,6 +171,24 @@ func (x *InputMode) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = InputMode("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x InputMode) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("InputMode enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x InputMode) Enum() []any {
+	return []any{
+		"arg",
+		"flag",
+		"hidden",
+	}
+}
+
 const (
 	// PromptConfigAlways is a PromptConfig of type always.
 	PromptConfigAlways PromptConfig = "always"
@@ -179,7 +221,8 @@ func (x PromptConfig) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x PromptConfig) IsValid() bool {
 	_, err := ParsePromptConfig(string(x))
 	return err == nil
@@ -213,4 +256,23 @@ func (x *PromptConfig) UnmarshalText(text []byte) error {
 	}
 	*x = tmp
 	return nil
+}
+
+var _ jsonschema.Preparer = PromptConfig("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x PromptConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("PromptConfig enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x PromptConfig) Enum() []any {
+	return []any{
+		"always",
+		"never",
+		"on-empty",
+		"on-unset",
+	}
 }

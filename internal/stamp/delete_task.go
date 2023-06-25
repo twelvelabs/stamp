@@ -3,7 +3,8 @@ package stamp
 type DeleteTask struct {
 	Common `mapstructure:",squash"`
 
-	Dst Destination `mapstructure:"dst"`
+	Dst  Destination `mapstructure:"dst"`
+	Type string      `mapstructure:"type" const:"delete" description:"Deletes a file in the destination directory."`
 }
 
 func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {

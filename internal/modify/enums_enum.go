@@ -9,6 +9,8 @@ package modify
 import (
 	"fmt"
 	"strings"
+
+	"github.com/swaggest/jsonschema-go"
 )
 
 const (
@@ -43,7 +45,8 @@ func (x Action) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x Action) IsValid() bool {
 	_, err := ParseAction(string(x))
 	return err == nil
@@ -79,6 +82,25 @@ func (x *Action) UnmarshalText(text []byte) error {
 	return nil
 }
 
+var _ jsonschema.Preparer = Action("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x Action) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("Action enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x Action) Enum() []any {
+	return []any{
+		"append",
+		"prepend",
+		"replace",
+		"delete",
+	}
+}
+
 const (
 	// MergeTypeConcat is a MergeType of type concat.
 	MergeTypeConcat MergeType = "concat"
@@ -108,7 +130,8 @@ func (x MergeType) String() string {
 	return string(x)
 }
 
-// String implements the Stringer interface.
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
 func (x MergeType) IsValid() bool {
 	_, err := ParseMergeType(string(x))
 	return err == nil
@@ -141,4 +164,22 @@ func (x *MergeType) UnmarshalText(text []byte) error {
 	}
 	*x = tmp
 	return nil
+}
+
+var _ jsonschema.Preparer = MergeType("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x MergeType) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("MergeType enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x MergeType) Enum() []any {
+	return []any{
+		"concat",
+		"upsert",
+		"replace",
+	}
 }

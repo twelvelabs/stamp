@@ -15,11 +15,12 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action      UpdateAction    `mapstructure:"action"`
-	Description render.Template `mapstructure:"description"`
-	Dst         Destination     `mapstructure:"dst"`
-	Match       UpdateMatch     `mapstructure:"match"`
-	Src         Source          `mapstructure:"src"`
+	Action         UpdateAction    `mapstructure:"action" description:"The action to perform on the destination."`
+	DescriptionTpl render.Template `mapstructure:"description" description:"An optional description of what is being updated."` //nolint: lll
+	Dst            Destination     `mapstructure:"dst"`
+	Match          UpdateMatch     `mapstructure:"match" description:"A pattern to match in the destination."`
+	Src            Source          `mapstructure:"src" description:"The source path or inline content."`
+	Type           string          `mapstructure:"type" const:"update" description:"Updates a file in the destination directory."` //nolint: lll
 }
 
 type UpdateAction struct {
@@ -28,7 +29,7 @@ type UpdateAction struct {
 }
 
 type UpdateMatch struct {
-	PatternTpl render.Template `mapstructure:"pattern"`
+	PatternTpl render.Template `mapstructure:"pattern" default:""`
 	Default    any             `mapstructure:"default"`
 	Source     MatchSource     `mapstructure:"source" default:"line"`
 
@@ -67,7 +68,7 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	}
 
 	// Render description.
-	desc, err := t.Description.Render(values)
+	desc, err := t.DescriptionTpl.Render(values)
 	if err != nil {
 		ctx.Logger.Failure("fail", t.Dst.Path())
 		return err

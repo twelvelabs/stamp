@@ -1,52 +1,34 @@
 package stamp
 
 import (
-	"path/filepath"
 	"testing"
 
-	"github.com/creasty/defaults"
 	"github.com/stretchr/testify/assert"
+	"github.com/twelvelabs/termite/render"
 )
-
-func TestCommon_Defaults(t *testing.T) {
-	// empty struct should have defaults set
-	task := &Common{}
-	_ = defaults.Set(task)
-	assert.Equal(t, "true", task.If)
-	assert.Equal(t, "", task.Each)
-
-	// existing values should not be overridden by defaults
-	task = &Common{
-		If:   "{{ .SomeBool }}",
-		Each: "{{ .SomeList }}",
-	}
-	_ = defaults.Set(task)
-	assert.Equal(t, "{{ .SomeBool }}", task.If)
-	assert.Equal(t, "{{ .SomeList }}", task.Each)
-}
 
 func TestCommon_Iterator(t *testing.T) {
 	tests := []struct {
 		Name   string
-		Each   string
+		Each   render.Template
 		Values map[string]any
 		Output []any
 	}{
 		{
 			Name:   "should return nil when Each is an empty string",
-			Each:   "",
+			Each:   *render.MustCompile(``),
 			Values: map[string]any{},
 			Output: nil,
 		},
 		{
 			Name:   "should return a slice when Each is a comma separated string",
-			Each:   "foo, bar, baz",
+			Each:   *render.MustCompile(`foo, bar, baz`),
 			Values: map[string]any{},
 			Output: []any{"foo", "bar", "baz"},
 		},
 		{
 			Name: "should render Each as a template value before processing",
-			Each: "{{ .Tags }}",
+			Each: *render.MustCompile(`{{ .Tags }}`),
 			Values: map[string]any{
 				"Tags": "foo, bar, baz",
 			},
@@ -57,110 +39,36 @@ func TestCommon_Iterator(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			task := &Common{
-				Each: test.Each,
+				EachTpl: test.Each,
 			}
 			assert.Equal(t, test.Output, task.Iterator(test.Values))
 		})
 	}
 }
 
-func TestCommon_Render(t *testing.T) {
-	tests := []struct {
-		Name     string
-		Template string
-		Values   map[string]any
-		Output   string
-	}{
-		{
-			Name:     "treats empty string as a noop",
-			Template: "",
-			Values:   map[string]any{},
-			Output:   "",
-		},
-		{
-			Name:     "returns the template unchanged if unable to parse",
-			Template: "{{}",
-			Values:   map[string]any{},
-			Output:   "{{}",
-		},
-		{
-			Name:     "semi-gracefully handles missing values",
-			Template: "Hello, {{ .Name }}.",
-			Values:   map[string]any{},
-			Output:   "Hello, <no value>.",
-		},
-		{
-			Name:     "renders values when present",
-			Template: "Hello, {{ .Name }}.",
-			Values:   map[string]any{"Name": "World"},
-			Output:   "Hello, World.",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			task := &Common{}
-			assert.Equal(t, test.Output, task.Render(test.Template, test.Values))
-		})
-	}
-}
-
-func TestCommon_RenderRequired(t *testing.T) {
-	task := &Common{}
-
-	rendered, err := task.RenderRequired("SomeKey", "{{ .Var }}", map[string]any{"Var": "foo"})
-	assert.Equal(t, "foo", rendered)
-	assert.NoError(t, err)
-
-	rendered, err = task.RenderRequired("SomeKey", "{{ .Var }}", map[string]any{"Var": ""})
-	assert.Equal(t, "", rendered)
-	assert.ErrorContains(t, err, "SomeKey: '{{ .Var }}' evaluated to an empty string")
-}
-
-func TestCommon_RenderPath(t *testing.T) {
-	task := &Common{}
-	root := "testdata"
-
-	// must be non-empty
-	rendered, err := task.RenderPath("dst", "{{ .Var }}", root, map[string]any{"Var": ""})
-	assert.Equal(t, "", rendered)
-	assert.ErrorContains(t, err, "dst: '{{ .Var }}' evaluated to an empty string")
-
-	// must not traverse outside of root
-	rendered, err = task.RenderPath("dst", "../../nope", root, map[string]any{})
-	assert.Equal(t, "", rendered)
-	assert.ErrorContains(t, err, "dst: ../../nope attempted to traverse outside of testdata")
-
-	// happy path
-	expected, _ := filepath.Abs(filepath.Join(root, "ok", "path"))
-	rendered, err = task.RenderPath("dst", "ok/path", root, map[string]any{})
-	assert.Equal(t, expected, rendered)
-	assert.NoError(t, err)
-}
-
 func TestCommon_ShouldExecute(t *testing.T) {
 	tests := []struct {
 		Name   string
 		Values map[string]any
-		If     string
+		If     render.Template
 		Output bool
 	}{
 		{
 			Name:   "returns false when empty string",
 			Values: map[string]any{},
-			If:     "",
+			If:     *render.MustCompile(``),
 			Output: false,
 		},
 		{
 			Name:   "returns true when literal string true",
 			Values: map[string]any{},
-			If:     "true",
+			If:     *render.MustCompile(`true`),
 			Output: true,
 		},
 		{
 			Name:   "returns false when literal string false",
 			Values: map[string]any{},
-			If:     "false",
+			If:     *render.MustCompile(`false`),
 			Output: false,
 		},
 		{
@@ -168,13 +76,13 @@ func TestCommon_ShouldExecute(t *testing.T) {
 			Values: map[string]any{
 				"SomeBool": true,
 			},
-			If:     "{{ .SomeBool }}",
+			If:     *render.MustCompile(`{{ .SomeBool }}`),
 			Output: true,
 		},
 		{
 			Name:   "returns false if template value missing",
 			Values: map[string]any{},
-			If:     "{{ .SomeBool }}",
+			If:     *render.MustCompile(`{{ .SomeBool }}`),
 			Output: false,
 		},
 	}
@@ -182,7 +90,7 @@ func TestCommon_ShouldExecute(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			task := &Common{
-				If: test.If,
+				IfTpl: test.If,
 			}
 			assert.Equal(t, test.Output, task.ShouldExecute(test.Values))
 		})

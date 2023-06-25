@@ -15,8 +15,9 @@ const (
 type CreateTask struct {
 	Common `mapstructure:",squash"`
 
-	Src Source      `mapstructure:"src" validate:"required"`
-	Dst Destination `mapstructure:"dst" validate:"required"`
+	Dst  Destination `mapstructure:"dst"`
+	Src  Source      `mapstructure:"src"`
+	Type string      `mapstructure:"type" const:"create" description:"Creates a new file in the destination directory."`
 }
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {

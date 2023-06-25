@@ -1,0 +1,19 @@
+
+var _ jsonschema.Preparer = {{ .enum.Name }}("")
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x {{ .enum.Name }}) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("{{ .enum.Name }} enum.")
+	schema.WithEnum(x.Enum()...)
+	return nil
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x {{ .enum.Name }}) Enum() []any {
+	return []any{
+{{- $enumType := .enum.Type -}}
+{{- range $value := .enum.Values }}
+		{{ if eq $enumType "string" }}"{{ $value.ValueStr }}"{{ else }}{{ $value.ValueInt }}{{ end }},
+{{- end}}
+	}
+}

@@ -1,6 +1,6 @@
 package value
 
-//go:generate go-enum -f=$GOFILE --marshal --names
+//go:generate go-enum -f=$GOFILE -t ../enums.tmpl --marshal --names
 
 // DataType is the data type of a value.
 // ENUM(bool, int, intSlice, string, stringSlice).

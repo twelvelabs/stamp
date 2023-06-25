@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cast"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -40,6 +41,38 @@ type Destination struct {
 	contentType FileType
 	mode        os.FileMode
 	path        string
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (d Destination) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("The destination path.")
+	if prop, ok := schema.Properties["content_type"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"An explicit content type. Inferred from the file extension by default.",
+			).
+			WithEnum(d.contentType.Enum()...)
+	}
+	if prop, ok := schema.Properties["mode"]; ok {
+		prop.TypeObjectEns().
+			WithDefault("0666").
+			WithDescription(
+				"An optional POSIX file mode to set on the file path.",
+			).
+			WithExamples(
+				"0755",
+				"{{ .ModeValue }}",
+			).
+			WithPattern(`\{\{(.*)\}\}|\d{4}`) // https://rubular.com/r/t2lxVpKWQs5aeR
+	}
+	if prop, ok := schema.Properties["path"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"The file path relative to the destination directory. " +
+					"Attempts to traverse outside the destination directory will raise a runtime error",
+			)
+	}
+	return nil
 }
 
 // Content returns the parsed file content.

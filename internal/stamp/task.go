@@ -36,6 +36,16 @@ var (
 	SetDefaults = DefaultSetDefaultsFunc
 )
 
+// AllTasks returns a slice of all known tasks.
+func AllTasks() []any {
+	return []any{
+		&CreateTask{},
+		&DeleteTask{},
+		&GeneratorTask{},
+		&UpdateTask{},
+	}
+}
+
 // NewTask returns a new Task struct for the given map of data.
 func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn // intentional
 	taskType, ok := taskData["type"]

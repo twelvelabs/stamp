@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cast"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -34,6 +35,38 @@ type Source struct {
 	content     any
 	contentType FileType
 	path        string
+}
+
+// SourceWithContent represents one version of Source in the JSON schema.
+type SourceWithContent struct {
+	ContentType FileType `mapstructure:"content_type"`
+	Content     any      `mapstructure:"content" required:"true" description:"Inline content. Can be any type. String keys and/or values will be rendered as templates."` //nolint: lll
+}
+
+// SourceWithPath represents one version of Source in the JSON schema.
+type SourceWithPath struct {
+	ContentType FileType `mapstructure:"content_type"`
+	Path        string   `mapstructure:"path" required:"true" description:"The file path relative to the source directory. Attempts to traverse outside the source directory will raise a runtime error."` //nolint: lll
+}
+
+var _ jsonschema.Preparer = Source{}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (s Source) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDescription("The source path or inline content.")
+	// Reset properties and just rely on `oneOf`.
+	schema.WithProperties(map[string]jsonschema.SchemaOrBool{})
+	return nil
+}
+
+var _ jsonschema.OneOfExposer = Source{}
+
+// PrepareJSONSchema implements the jsonschema.OneOfExposer interface.
+func (s Source) JSONSchemaOneOf() []any {
+	return []any{
+		SourceWithContent{},
+		SourceWithPath{},
+	}
 }
 
 // Content returns the parsed file content.

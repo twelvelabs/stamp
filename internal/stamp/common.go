@@ -2,15 +2,11 @@ package stamp
 
 import (
 	"errors"
-	"fmt"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cast"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
-
-	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 var (
@@ -18,18 +14,35 @@ var (
 )
 
 type Common struct {
-	If   string `default:"true"`
-	Each string
+	IfTpl   render.Template `mapstructure:"if" default:"true"`
+	EachTpl render.Template `mapstructure:"each"`
+}
 
-	DryRun bool
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (c Common) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	if prop, ok := schema.Properties["if"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"Determines whether the task should be executed. " +
+					"The value must be coercible to a boolean.",
+			)
+	}
+	if prop, ok := schema.Properties["each"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"Set to a comma separated value and the task will be executued once per-item. " +
+					"On each iteration, the _Item and _Index values will be set accordingly.",
+			)
+	}
+	return nil
 }
 
 func (c *Common) Iterator(values map[string]any) []any {
-	if c.Each == "" {
+	rendered, _ := c.EachTpl.Render(values)
+	if rendered == "" {
 		return nil
 	}
 
-	rendered := c.Render(c.Each, values)
 	trimmed := []any{}
 	for _, item := range strings.Split(rendered, ",") {
 		trimmed = append(trimmed, strings.TrimSpace(item))
@@ -38,44 +51,7 @@ func (c *Common) Iterator(values map[string]any) []any {
 	return trimmed
 }
 
-func (c *Common) Render(tpl string, values map[string]any) string {
-	rendered, err := render.String(tpl, values)
-	if err != nil {
-		return tpl
-	}
-	return rendered
-}
-
-func (c *Common) RenderRequired(key, tpl string, values map[string]any) (string, error) {
-	rendered := c.Render(tpl, values)
-	if rendered == "" {
-		return "", fmt.Errorf("%s: '%s' evaluated to an empty string", key, tpl)
-	}
-	return rendered, nil
-}
-
-func (c *Common) RenderMode(tpl string, values map[string]any) (os.FileMode, error) {
-	rendered := c.Render(tpl, values)
-	parsed, err := strconv.ParseUint(rendered, 8, 32)
-	if err != nil {
-		return 0, err
-	}
-	return os.FileMode(parsed), nil
-}
-
-func (c *Common) RenderPath(key, tpl, root string, values map[string]any) (string, error) {
-	rendered, err := c.RenderRequired(key, tpl, values)
-	if err != nil {
-		return "", err
-	}
-	resolved, err := fsutil.EnsurePathRelativeToRoot(rendered, root)
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", key, err)
-	}
-	return resolved, nil
-}
-
 func (c *Common) ShouldExecute(values map[string]any) bool {
-	rendered := c.Render(c.If, values)
+	rendered, _ := c.IfTpl.Render(values)
 	return cast.ToBool(rendered)
 }

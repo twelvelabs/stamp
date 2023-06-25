@@ -42,6 +42,7 @@ words:
   - gostamp
   - iostreams
   - ireturn
+  - jsonschema
   - kebabcase
   - ldflags
   - maintidx
@@ -64,6 +65,7 @@ words:
   - testdata
   - testutil
   - titleize
+  - tmpl
   - trimpath
   - twelvelabs
   - unmarshaller
