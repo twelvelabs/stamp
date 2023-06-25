@@ -4,6 +4,13 @@ dictionaries:
   - bash
   - cpp
   - golang
+enableFiletypes:
+  - dockercompose
+  - editorconfig
+  - github-actions-workflow
+  - ini
+  - makefile
+  - shellscript
 ignorePaths:
   - .cspellcache
   - .git/
@@ -21,6 +28,8 @@ ignorePaths:
 ignoreRegExpList:
   - /import \([^)]+\)/g
 words:
+  - abice
+  - baney
   - codecov
   - containedctx
   - copystructure
@@ -30,9 +39,11 @@ words:
   - dupword
   - flect
   - fsutil
+  - ghaction
   - gitleaks
   - gitlint
   - goconst
+  - gocovsh
   - GOFILE
   - gofmt
   - golangci
@@ -40,6 +51,7 @@ words:
   - gopls
   - goreleaser
   - gostamp
+  - gpgsign
   - iostreams
   - ireturn
   - jsonschema
@@ -55,12 +67,15 @@ words:
   - nolint
   - oneof
   - ordinalize
+  - orlangure
   - pascalize
   - pascalized
   - pflag
   - ramone
   - renderable
+  - rlcp
   - shellcheck
+  - signingkey
   - symwalk
   - testdata
   - testutil

@@ -26,7 +26,7 @@ type MissingConfig string
 type FileType string
 
 // Encoder returns the encoder for this content type.
-func (ft FileType) Encoder() encode.Encoder { //nolint: ireturn
+func (ft FileType) Encoder() encode.Encoder {
 	switch ft {
 	case FileTypeJson:
 		return &encode.JSONEncoder{}

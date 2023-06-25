@@ -9,6 +9,8 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/muesli/mango-cobra v1.2.0
+	github.com/muesli/roff v0.1.0
 	github.com/ohler55/ojg v1.18.6
 	github.com/otiai10/copy v1.11.0
 	github.com/spf13/cast v1.5.1
@@ -65,6 +67,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/muesli/mango v0.2.0 // indirect
+	github.com/muesli/mango-pflag v0.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect

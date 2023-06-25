@@ -17,6 +17,7 @@ linters:
     - godox
     - gofumpt
     - gomnd
+    - ireturn
     - nlreturn
     - paralleltest
     - tagalign

@@ -15,7 +15,7 @@ func NewNewCmd(app *stamp.App) *cobra.Command {
 	action := NewNewAction(app)
 
 	cmd := &cobra.Command{
-		Use:   "new <name>",
+		Use:   "new [name]",
 		Short: "Run the named generator",
 		Args:  cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -135,7 +135,7 @@ func (a *NewAction) Run() error {
 }
 
 func (a *NewAction) setUsage(generator *stamp.Generator) {
-	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "<name>", generator.Name())
+	a.cmd.Use = strings.ReplaceAll(a.cmd.Use, "[name]", generator.Name())
 	for _, v := range generator.Values.Args() {
 		a.cmd.Use += fmt.Sprintf(" [<%s>]", v.FlagName())
 	}

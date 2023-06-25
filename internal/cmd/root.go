@@ -9,7 +9,7 @@ import (
 func NewRootCmd(app *stamp.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "stamp",
-		Short:   "Stamp is project and file scaffolding tool.",
+		Short:   "A project and file scaffolding tool.",
 		Version: app.Meta.Version,
 		CompletionOptions: cobra.CompletionOptions{
 			HiddenDefaultCmd: true,
@@ -19,6 +19,7 @@ func NewRootCmd(app *stamp.App) *cobra.Command {
 	// cmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.stamp.yaml)")
 	cmd.AddCommand(NewAddCmd(app))
 	cmd.AddCommand(NewListCmd(app))
+	cmd.AddCommand(NewManCmd(app))
 	cmd.AddCommand(NewNewCmd(app))
 	cmd.AddCommand(NewRemoveCmd(app))
 	cmd.AddCommand(NewSchemaCmd(app))

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -o errexit -o errtrace -o nounset -o pipefail
 
+echo "Running .git/hooks/commit-msg"
+
 # For more advanced configs, add a `.gitlint` file.
 # See: https://jorisroovers.com/gitlint/configuration/
 gitlint \

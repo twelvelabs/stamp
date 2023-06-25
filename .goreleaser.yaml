@@ -1,5 +1,13 @@
 project_name: stamp
 
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+    - ./bin/build-completions.sh {{ .ProjectName }}
+    - ./bin/build-manpages.sh {{ .ProjectName }}
+    - ./bin/build-schema.sh {{ .ProjectName }}
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -10,15 +18,63 @@ builds:
     goarch:
       - amd64
       - arm64
+    # `flags`, `ldflags`, and `mod_timestamp` are configured for reproducible builds.
+    # See: https://goreleaser.com/customization/builds/#reproducible-builds
+    flags:
+      - -trimpath
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
-  - format: binary
+  - id: default
+    builds_info:
+      group: root
+      owner: root
+    files:
+      - README.md
+      - LICENSE
+      - src: build/completions/*
+        dst: completions
+        strip_parent: true
+      - src: build/manpages/*
+        dst: manpages
+        strip_parent: true
+      - src: "build/{{ .ProjectName }}.schema.json"
+        dst: "{{ .ProjectName }}.schema.json"
+        strip_parent: true
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    rlcp: true
+
+brews:
+  - tap:
+      owner: twelvelabs
+      name: homebrew-tap
+      branch: main
+    folder: Formula
+    homepage: "https://github.com/twelvelabs/stamp"
+    description: "A project and file scaffolding tool"
+    license: "MIT"
+    install: |-
+      bin.install "stamp"
+      bash_completion.install "completions/stamp.bash" => "stamp"
+      zsh_completion.install "completions/stamp.zsh" => "_stamp"
+      fish_completion.install "completions/stamp.fish"
+      man1.install "manpages/stamp.1.gz"
+    test: |
+      system "#{bin}/stamp --version"
 
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256
+
+gomod:
+  proxy: true
+
+report_sizes: true
 
 snapshot:
   name_template: "{{ incpatch .Version }}-next" # cspell: disable-line

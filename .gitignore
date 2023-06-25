@@ -1,3 +1,4 @@
 .cspellcache
+build/
 dist/
-coverage.*
+coverage.out
