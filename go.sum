@@ -504,8 +504,8 @@ github.com/swaggest/jsonschema-go v0.3.52 h1:cFk0Ma34MuZvA+JJ8S5WuQMedwxzUa+9+qr
 github.com/swaggest/jsonschema-go v0.3.52/go.mod h1:sRly7iaIIvbheAqsyvnKU3H7ogWbF0wtUBXyGpRXNm4=
 github.com/swaggest/refl v1.1.0 h1:a+9a75Kv6ciMozPjVbOfcVTEQe81t2R3emvaD9oGQGc=
 github.com/swaggest/refl v1.1.0/go.mod h1:g3Qa6ki0A/L2yxiuUpT+cuBURuRaltF5SDQpg1kMZSY=
-github.com/twelvelabs/termite v0.13.0 h1:PE445yp2Mv/cGQjMBwkKItyBoEzstuVH9pvc8Jm6pF8=
-github.com/twelvelabs/termite v0.13.0/go.mod h1:2tjVjIRrhqyptjCeevwyNMN+mx25NS5lD1bxb9ka8JA=
+github.com/twelvelabs/termite v0.13.1 h1:e5m67QY7MKJ7z7e3a59pQTNowptAL4FTCw7xhnPvhto=
+github.com/twelvelabs/termite v0.13.1/go.mod h1:2tjVjIRrhqyptjCeevwyNMN+mx25NS5lD1bxb9ka8JA=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/ulikunitz/xz v0.5.11 h1:kpFauv27b6ynzBNT/Xy+1k+fK4WswhN/6PN5WhFAGw8=
 github.com/ulikunitz/xz v0.5.11/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=

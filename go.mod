@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggest/jsonschema-go v0.3.52
-	github.com/twelvelabs/termite v0.13.0
+	github.com/twelvelabs/termite v0.13.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
