@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/ohler55/ojg/jp"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/modify"
@@ -15,12 +16,19 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action         UpdateAction    `mapstructure:"action" description:"The action to perform on the destination."`
+	Action         UpdateAction    `mapstructure:"action"`
 	DescriptionTpl render.Template `mapstructure:"description" description:"An optional description of what is being updated."` //nolint: lll
 	Dst            Destination     `mapstructure:"dst"`
-	Match          UpdateMatch     `mapstructure:"match" description:"A pattern to match in the destination."`
-	Src            Source          `mapstructure:"src" description:"The source path or inline content."`
+	Match          UpdateMatch     `mapstructure:"match"`
+	Src            Source          `mapstructure:"src"`
 	Type           string          `mapstructure:"type" const:"update" description:"Updates a file in the destination directory."` //nolint: lll
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (t *UpdateTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("UpdateTask")
+	schema.WithDescription("Updates a file in the destination directory.")
+	return nil
 }
 
 type UpdateAction struct {
@@ -28,12 +36,26 @@ type UpdateAction struct {
 	MergeType modify.MergeType `mapstructure:"merge" default:"concat"`
 }
 
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (UpdateAction) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("Action")
+	schema.WithDescription("The action to perform on the destination.")
+	return nil
+}
+
 type UpdateMatch struct {
-	PatternTpl render.Template `mapstructure:"pattern" default:""`
-	Default    any             `mapstructure:"default"`
+	PatternTpl render.Template `mapstructure:"pattern" default:"" description:"A regexp or JSON path expression."`
+	Default    any             `mapstructure:"default" description:"A default value to use if the JSON path expression is not found."` //nolint: lll
 	Source     MatchSource     `mapstructure:"source" default:"line"`
 
 	pattern string
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (UpdateMatch) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("Match")
+	schema.WithDescription("Target a subset of the destination to update.")
+	return nil
 }
 
 // Returns the rendered match pattern. SetPattern must be called first.

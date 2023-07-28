@@ -1,10 +1,21 @@
 package stamp
 
+import (
+	"github.com/swaggest/jsonschema-go"
+)
+
 type DeleteTask struct {
 	Common `mapstructure:",squash"`
 
 	Dst  Destination `mapstructure:"dst"`
 	Type string      `mapstructure:"type" const:"delete" description:"Deletes a file in the destination directory."`
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (t *DeleteTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("DeleteTask")
+	schema.WithDescription("Deletes a file in the destination directory.")
+	return nil
 }
 
 func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {

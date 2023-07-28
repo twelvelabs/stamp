@@ -86,7 +86,8 @@ var _ jsonschema.Preparer = Action("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x Action) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("Action enum.")
+	schema.WithTitle("Action")
+	schema.WithDescription(`Action determines what type of modification to perform.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -170,7 +171,8 @@ var _ jsonschema.Preparer = MergeType("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MergeType) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("MergeType enum.")
+	schema.WithTitle("MergeType")
+	schema.WithDescription(`MergeType determines slice merge behavior.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }

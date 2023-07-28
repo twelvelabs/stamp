@@ -16,29 +16,29 @@ func TestNewDestinationWithValues(t *testing.T) {
 	values := map[string]any{
 		"foo": "bar",
 	}
-	dst, err := NewDestinationWithValues("{{ .foo }}", values)
+	dst, err := NewDestinationWithValues("{{ .foo }}", "", values)
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", filepath.Base(dst.Path()))
 
-	dst, err = NewDestinationWithValues("{{}", values)
+	dst, err = NewDestinationWithValues("{{}", "", values)
 	assert.ErrorContains(t, err, `unexpected "}" in command`)
 
-	dst, err = NewDestinationWithValues("../../foo", values)
+	dst, err = NewDestinationWithValues("../../foo", "", values)
 	assert.ErrorContains(t, err, "attempted to traverse outside of")
 }
 
 func TestDestination_FilesystemMethods(t *testing.T) {
-	dst, err := NewDestinationWithValues("unknown", map[string]any{})
+	dst, err := NewDestinationWithValues("unknown", "", map[string]any{})
 	assert.NoError(t, err)
 	assert.Equal(t, false, dst.Exists())
 	assert.Equal(t, false, dst.IsDir())
 
-	dst, err = NewDestinationWithValues("testdata", map[string]any{})
+	dst, err = NewDestinationWithValues("testdata", "", map[string]any{})
 	assert.NoError(t, err)
 	assert.Equal(t, true, dst.Exists())
 	assert.Equal(t, true, dst.IsDir())
 
-	dst, err = NewDestinationWithValues("testdata/templates/valid.txt", map[string]any{})
+	dst, err = NewDestinationWithValues("testdata/templates/valid.txt", "", map[string]any{})
 	assert.NoError(t, err)
 	assert.Equal(t, true, dst.Exists())
 	assert.Equal(t, false, dst.IsDir())

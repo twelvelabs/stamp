@@ -90,7 +90,8 @@ var _ jsonschema.Preparer = DataType("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x DataType) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("DataType enum.")
+	schema.WithTitle("DataType")
+	schema.WithDescription(`DataType is the data type of a value.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -175,7 +176,8 @@ var _ jsonschema.Preparer = InputMode("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x InputMode) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("InputMode enum.")
+	schema.WithTitle("InputMode")
+	schema.WithDescription(`InputMode determines whether the value is a flag or positional argument.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -262,7 +264,8 @@ var _ jsonschema.Preparer = PromptConfig("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x PromptConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("PromptConfig enum.")
+	schema.WithTitle("PromptConfig")
+	schema.WithDescription(`PromptConfig determines when a value should prompt.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }

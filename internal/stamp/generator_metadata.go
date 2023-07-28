@@ -1,7 +1,6 @@
 package stamp
 
 import (
-	"github.com/lithammer/dedent"
 	"github.com/swaggest/jsonschema-go"
 
 	"github.com/twelvelabs/stamp/internal/value"
@@ -19,12 +18,13 @@ var _ jsonschema.Preparer = &GeneratorMetadata{}
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (m *GeneratorMetadata) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.
-		WithSchema("https://json-schema.org/draft-07/schema").
-		WithID(
-			"https://raw.githubusercontent.com/twelvelabs/stamp/main/generator.schema.json",
-		).
-		WithDescription("Stamp generator metadata.")
+	schema.WithTitle("Generator")
+	schema.WithDescription("Stamp generator metadata.")
+
+	schema.WithSchema("https://json-schema.org/draft-07/schema")
+	schema.WithID(
+		"https://raw.githubusercontent.com/twelvelabs/stamp/main/docs/stamp.schema.json",
+	)
 
 	schema.Properties["name"].TypeObject.
 		WithDescription("The generator name.").
@@ -32,12 +32,11 @@ func (m *GeneratorMetadata) PrepareJSONSchema(schema *jsonschema.Schema) error {
 		WithMinLength(1)
 
 	schema.Properties["description"].TypeObject.
-		WithDescription(dedent.Dedent(`
-			The generator description.
-			The first line is shown when listing all generators.
-			The full description is used when viewing generator help/usage text.
-		`))
-
+		WithDescription(
+			"The generator description. " +
+				"The first line is shown when listing all generators. " +
+				"The full description is used when viewing generator help/usage text.",
+		)
 	return nil
 }
 
@@ -80,9 +79,11 @@ func squashEmbeddedStruct(schema jsonschema.Schema, embeddedName string) jsonsch
 			continue
 		}
 
-		// Set additionalProperties to false for all defs.
+		// Set additionalProperties to false for all `object` defs.
+		// (though not if it's a (all|any|one)Of type, because that breaks validation).
 		s := def.TypeObjectEns()
-		if len(s.AllOf) == 0 && len(s.AnyOf) == 0 && len(s.OneOf) == 0 {
+		sIsObj := schemaIsType(s, jsonschema.Object)
+		if sIsObj && len(s.AllOf) == 0 && len(s.AnyOf) == 0 && len(s.OneOf) == 0 {
 			s.AdditionalPropertiesEns().WithTypeBoolean(false)
 		}
 
@@ -116,4 +117,19 @@ func squashEmbeddedStruct(schema jsonschema.Schema, embeddedName string) jsonsch
 	schema.WithDefinitions(newDefs)
 
 	return schema
+}
+
+func schemaIsType(schema *jsonschema.Schema, st jsonschema.SimpleType) bool {
+	// The jsonschema lib has two different ways of tracking type.
+	// Single type.
+	if schema.TypeEns().SimpleTypes != nil && *schema.TypeEns().SimpleTypes == st {
+		return true
+	}
+	// Or a slice of possible types.
+	for _, sst := range schema.TypeEns().SliceOfSimpleTypeValues {
+		if st == sst {
+			return true
+		}
+	}
+	return false
 }

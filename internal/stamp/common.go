@@ -31,7 +31,7 @@ func (c Common) PrepareJSONSchema(schema *jsonschema.Schema) error {
 		prop.TypeObjectEns().
 			WithDescription(
 				"Set to a comma separated value and the task will be executued once per-item. " +
-					"On each iteration, the _Item and _Index values will be set accordingly.",
+					"On each iteration, the `_Item` and `_Index` values will be set accordingly.",
 			)
 	}
 	return nil

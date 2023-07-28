@@ -14,7 +14,7 @@ import (
 )
 
 // NewDestinationWithValues returns a new destination set with the given values.
-func NewDestinationWithValues(path string, values map[string]any) (Destination, error) {
+func NewDestinationWithValues(path string, mode string, values map[string]any) (Destination, error) {
 	dst := Destination{}
 
 	pathTpl, err := render.Compile(path)
@@ -22,6 +22,12 @@ func NewDestinationWithValues(path string, values map[string]any) (Destination, 
 		return dst, fmt.Errorf("new destination: %w", err)
 	}
 	dst.PathTpl = *pathTpl
+
+	modeTpl, err := render.Compile(mode)
+	if err != nil {
+		return dst, fmt.Errorf("new destination: %w", err)
+	}
+	dst.ModeTpl = *modeTpl
 
 	if err := dst.SetValues(values); err != nil {
 		return dst, fmt.Errorf("new destination: %w", err)
@@ -45,6 +51,7 @@ type Destination struct {
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (d Destination) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("Destination")
 	schema.WithDescription("The destination path.")
 	if prop, ok := schema.Properties["content_type"]; ok {
 		prop.TypeObjectEns().

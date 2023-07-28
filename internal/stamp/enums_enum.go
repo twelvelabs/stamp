@@ -82,7 +82,8 @@ var _ jsonschema.Preparer = ConflictConfig("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x ConflictConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("ConflictConfig enum.")
+	schema.WithTitle("ConflictConfig")
+	schema.WithDescription(`ConflictConfig determines what to do when destination paths already exist.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -165,7 +166,8 @@ var _ jsonschema.Preparer = FileType("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x FileType) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("FileType enum.")
+	schema.WithTitle("FileType")
+	schema.WithDescription(`FileType specifies the content type of the destination path.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -244,7 +246,8 @@ var _ jsonschema.Preparer = MatchSource("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MatchSource) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("MatchSource enum.")
+	schema.WithTitle("MatchSource")
+	schema.WithDescription(`MatchSource determines whether match patterns should be applied per-line or to the entire file.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }
@@ -326,7 +329,8 @@ var _ jsonschema.Preparer = MissingConfig("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MissingConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("MissingConfig enum.")
+	schema.WithTitle("MissingConfig")
+	schema.WithDescription(`MissingConfig determines what to do when destination paths are missing.`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }

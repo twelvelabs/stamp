@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/swaggest/jsonschema-go"
 )
 
 const (
@@ -18,6 +20,13 @@ type CreateTask struct {
 	Dst  Destination `mapstructure:"dst"`
 	Src  Source      `mapstructure:"src"`
 	Type string      `mapstructure:"type" const:"create" description:"Creates a new file in the destination directory."`
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (t *CreateTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("CreateTask")
+	schema.WithDescription("Creates a new file in the destination directory.")
+	return nil
 }
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
@@ -51,7 +60,8 @@ func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			if err != nil {
 				return err
 			}
-			dst, err := NewDestinationWithValues(dstPath, values)
+			mode, _ := t.Dst.ModeTpl.Render(values)
+			dst, err := NewDestinationWithValues(dstPath, mode, values)
 			if err != nil {
 				return err
 			}

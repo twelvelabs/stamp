@@ -3,7 +3,8 @@ var _ jsonschema.Preparer = {{ .enum.Name }}("")
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x {{ .enum.Name }}) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDescription("{{ .enum.Name }} enum.")
+	schema.WithTitle("{{ .enum.Name }}")
+	schema.WithDescription(`{{ .enum.Comment }}`)
 	schema.WithEnum(x.Enum()...)
 	return nil
 }

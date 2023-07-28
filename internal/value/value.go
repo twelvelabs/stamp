@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/pflag"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
 	"github.com/twelvelabs/termite/ui"
 	"github.com/twelvelabs/termite/validate"
@@ -57,6 +58,13 @@ type Value struct {
 
 	data   interface{}
 	values *ValueSet
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (Value) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("Value")
+	schema.WithDescription("A generator input value.")
+	return nil
 }
 
 // DisplayName returns the human friendly display name.

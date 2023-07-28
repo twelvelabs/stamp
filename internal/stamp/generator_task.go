@@ -2,6 +2,7 @@ package stamp
 
 import (
 	"github.com/mitchellh/copystructure"
+	"github.com/swaggest/jsonschema-go"
 )
 
 type GeneratorTask struct {
@@ -10,6 +11,13 @@ type GeneratorTask struct {
 	Name   string         `mapstructure:"name" validate:"required"`
 	Values map[string]any `mapstructure:"values" default:"{}"`
 	Type   string         `mapstructure:"type" const:"generator" description:"Executes another generator."`
+}
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (t *GeneratorTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("GeneratorTask")
+	schema.WithDescription("Executes another generator.")
+	return nil
 }
 
 func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {

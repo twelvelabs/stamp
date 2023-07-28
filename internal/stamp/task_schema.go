@@ -12,8 +12,8 @@ var _ jsonschema.Preparer = TaskSchema{}
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (s TaskSchema) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.
-		WithDescription("A generator task.")
+	schema.WithTitle("Task")
+	schema.WithDescription("A generator task.")
 	return nil
 }
 
