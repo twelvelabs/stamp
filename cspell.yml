@@ -51,7 +51,6 @@ words:
   - gomod
   - gopls
   - goreleaser
-  - gostamp
   - gpgsign
   - iostreams
   - ireturn

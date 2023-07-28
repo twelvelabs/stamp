@@ -47,6 +47,8 @@ stamp add github.com/some-user/some-repo
 stamp add https://example.com/generator.tar.gz
 ```
 
+See [twelvelabs/generator-app](https://github.com/twelvelabs/generator-app) for an example generator repo.
+
 ## Running a generator
 
 ```bash
