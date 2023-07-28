@@ -9,8 +9,8 @@ export project="${1?$(usage)}"
 mkdir -p build
 go build -o "build/$project" .
 
-rm -rf "build/${project}.schema.json"
-mkdir -p build
+rm -rf build/schemas
+mkdir -p build/schemas
 
 # Generate JSON schema.
-"build/$project" schema >"build/${project}.schema.json"
+"build/$project" schema >"build/schemas/${project}.schema.json"

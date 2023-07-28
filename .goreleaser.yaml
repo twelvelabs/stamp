@@ -7,6 +7,7 @@ before:
     - ./bin/build-completions.sh {{ .ProjectName }}
     - ./bin/build-manpages.sh {{ .ProjectName }}
     - ./bin/build-schema.sh {{ .ProjectName }}
+    - ./bin/build-docs.sh {{ .ProjectName }}
 
 builds:
   - env:
@@ -40,8 +41,8 @@ archives:
       - src: build/manpages/*
         dst: manpages
         strip_parent: true
-      - src: "build/{{ .ProjectName }}.schema.json"
-        dst: "{{ .ProjectName }}.schema.json"
+      - src: build/schemas/*
+        dst: schemas
         strip_parent: true
     format: tar.gz
     format_overrides:

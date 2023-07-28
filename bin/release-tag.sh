@@ -17,6 +17,19 @@ if [[ "${CI:-}" != "true" ]]; then
     fi
 fi
 
+# Copy build artifacts over to docs and commit.
+mkdir -p \
+    build/docs \
+    build/schemas \
+    docs
+cp build/docs/*.md docs/
+cp build/schemas/*.json docs/
+git add docs/
+if [[ $(git status --porcelain 2>/dev/null) != "" ]]; then
+    git commit --gpg-sign --message "chore(release): $NEXT_VERSION [skip ci]"
+fi
+
+# Tag and push.
 git tag \
     --sign "$NEXT_VERSION" \
     --message "$NEXT_VERSION"

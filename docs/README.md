@@ -1,6 +1,40 @@
 # Stamp documentation
 
-This is... a bit of a work in progress 😬
+## Creating a generator
+
+Create a directory containing two files:
+
+- `generator.yaml`:
+
+  ```yaml
+  name: my-generator-name
+  description: A generator that creates a text file.
+
+  values:
+    - key: Greeting
+      type: string
+      default: Hello
+
+  tasks:
+    - type: create
+      src:
+        path: message.tpl
+      dst:
+        path: message.txt
+  ```
+
+- `_src/message.tpl`
+
+  ```text
+  {{ .Greeting }}, World!
+  ```
+
+When installed and executed, this generator will:
+
+- Prompt the user for a greeting (defaulting to "Hello")
+- Render the template to a file named `message.txt`
+
+See the [full documentation](./Generator.md) for all generator options.
 
 ## Adding a generator
 
@@ -16,20 +50,5 @@ stamp add https://example.com/generator.tar.gz
 ## Running a generator
 
 ```bash
-stamp new some:generator:name
+stamp new my-generator-name
 ```
-
-## Creating a generator
-
-TODO
-
-## Values
-
-TODO
-
-## Task types
-
-- [create](./tasks/create.md) - creates a file
-- [update](./tasks/update.md) - updates a file
-- [delete](./tasks/delete.md) - delete a file
-- [generator](./tasks/generator.md) - delegate to another generator
