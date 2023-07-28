@@ -27,6 +27,7 @@ cp build/schemas/*.json docs/
 git add docs/
 if [[ $(git status --porcelain 2>/dev/null) != "" ]]; then
     git commit --gpg-sign --message "chore(release): $NEXT_VERSION [skip ci]"
+    git push origin main
 fi
 
 # Tag and push.
