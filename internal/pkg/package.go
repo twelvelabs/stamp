@@ -38,6 +38,16 @@ func (p *Package) SetName(value string) {
 	p.Metadata["Name"] = value
 }
 
+// Description returns the description of the package.
+func (p *Package) Description() string {
+	return p.MetadataString("description")
+}
+
+// SetName sets the package description.
+func (p *Package) SetDescription(value string) {
+	p.Metadata["Description"] = value
+}
+
 // Origin returns the path or URL used to install the package.
 func (p *Package) Origin() string {
 	return p.MetadataString("origin")
@@ -61,6 +71,18 @@ func (p *Package) SetPath(value string) {
 // Returns all nested sub-packages ordered by name.
 func (p *Package) Children() ([]*Package, error) {
 	return LoadPackages(p.Path(), p.MetaFile())
+}
+
+// Returns the receiver and all children.
+func (p *Package) All() ([]*Package, error) {
+	children, err := LoadPackages(p.Path(), p.MetaFile())
+	if err != nil {
+		return nil, err
+	}
+	packages := []*Package{}
+	packages = append(packages, p)
+	packages = append(packages, children...)
+	return packages, nil
 }
 
 func (p *Package) Parent() *Package {

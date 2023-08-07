@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
@@ -49,9 +50,11 @@ func (a *ListAction) Run() error {
 		return err
 	}
 
-	a.UI.Out("Generators:\n")
+	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
 	for _, p := range results {
-		a.UI.Out(" - %s\n", p.Name())
+		tbl.AddRow(p.Name(), p.Description(), p.Origin())
 	}
+	tbl.Print()
+
 	return nil
 }

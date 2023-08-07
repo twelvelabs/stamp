@@ -163,10 +163,6 @@ type Generator struct {
 	Tasks  *TaskSet
 }
 
-func (g *Generator) Description() string {
-	return g.MetadataString("description")
-}
-
 func (g *Generator) SrcPath() string {
 	return filepath.Join(g.Path(), "_src")
 }

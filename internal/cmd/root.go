@@ -1,10 +1,18 @@
 package cmd
 
 import (
+	"github.com/fatih/color"
+	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
+
+func init() {
+	table.DefaultHeaderFormatter = color.New(color.FgYellow, color.Underline).SprintfFunc()
+	table.DefaultFirstColumnFormatter = color.New(color.FgCyan).SprintfFunc()
+	table.DefaultPadding = 5
+}
 
 func NewRootCmd(app *stamp.App) *cobra.Command {
 	cmd := &cobra.Command{

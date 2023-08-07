@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -68,18 +67,38 @@ func (a *NewAction) Setup(cmd *cobra.Command, args []string) error {
 }
 
 func (a *NewAction) Validate() error {
-	a.Name = strings.Trim(a.Name, " ")
 	if a.Name == "" {
 		if a.showHelp() {
 			// User ran `stamp new --help`.
 			return pflag.ErrHelp
 		}
-		return errors.New("name must not be blank")
 	}
 	return nil
 }
 
 func (a *NewAction) Run() error {
+	a.Name = strings.Trim(a.Name, " ")
+	if a.Name == "" {
+		all, err := a.Store.LoadAll()
+		if err != nil {
+			return err
+		}
+
+		if len(all) == 0 {
+			return pflag.ErrHelp
+		}
+
+		names := []string{}
+		for _, g := range all {
+			names = append(names, g.Name())
+		}
+
+		a.Name, err = a.UI.Select("Generator", names, names[0])
+		if err != nil {
+			return err
+		}
+	}
+
 	// Load the generator.
 	generator, err := a.Store.Load(a.Name)
 	if err != nil {
