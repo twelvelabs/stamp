@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 
-	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
 
@@ -60,21 +60,29 @@ func (a *AddAction) Validate() error {
 }
 
 func (a *AddAction) Run() error {
-	a.UI.Out("Adding package from: %s\n", a.Origin)
+	a.UI.ProgressIndicator.StartWithLabel("Installing")
 
 	installed, err := a.Store.Install(a.Origin)
 	if err != nil {
+		a.UI.ProgressIndicator.Stop()
+		a.UI.Out(a.UI.FailureIcon() + " Install failed\n")
 		return err
 	}
 
-	results, err := installed.Children()
+	a.UI.ProgressIndicator.Stop()
+	a.UI.Out(a.UI.SuccessIcon()+" Installed package: %s\n", installed.Name())
+	a.UI.Out("\n")
+
+	packages, err := installed.All()
 	if err != nil {
 		return err
 	}
-	results = append([]*pkg.Package{installed}, results...)
 
-	for _, p := range results {
-		a.UI.Out(" - %s\n", p.Name())
+	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
+	for _, p := range packages {
+		tbl.AddRow(p.Name(), p.Description(), p.Origin())
 	}
+	tbl.Print()
+
 	return nil
 }

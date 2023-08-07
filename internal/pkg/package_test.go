@@ -32,6 +32,14 @@ func TestPackageTreeMethods(t *testing.T) {
 		if assert.Len(t, children, 1) {
 			assert.Equal(t, "nested:aaa:111", children[0].Name())
 		}
+
+		all, err := aaa.All()
+		assert.NoError(t, err)
+		if assert.Len(t, all, 2) {
+			assert.Equal(t, "nested:aaa", all[0].Name())
+			assert.Equal(t, "nested:aaa:111", all[1].Name())
+		}
+
 		parent := aaa.Parent()
 		if assert.NotNil(t, parent) {
 			assert.Equal(t, nested.Name(), parent.Name())
@@ -47,6 +55,15 @@ func TestPackage_Name(t *testing.T) {
 	assert.Equal(t, "", p.Name())
 	p.SetName("foo")
 	assert.Equal(t, "foo", p.Name())
+}
+
+func TestPackage_Description(t *testing.T) {
+	p := &Package{
+		Metadata: map[string]any{},
+	}
+	assert.Equal(t, "", p.Description())
+	p.SetDescription("foo")
+	assert.Equal(t, "foo", p.Description())
 }
 
 func TestPackage_Origin(t *testing.T) {

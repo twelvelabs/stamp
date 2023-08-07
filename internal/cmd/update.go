@@ -59,22 +59,17 @@ func (a *UpdateAction) Validate() error {
 }
 
 func (a *UpdateAction) Run() error {
-	a.UI.Out("Updating package: %s\n", a.Name)
+	a.UI.ProgressIndicator.StartWithLabel("Updating")
 
 	updated, err := a.Store.Update(a.Name)
 	if err != nil {
+		a.UI.ProgressIndicator.Stop()
+		a.UI.Out(a.UI.FailureIcon() + " Update failed\n")
 		return err
 	}
 
-	children, err := updated.Children()
-	if err != nil {
-		return err
-	}
-
-	a.UI.Out(" - %s\n", updated.Name())
-	for _, child := range children {
-		a.UI.Out(" - %s\n", child.Name())
-	}
+	a.UI.ProgressIndicator.Stop()
+	a.UI.Out(a.UI.SuccessIcon()+" Updated package: %s\n", updated.Name())
 
 	return nil
 }
