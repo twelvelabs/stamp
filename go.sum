@@ -509,8 +509,8 @@ github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXl
 github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8=
 github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
 github.com/swaggest/assertjson v1.9.0 h1:dKu0BfJkIxv/xe//mkCrK5yZbs79jL7OVf9Ija7o2xQ=
-github.com/swaggest/jsonschema-go v0.3.56 h1:YPXlRZt/2OWURNtLuoWF3hMPrRU5g2zmaXIxiYi04m4=
-github.com/swaggest/jsonschema-go v0.3.56/go.mod h1:5WFFGBBte5JAWAV8gDpNRJ/tlQnb1AHDdf/ghgsVUik=
+github.com/swaggest/jsonschema-go v0.3.58 h1:OPixN4HW9H3FTh9BSomH2i0bdJi3V646TfSihzt9QBc=
+github.com/swaggest/jsonschema-go v0.3.58/go.mod h1:5WFFGBBte5JAWAV8gDpNRJ/tlQnb1AHDdf/ghgsVUik=
 github.com/swaggest/refl v1.2.0 h1:Qqqhfwi7REXF6/4cwJmj3gQMzl0Q0cYquxTYdD0kvi0=
 github.com/swaggest/refl v1.2.0/go.mod h1:CkC6g7h1PW33KprTuYRSw8UUOslRUt4lF3oe7tTIgNU=
 github.com/twelvelabs/termite v0.13.1 h1:e5m67QY7MKJ7z7e3a59pQTNowptAL4FTCw7xhnPvhto=
