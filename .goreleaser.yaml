@@ -48,10 +48,9 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
-    rlcp: true
 
 brews:
-  - tap:
+  - repository:
       owner: twelvelabs
       name: homebrew-tap
       branch: main
@@ -72,8 +71,13 @@ checksum:
   name_template: "checksums.txt"
   algorithm: sha256
 
-gomod:
-  proxy: true
+# Temporarily disabling gomod.proxy until we can update mergo.
+# See goreleaser output:
+# • your go.mod file has replace directive in it, and go mod proxying is enabled -
+#   this does not work, and you need to either disable it or remove the replace directive
+# • the offending line is replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
+# gomod:
+#   proxy: true
 
 report_sizes: true
 
