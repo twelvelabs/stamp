@@ -22,6 +22,7 @@ linters:
     - paralleltest
     - tagalign
     - tagliatelle
+    - testifylint
     - testpackage
     - varnamelen
     - wrapcheck
@@ -49,6 +50,9 @@ linters-settings:
       - standard # Standard section: captures all standard packages.
       - default # Default section: contains all imports that could not be matched to another section type.
       - prefix(github.com/twelvelabs/stamp) # Custom section: groups all imports with the specified Prefix.
+
+  goconst:
+    ignore-tests: true
 
   lll:
     line-length: 120
