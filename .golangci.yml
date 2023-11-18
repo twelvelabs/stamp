@@ -54,6 +54,10 @@ linters-settings:
   goconst:
     ignore-tests: true
 
+  gomoddirectives:
+    replace-allow-list:
+      - github.com/imdario/mergo
+
   lll:
     line-length: 120
 
