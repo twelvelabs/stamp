@@ -111,9 +111,11 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			ctx.Logger.Failure("fail", t.Dst.Path())
 			return ErrPathNotFound
 		case MissingConfigTouch:
-			if err := os.WriteFile(t.Dst.Path(), []byte{}, DstFileMode); err != nil {
-				ctx.Logger.Failure("fail", t.Dst.Path())
-				return err
+			if !ctx.DryRun {
+				if err := os.WriteFile(t.Dst.Path(), []byte{}, DstFileMode); err != nil {
+					ctx.Logger.Failure("fail", t.Dst.Path())
+					return err
+				}
 			}
 		default: // MissingConfigIgnore:
 			return nil
