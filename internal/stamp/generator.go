@@ -8,6 +8,7 @@ import (
 
 	"github.com/twelvelabs/termite/render"
 
+	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/pkg"
 	"github.com/twelvelabs/stamp/internal/value"
 )
@@ -15,6 +16,7 @@ import (
 var (
 	ErrNilPackage = errors.New("nil package")
 	ErrNilStore   = errors.New("nil store")
+	ErrNotFound   = errors.New("generator not found")
 
 	metaFileName = "generator.yaml"
 )
@@ -73,6 +75,22 @@ func GeneratorNameForCreate(path string) string {
 	}
 
 	return strings.Join(segments[idx:], ":")
+}
+
+// NewGeneratorFromPath returns the generator located at path (or ErrNotFound).
+func NewGeneratorFromPath(store *Store, path string) (*Generator, error) {
+	if !fsutil.PathIsDir(path) {
+		return nil, ErrNotFound
+	}
+	if fsutil.NoPathExists(filepath.Join(path, store.MetaFile)) {
+		return nil, ErrNotFound
+	}
+
+	p, err := pkg.LoadPackage(path, store.MetaFile)
+	if err != nil {
+		return nil, err
+	}
+	return NewGenerator(store, p)
 }
 
 func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
