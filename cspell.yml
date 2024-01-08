@@ -45,6 +45,7 @@ words:
   - gitlint
   - goconst
   - gocovsh
+  - gocritic
   - GOFILE
   - gofmt
   - golangci
@@ -62,9 +63,11 @@ words:
   - mapstructure
   - markdownlint
   - matryer
+  - mdutil
   - mergo
   - nestif
   - nilerr
+  - nocomments
   - nolint
   - oneof
   - ordinalize

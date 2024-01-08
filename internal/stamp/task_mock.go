@@ -26,6 +26,9 @@ var _ Task = &TaskMock{}
 //			ShouldExecuteFunc: func(values map[string]any) bool {
 //				panic("mock out the ShouldExecute method")
 //			},
+//			TypeKeyFunc: func() string {
+//				panic("mock out the TypeKey method")
+//			},
 //		}
 //
 //		// use mockedTask in code that requires Task
@@ -41,6 +44,9 @@ type TaskMock struct {
 
 	// ShouldExecuteFunc mocks the ShouldExecute method.
 	ShouldExecuteFunc func(values map[string]any) bool
+
+	// TypeKeyFunc mocks the TypeKey method.
+	TypeKeyFunc func() string
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -61,10 +67,14 @@ type TaskMock struct {
 			// Values is the values argument value.
 			Values map[string]any
 		}
+		// TypeKey holds details about calls to the TypeKey method.
+		TypeKey []struct {
+		}
 	}
 	lockExecute       sync.RWMutex
 	lockIterator      sync.RWMutex
 	lockShouldExecute sync.RWMutex
+	lockTypeKey       sync.RWMutex
 }
 
 // Execute calls ExecuteFunc.
@@ -164,5 +174,32 @@ func (mock *TaskMock) ShouldExecuteCalls() []struct {
 	mock.lockShouldExecute.RLock()
 	calls = mock.calls.ShouldExecute
 	mock.lockShouldExecute.RUnlock()
+	return calls
+}
+
+// TypeKey calls TypeKeyFunc.
+func (mock *TaskMock) TypeKey() string {
+	if mock.TypeKeyFunc == nil {
+		panic("TaskMock.TypeKeyFunc: method is nil but Task.TypeKey was just called")
+	}
+	callInfo := struct {
+	}{}
+	mock.lockTypeKey.Lock()
+	mock.calls.TypeKey = append(mock.calls.TypeKey, callInfo)
+	mock.lockTypeKey.Unlock()
+	return mock.TypeKeyFunc()
+}
+
+// TypeKeyCalls gets all the calls that were made to TypeKey.
+// Check the length with:
+//
+//	len(mockedTask.TypeKeyCalls())
+func (mock *TaskMock) TypeKeyCalls() []struct {
+} {
+	var calls []struct {
+	}
+	mock.lockTypeKey.RLock()
+	calls = mock.calls.TypeKey
+	mock.lockTypeKey.RUnlock()
 	return calls
 }

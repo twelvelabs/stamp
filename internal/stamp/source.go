@@ -39,25 +39,55 @@ type Source struct {
 
 // SourceWithContent represents one version of Source in the JSON schema.
 type SourceWithContent struct {
-	ContentType FileType `mapstructure:"content_type"`
-	Content     any      `mapstructure:"content" required:"true" description:"Inline content. Can be any type. String keys and/or values will be rendered as templates."` //nolint: lll
+	Content any `mapstructure:"content" title:"Content" required:"true" description:"Inline content. Can be any type. String keys and/or values will be rendered as templates."` //nolint: lll
 }
 
 func (s SourceWithContent) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("Source Content")
 	schema.WithDescription("The source content.")
+	if prop, ok := schema.Properties["content"]; ok {
+		prop.TypeObjectEns().
+			WithExamples(
+				"{{ .ValueOne }}",
+				[]string{
+					"{{ .ValueOne }}",
+					"{{ .ValueTwo }}",
+				},
+				struct {
+					Foo string `json:"foo"`
+				}{
+					Foo: "{{ .ValueOne }}",
+				},
+			)
+	}
 	return nil
 }
 
 // SourceWithPath represents one version of Source in the JSON schema.
 type SourceWithPath struct {
-	ContentType FileType `mapstructure:"content_type"`
-	Path        string   `mapstructure:"path" required:"true" description:"The file path relative to the source directory. Attempts to traverse outside the source directory will raise a runtime error."` //nolint: lll
+	ContentType FileType `mapstructure:"content_type" title:"Content Type"`
+	Path        string   `mapstructure:"path"         title:"Path" required:"true"`
 }
 
 func (s SourceWithPath) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("Source Path")
 	schema.WithDescription("The source path.")
+
+	if prop, ok := schema.Properties["path"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"The file path relative to the generator source directory (\\_src). " +
+					"Attempts to traverse outside the source directory will raise a runtime error." +
+					"\n\n" +
+					"The file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) " +
+					"and have access to all the [values](value.md) defined by the generator. " +
+					"\n\n" +
+					"The file _may_ be parsed depending on it's [content type](#content_type). " +
+					"Note that this happens post-render. This allows for dynamic data sources " +
+					"when creating/updating structured files.",
+			)
+	}
+
 	return nil
 }
 

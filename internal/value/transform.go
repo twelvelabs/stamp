@@ -1,7 +1,9 @@
 package value
 
 import (
+	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/gobuffalo/flect"
@@ -11,17 +13,46 @@ import (
 )
 
 var (
-	transformers = map[string]Transformer{}
+	ErrUnknownTransformer = errors.New("undefined transform")
+	transformers          = map[string]Transformer{}
 )
 
 func init() {
-	RegisterTransformer("trim", StringTransformer(strings.TrimSpace))
-	RegisterTransformer("uppercase", StringTransformer(strings.ToUpper))
-	RegisterTransformer("lowercase", StringTransformer(strings.ToLower))
-	RegisterTransformer("dasherize", StringTransformer(flect.Dasherize))
-	RegisterTransformer("pascalize", StringTransformer(flect.Pascalize))
-	RegisterTransformer("underscore", StringTransformer(flect.Underscore))
-	RegisterTransformer("expand-path", ExpandPath)
+	RegisterTransformer(Transformer{
+		Name:        "trim",
+		Description: "Removes all leading and trailing whitespace.",
+		Func:        StringTransformerFunc(strings.TrimSpace),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "uppercase",
+		Description: "Converts to `UPPERCASE`.",
+		Func:        StringTransformerFunc(strings.ToUpper),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "lowercase",
+		Description: "Converts to `lowercase`.",
+		Func:        StringTransformerFunc(strings.ToLower),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "dasherize",
+		Description: "Converts to `kebab-case`.",
+		Func:        StringTransformerFunc(flect.Dasherize),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "pascalize",
+		Description: "Converts to `PascalCase`.",
+		Func:        StringTransformerFunc(flect.Pascalize),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "underscore",
+		Description: "Converts to snake_case.",
+		Func:        StringTransformerFunc(flect.Underscore),
+	})
+	RegisterTransformer(Transformer{
+		Name:        "expand-path",
+		Description: "Converts to abs file path; Expands env vars and tilde.",
+		Func:        expandPath,
+	})
 }
 
 func Transform(key string, value any, rule string) (any, error) {
@@ -30,7 +61,7 @@ func Transform(key string, value any, rule string) (any, error) {
 	}
 	transformed := value
 
-	ts, err := ParseTransformRule(key, rule)
+	ts, err := parseTransformRule(key, rule)
 	if err != nil {
 		return nil, err
 	}
@@ -45,40 +76,68 @@ func Transform(key string, value any, rule string) (any, error) {
 	return transformed, nil
 }
 
-// Transformer is a function used to process value data.
-type Transformer func(any) (any, error)
+// TransformerFunc is a function used to process value data.
+type TransformerFunc func(any) (any, error)
 
-func GetTransformer(name string) Transformer {
-	return transformers[name]
-}
-func RegisterTransformer(name string, t Transformer) {
-	transformers[name] = t
+type Transformer struct {
+	Name        string
+	Description string
+	Func        TransformerFunc
 }
 
-func ParseTransformRule(key string, rule string) ([]Transformer, error) {
+// GetTransformer returns the transformer registered for name.
+// If name is not found, returns ErrUnknownTransformer.
+func GetTransformer(name string) (Transformer, error) {
+	if t, ok := transformers[name]; ok {
+		return t, nil
+	}
+	return Transformer{}, ErrUnknownTransformer
+}
+
+func RegisterTransformer(t Transformer) {
+	if _, ok := transformers[t.Name]; ok {
+		panic("transformer already registered for name: " + t.Name)
+	}
+	transformers[t.Name] = t
+}
+
+func UnregisterTransformer(t Transformer) {
+	delete(transformers, t.Name)
+}
+
+func RegisteredTransformers() []Transformer {
 	ts := []Transformer{}
+	for _, t := range transformers {
+		ts = append(ts, t)
+	}
+	sort.Slice(ts, func(i, j int) bool {
+		return ts[i].Name < ts[j].Name
+	})
+	return ts
+}
+
+func parseTransformRule(key string, rule string) ([]TransformerFunc, error) {
+	tfs := []TransformerFunc{}
 	rules := strings.Split(strings.TrimSpace(rule), ",")
 	for _, rule := range rules {
 		rule = strings.TrimSpace(rule)
-		t := GetTransformer(rule)
-		if t == nil {
-			return nil, fmt.Errorf("undefined transform [%s: %s]", key, rule)
+		t, err := GetTransformer(rule)
+		if err != nil {
+			return nil, fmt.Errorf("%w [%s: %s]", err, key, rule)
 		}
-		ts = append(ts, t)
+		tfs = append(tfs, t.Func)
 	}
-	return ts, nil
+	return tfs, nil
 }
 
-// StringTransformer accepts a string function and returns a Transformer
+// StringTransformerFunc accepts a string function and returns a TransformerFunc
 // that delegates to it.
-func StringTransformer(f func(s string) string) Transformer {
+func StringTransformerFunc(f func(s string) string) TransformerFunc {
 	return func(data any) (any, error) {
 		return f(cast.ToString(data)), nil
 	}
 }
 
-// ExpandPath ensures that data is an absolute path.
-// Environment variables (and the ~ string) are expanded.
-func ExpandPath(data any) (any, error) {
+func expandPath(data any) (any, error) {
 	return fsutil.NormalizePath(cast.ToString(data))
 }

@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	// ActionAppend is a Action of type append.
+	// Append to the destination content.
 	ActionAppend Action = "append"
-	// ActionPrepend is a Action of type prepend.
+	// Prepend to the destination content.
 	ActionPrepend Action = "prepend"
-	// ActionReplace is a Action of type replace.
+	// Replace the destination.
 	ActionReplace Action = "replace"
-	// ActionDelete is a Action of type delete.
+	// Delete the destination content.
 	ActionDelete Action = "delete"
 )
 
@@ -82,14 +82,32 @@ func (x *Action) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = Action("")
+var (
+	_ jsonschema.Described = Action("")
+	_ jsonschema.Enum      = Action("")
+	_ jsonschema.Preparer  = Action("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x Action) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("Action")
-	schema.WithDescription(`Action determines what type of modification to perform.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x Action) Description() string {
+	return `Determines what type of modification to perform.
+
+The append/prepend behavior differs slightly depending on
+the destination content type. Strings are concatenated,
+numbers are added, and objects are recursively merged.
+Arrays are concatenated by default, but that behavior can
+be customized via the 'merge' enum.
+
+Replace and delete behave consistently across all types.`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -102,12 +120,22 @@ func (x Action) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x Action) EnumComments() []string {
+	return []string{
+		"Append to the destination content.",
+		"Prepend to the destination content.",
+		"Replace the destination.",
+		"Delete the destination content.",
+	}
+}
+
 const (
-	// MergeTypeConcat is a MergeType of type concat.
+	// Concatenate source and destination arrays.
 	MergeTypeConcat MergeType = "concat"
-	// MergeTypeUpsert is a MergeType of type upsert.
+	// Add source array items if not present in the destination.
 	MergeTypeUpsert MergeType = "upsert"
-	// MergeTypeReplace is a MergeType of type replace.
+	// Replace the destination with the source.
 	MergeTypeReplace MergeType = "replace"
 )
 
@@ -167,14 +195,25 @@ func (x *MergeType) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = MergeType("")
+var (
+	_ jsonschema.Described = MergeType("")
+	_ jsonschema.Enum      = MergeType("")
+	_ jsonschema.Preparer  = MergeType("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MergeType) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("MergeType")
-	schema.WithDescription(`MergeType determines slice merge behavior.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x MergeType) Description() string {
+	return `Determines merge behavior for arrays - either when modifying them directly
+or when recursively merging objects containing arrays.`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -183,5 +222,14 @@ func (x MergeType) Enum() []any {
 		"concat",
 		"upsert",
 		"replace",
+	}
+}
+
+// EnumComments returns the comment associcated with each enum.
+func (x MergeType) EnumComments() []string {
+	return []string{
+		"Concatenate source and destination arrays.",
+		"Add source array items if not present in the destination.",
+		"Replace the destination with the source.",
 	}
 }

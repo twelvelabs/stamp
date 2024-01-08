@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/swaggest/jsonschema-go"
+
+	"github.com/twelvelabs/stamp/internal/mdutil"
 )
 
 const (
@@ -17,16 +19,98 @@ const (
 type CreateTask struct {
 	Common `mapstructure:",squash"`
 
-	Dst  Destination `mapstructure:"dst"`
-	Src  Source      `mapstructure:"src"`
-	Type string      `mapstructure:"type" const:"create" description:"Creates a new file in the destination directory."`
+	Dst  Destination `mapstructure:"dst"  required:"true"`
+	Src  Source      `mapstructure:"src"  required:"true"`
+	Type string      `mapstructure:"type" required:"true" const:"create" default:"create"`
 }
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (t *CreateTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("CreateTask")
-	schema.WithDescription("Creates a new file in the destination directory.")
+	schema.WithDescription(mdutil.ToMarkdown(`
+		Creates a new path in the destination directory.
+
+		When using source templates, the [src.path](source_path.md#path)
+		attribute may be a file or a directory path. When the latter,
+		the source directory will be copied to the destination path recursively.
+
+		Examples:
+
+		__CODE_BLOCK__yaml
+		tasks:
+			- type: create
+				# Render <./_src/README.tpl> (using the values defined in the generator)
+				# and write it to <./README.md> in the destination directory.
+				# If the README file already exists in the destination dir,
+				# keep the existing file and do not bother prompting the user.
+				src:
+					path: "README.tpl"
+				dst:
+					path: "README.md"
+					conflict: keep
+		__CODE_BLOCK__
+
+		__CODE_BLOCK__yaml
+		values:
+			- key: "FirstName"
+				default: "Some Name"
+
+		tasks:
+			- type: create
+				# Render the inline content as a template and write it to
+				# <./some_name/greeting.txt> in the destination directory.
+				src:
+					content: "Hello, {{ .FirstName }}!"
+				dst:
+					path: "{{ .FirstName | underscore }}/greeting.txt"
+		__CODE_BLOCK__
+
+		__CODE_BLOCK__yaml
+		tasks:
+			- type: create
+				# Render all the files in <./_src/scripts/> (using the values defined in the generator),
+				# copy them to <./scripts/> in the destination directory, then make them executable.
+				src:
+					path: "scripts/"
+				dst:
+					path: "scripts/"
+					mode: "0755"
+		__CODE_BLOCK__
+	`))
+
+	schema.Properties["dst"].TypeObject.
+		WithTitle("Destination").
+		WithExamples(
+			map[string]any{
+				"path": "README.md",
+			},
+			map[string]any{
+				"path": "bin/build.sh",
+				"mode": "0755",
+			},
+		)
+
+	schema.Properties["src"].TypeObject.
+		WithTitle("Source").
+		WithExamples(
+			map[string]any{
+				"path": "README.tpl",
+			},
+			map[string]any{
+				"content": "Hello, {{ .FirstName }}!",
+			},
+		)
+
+	schema.Properties["type"].TypeObject.
+		WithTitle("Type").
+		WithDescription("Creates a new path in the destination directory.").
+		WithExamples("create")
+
 	return nil
+}
+
+func (t *CreateTask) TypeKey() string {
+	return t.Type
 }
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {

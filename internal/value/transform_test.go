@@ -84,3 +84,34 @@ func TestTransform(t *testing.T) {
 		})
 	}
 }
+
+func TestTransformerRegistration(t *testing.T) {
+	transformer := Transformer{
+		Name: "foo",
+	}
+
+	_, err := GetTransformer("foo")
+	assert.Error(t, err)
+
+	RegisterTransformer(transformer)
+
+	found, err := GetTransformer("foo")
+	assert.Equal(t, transformer, found)
+	assert.NoError(t, err)
+
+	// Can't re-register another one w/ the same name.
+	assert.Panics(t, func() {
+		RegisterTransformer(Transformer{
+			Name: "foo",
+		})
+	})
+
+	UnregisterTransformer(transformer)
+	_, err = GetTransformer("foo")
+	assert.Error(t, err)
+}
+
+func TestRegisteredTransformers(t *testing.T) {
+	ts := RegisteredTransformers()
+	assert.NotEmpty(t, ts)
+}

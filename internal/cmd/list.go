@@ -52,7 +52,7 @@ func (a *ListAction) Run() error {
 
 	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
 	for _, p := range results {
-		tbl.AddRow(p.Name(), p.Description(), p.Origin())
+		tbl.AddRow(p.Name(), p.ShortDescription(), p.Origin())
 	}
 	tbl.Print()
 

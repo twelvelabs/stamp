@@ -48,12 +48,12 @@ type Value struct {
 	Flag            string       `mapstructure:"flag"`
 	Help            string       `mapstructure:"help"`
 	DataType        DataType     `mapstructure:"type"      default:"string"    validate:"required,oneof=bool int intSlice string stringSlice"` //nolint:lll
-	Default         interface{}  `mapstructure:"default"`
+	Default         any          `mapstructure:"default"`
 	PromptConfig    PromptConfig `mapstructure:"prompt"    default:"on-unset"  validate:"required,oneof=always never on-empty on-unset"` //nolint:lll
 	InputMode       InputMode    `mapstructure:"mode"      default:"flag"      validate:"required,oneof=arg flag hidden"`
 	TransformRules  string       `mapstructure:"transform"`
 	ValidationRules string       `mapstructure:"validate"`
-	Options         []any        `mapstructure:"options"   default:"[]"`
+	Options         []any        `mapstructure:"options"   nullable:"false"`
 	If              string       `mapstructure:"if"        default:"true"`
 
 	data   interface{}
@@ -64,6 +64,91 @@ type Value struct {
 func (Value) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("Value")
 	schema.WithDescription("A generator input value.")
+
+	schema.Properties["key"].TypeObject.
+		WithTitle("Key").
+		WithDescription(
+			"The variable name for the value. " +
+				"This is how you will refer to the value in template files.",
+		).
+		WithExamples("MyValue")
+
+	schema.Properties["name"].TypeObject.
+		WithTitle("Name").
+		WithDescription(
+			"The display name shown when prompting for the value. " +
+				"Will default to a [humanized](https://pkg.go.dev/github.com/gobuffalo/flect#Humanize) " +
+				"form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key).",
+		).
+		WithExamples("Custom display name")
+
+	schema.Properties["flag"].TypeObject.
+		WithTitle("Flag").
+		WithDescription(
+			"The flag name for the value. " +
+				"Will default to a [dash separated](https://pkg.go.dev/github.com/gobuffalo/flect#Dasherize) " +
+				"form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key).",
+		).
+		WithExamples("custom-flag-name")
+
+	schema.Properties["help"].TypeObject.
+		WithTitle("Help").
+		WithDescription(
+			"Help text describing the value. " +
+				"Shown when prompting and when using the `--help` flag.",
+		).
+		WithExamples("You should enter a random value.")
+
+	schema.Properties["default"].TypeObject.
+		WithTitle("Default").
+		WithDescription(
+			"The value default. " +
+				"Can refer to other values defined earlier in the list.",
+		).
+		WithExamples("{{ .OtherValue | underscore }}.txt")
+
+	schema.Properties["transform"].TypeObject.
+		WithTitle("Transform").
+		WithDescription(
+			"Optional, comma-separated list of " +
+				"[transform](https://github.com/twelvelabs/stamp/tree/main/docs/transform.md) rules.",
+		).
+		WithExamples("trim,uppercase")
+
+	schema.Properties["validate"].TypeObject.
+		WithTitle("Validate").
+		WithDescription(
+			"Optional, comma-separated list of " +
+				"[validation](https://github.com/go-playground/validator#baked-in-validations) rules.",
+		).
+		WithExamples("required,email")
+
+	schema.Properties["options"].TypeObject.
+		WithTitle("Options").
+		WithDescription(
+			"A fixed set of valid options for the value. " +
+				"Will cause the value to be rendered as a single or " +
+				"multi-select when prompted (depending on data type). " +
+				"Attempts to assign a value not in this list will " +
+				"raise a validation error.",
+		).
+		WithExamples([]string{
+			"foo",
+			"bar",
+		})
+
+	schema.Properties["if"].TypeObject.
+		WithTitle("If").
+		WithDescription(
+			"Determines whether the value is enabled. "+
+				"Can refer to other values defined earlier in the list "+
+				"(allows for dynamic prompts).",
+		).
+		WithExamples(
+			"{{ .UseDatabase }}",
+			"{{ eq .Language \"python\" }}",
+		)
+
 	return nil
 }
 
