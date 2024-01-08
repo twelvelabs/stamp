@@ -15,14 +15,19 @@ import (
 
 const (
 	// DataTypeBool is a DataType of type bool.
+	// Boolean.
 	DataTypeBool DataType = "bool"
 	// DataTypeInt is a DataType of type int.
+	// Integer.
 	DataTypeInt DataType = "int"
 	// DataTypeIntSlice is a DataType of type intSlice.
+	// Integer array/slice.
 	DataTypeIntSlice DataType = "intSlice"
 	// DataTypeString is a DataType of type string.
+	// String.
 	DataTypeString DataType = "string"
 	// DataTypeStringSlice is a DataType of type stringSlice.
+	// String array/slice.
 	DataTypeStringSlice DataType = "stringSlice"
 )
 
@@ -86,14 +91,26 @@ func (x *DataType) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = DataType("")
+var (
+	_ jsonschema.Described = DataType("")
+	_ jsonschema.Enum      = DataType("")
+	_ jsonschema.Preparer  = DataType("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x DataType) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("DataType")
-	schema.WithDescription(`DataType is the data type of a value.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x DataType) Description() string {
+	return `Specifies the data type of a [value].
+
+[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -107,12 +124,26 @@ func (x DataType) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x DataType) EnumComments() []string {
+	return []string{
+		"Boolean.",
+		"Integer.",
+		"Integer array/slice.",
+		"String.",
+		"String array/slice.",
+	}
+}
+
 const (
 	// InputModeArg is a InputMode of type arg.
+	// Can be set via positional argument OR prompt.
 	InputModeArg InputMode = "arg"
 	// InputModeFlag is a InputMode of type flag.
+	// Can be set via flag OR prompt.
 	InputModeFlag InputMode = "flag"
 	// InputModeHidden is a InputMode of type hidden.
+	// Can only be set via user config.
 	InputModeHidden InputMode = "hidden"
 )
 
@@ -172,14 +203,26 @@ func (x *InputMode) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = InputMode("")
+var (
+	_ jsonschema.Described = InputMode("")
+	_ jsonschema.Enum      = InputMode("")
+	_ jsonschema.Preparer  = InputMode("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x InputMode) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("InputMode")
-	schema.WithDescription(`InputMode determines whether the value is a flag or positional argument.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x InputMode) Description() string {
+	return `Determines how the [value] can be set.
+
+[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -191,14 +234,27 @@ func (x InputMode) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x InputMode) EnumComments() []string {
+	return []string{
+		"Can be set via positional argument OR prompt.",
+		"Can be set via flag OR prompt.",
+		"Can only be set via user config.",
+	}
+}
+
 const (
 	// PromptConfigAlways is a PromptConfig of type always.
+	// Always prompt.
 	PromptConfigAlways PromptConfig = "always"
 	// PromptConfigNever is a PromptConfig of type never.
+	// Never prompt.
 	PromptConfigNever PromptConfig = "never"
 	// PromptConfigOnEmpty is a PromptConfig of type on-empty.
+	// Only when input OR default is blank/zero.
 	PromptConfigOnEmpty PromptConfig = "on-empty"
 	// PromptConfigOnUnset is a PromptConfig of type on-unset.
+	// Only when not explicitly set via CLI.
 	PromptConfigOnUnset PromptConfig = "on-unset"
 )
 
@@ -260,14 +316,26 @@ func (x *PromptConfig) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = PromptConfig("")
+var (
+	_ jsonschema.Described = PromptConfig("")
+	_ jsonschema.Enum      = PromptConfig("")
+	_ jsonschema.Preparer  = PromptConfig("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x PromptConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("PromptConfig")
-	schema.WithDescription(`PromptConfig determines when a value should prompt.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x PromptConfig) Description() string {
+	return `Determines when a [value] should prompt for input.
+
+[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -277,5 +345,15 @@ func (x PromptConfig) Enum() []any {
 		"never",
 		"on-empty",
 		"on-unset",
+	}
+}
+
+// EnumComments returns the comment associcated with each enum.
+func (x PromptConfig) EnumComments() []string {
+	return []string{
+		"Always prompt.",
+		"Never prompt.",
+		"Only when input OR default is blank/zero.",
+		"Only when not explicitly set via CLI.",
 	}
 }

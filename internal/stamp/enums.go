@@ -7,22 +7,67 @@ import (
 	"github.com/twelvelabs/stamp/internal/encode"
 )
 
-//go:generate go-enum -f=$GOFILE -t ../enums.tmpl --marshal --names
+// cspell: words: createtask updatetask
+//go:generate go-enum -f=$GOFILE -t ../enums.tmpl --marshal --names --nocomments
 
-// ConflictConfig determines what to do when destination paths already exist.
-// ENUM(keep, replace, prompt).
+// Determines what to do when creating a new file and
+// the destination path already exists.
+//
+// > [!IMPORTANT]
+// > Only used in [create] tasks.
+//
+// [create]: https://github.com/twelvelabs/stamp/tree/main/docs/create_task.md
+/*
+	ENUM(
+		keep     // Keep the existing path. The task becomes a noop.
+		replace  // Replace the existing path.
+		prompt   // Prompt the user.
+	).
+*/
 type ConflictConfig string
 
-// MatchSource determines whether match patterns should be applied per-line or to the entire file.
-// ENUM(file, line).
+// Determines how regexp patterns should be applied.
+/*
+	ENUM(
+		file  // Match the entire file.
+		line  // Match each line.
+	).
+*/
 type MatchSource string
 
-// MissingConfig determines what to do when destination paths are missing.
-// ENUM(ignore, touch, error).
+// Determines what to do when updating an existing file and
+// the destination path is missing.
+//
+// > [!IMPORTANT]
+// > Only used in [update] and [delete] tasks.
+//
+// [update]: https://github.com/twelvelabs/stamp/tree/main/docs/update_task.md
+// [delete]: https://github.com/twelvelabs/stamp/tree/main/docs/delete_task.md
+/*
+	ENUM(
+		ignore  // Do nothing. The task becomes a noop.
+		touch   // Create an empty file.
+		error   // Raise an error.
+	).
+*/
 type MissingConfig string
 
-// FileType specifies the content type of the destination path.
-// ENUM(json, yaml, text).
+// Specifies the content type of the file.
+// Inferred from the file extension by default.
+//
+// When the content type is JSON or YAML, the file will be
+// parsed into a data structure before use.
+// When updating files, the content type determines
+// the behavior of the [match.pattern] attribute.
+//
+// [match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern
+/*
+	ENUM(
+		json
+		yaml
+		text
+	).
+*/
 type FileType string
 
 // Encoder returns the encoder for this content type.

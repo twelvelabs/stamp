@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/ui"
 )
 
@@ -26,7 +27,6 @@ func TestNewValue(t *testing.T) {
 				DataType:     DataTypeString,
 				PromptConfig: PromptConfigOnUnset,
 				InputMode:    InputModeFlag,
-				Options:      []any{},
 				If:           "true",
 			},
 			Err: "",
@@ -282,8 +282,11 @@ func TestValue_IsEmpty(t *testing.T) {
 }
 
 func TestValue_GetAndSet(t *testing.T) { //nolint: maintidx
-	RegisterTransformer("explode", func(a any) (any, error) {
-		return "lol", errors.New("boom")
+	RegisterTransformer(Transformer{
+		Name: "explode",
+		Func: func(a any) (any, error) {
+			return "lol", errors.New("boom")
+		},
 	})
 
 	tests := []struct {
@@ -1077,4 +1080,12 @@ func TestValue_ShouldPrompt(t *testing.T) {
 			assert.Equal(t, test.ShouldPrompt, test.Value.ShouldPrompt())
 		})
 	}
+}
+
+func TestValue_PrepareJSONSchema(t *testing.T) {
+	value := &Value{}
+	_, err := (&jsonschema.Reflector{}).Reflect(value,
+		jsonschema.PropertyNameTag("mapstructure"),
+	)
+	assert.NoError(t, err)
 }

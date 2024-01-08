@@ -7,15 +7,19 @@ import (
 type DeleteTask struct {
 	Common `mapstructure:",squash"`
 
-	Dst  Destination `mapstructure:"dst"`
-	Type string      `mapstructure:"type" const:"delete" description:"Deletes a file in the destination directory."`
+	Dst  Destination `mapstructure:"dst"  required:"true" title:"Destination"`
+	Type string      `mapstructure:"type" required:"true" title:"Type" description:"Deletes a path in the destination directory." const:"delete" default:"delete"` //nolint: lll
 }
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (t *DeleteTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("DeleteTask")
-	schema.WithDescription("Deletes a file in the destination directory.")
+	schema.WithDescription("Deletes a path in the destination directory.")
 	return nil
+}
+
+func (t *DeleteTask) TypeKey() string {
+	return t.Type
 }
 
 func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {

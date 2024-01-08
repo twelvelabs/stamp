@@ -181,6 +181,12 @@ type Generator struct {
 	Tasks  *TaskSet
 }
 
+// ShortDescription returns the first line of the description.
+func (g *Generator) ShortDescription() string {
+	lines := strings.Split(g.Description(), "\n")
+	return lines[0]
+}
+
 func (g *Generator) SrcPath() string {
 	return filepath.Join(g.Path(), "_src")
 }

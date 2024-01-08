@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	// ConflictConfigKeep is a ConflictConfig of type keep.
+	// Keep the existing path. The task becomes a noop.
 	ConflictConfigKeep ConflictConfig = "keep"
-	// ConflictConfigReplace is a ConflictConfig of type replace.
+	// Replace the existing path.
 	ConflictConfigReplace ConflictConfig = "replace"
-	// ConflictConfigPrompt is a ConflictConfig of type prompt.
+	// Prompt the user.
 	ConflictConfigPrompt ConflictConfig = "prompt"
 )
 
@@ -78,14 +78,30 @@ func (x *ConflictConfig) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = ConflictConfig("")
+var (
+	_ jsonschema.Described = ConflictConfig("")
+	_ jsonschema.Enum      = ConflictConfig("")
+	_ jsonschema.Preparer  = ConflictConfig("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x ConflictConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("ConflictConfig")
-	schema.WithDescription(`ConflictConfig determines what to do when destination paths already exist.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x ConflictConfig) Description() string {
+	return `Determines what to do when creating a new file and
+the destination path already exists.
+
+> [!IMPORTANT]
+> Only used in [create] tasks.
+
+[create]: https://github.com/twelvelabs/stamp/tree/main/docs/create_task.md`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -97,12 +113,18 @@ func (x ConflictConfig) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x ConflictConfig) EnumComments() []string {
+	return []string{
+		"Keep the existing path. The task becomes a noop.",
+		"Replace the existing path.",
+		"Prompt the user.",
+	}
+}
+
 const (
-	// FileTypeJson is a FileType of type json.
 	FileTypeJson FileType = "json"
-	// FileTypeYaml is a FileType of type yaml.
 	FileTypeYaml FileType = "yaml"
-	// FileTypeText is a FileType of type text.
 	FileTypeText FileType = "text"
 )
 
@@ -162,14 +184,32 @@ func (x *FileType) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = FileType("")
+var (
+	_ jsonschema.Described = FileType("")
+	_ jsonschema.Enum      = FileType("")
+	_ jsonschema.Preparer  = FileType("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x FileType) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("FileType")
-	schema.WithDescription(`FileType specifies the content type of the destination path.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x FileType) Description() string {
+	return `Specifies the content type of the file.
+Inferred from the file extension by default.
+
+When the content type is JSON or YAML, the file will be
+parsed into a data structure before use.
+When updating files, the content type determines
+the behavior of the [match.pattern] attribute.
+
+[match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -181,10 +221,19 @@ func (x FileType) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x FileType) EnumComments() []string {
+	return []string{
+		"",
+		"",
+		"",
+	}
+}
+
 const (
-	// MatchSourceFile is a MatchSource of type file.
+	// Match the entire file.
 	MatchSourceFile MatchSource = "file"
-	// MatchSourceLine is a MatchSource of type line.
+	// Match each line.
 	MatchSourceLine MatchSource = "line"
 )
 
@@ -242,14 +291,24 @@ func (x *MatchSource) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = MatchSource("")
+var (
+	_ jsonschema.Described = MatchSource("")
+	_ jsonschema.Enum      = MatchSource("")
+	_ jsonschema.Preparer  = MatchSource("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MatchSource) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("MatchSource")
-	schema.WithDescription(`MatchSource determines whether match patterns should be applied per-line or to the entire file.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x MatchSource) Description() string {
+	return `Determines how regexp patterns should be applied.`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -260,12 +319,20 @@ func (x MatchSource) Enum() []any {
 	}
 }
 
+// EnumComments returns the comment associcated with each enum.
+func (x MatchSource) EnumComments() []string {
+	return []string{
+		"Match the entire file.",
+		"Match each line.",
+	}
+}
+
 const (
-	// MissingConfigIgnore is a MissingConfig of type ignore.
+	// Do nothing. The task becomes a noop.
 	MissingConfigIgnore MissingConfig = "ignore"
-	// MissingConfigTouch is a MissingConfig of type touch.
+	// Create an empty file.
 	MissingConfigTouch MissingConfig = "touch"
-	// MissingConfigError is a MissingConfig of type error.
+	// Raise an error.
 	MissingConfigError MissingConfig = "error"
 )
 
@@ -325,14 +392,31 @@ func (x *MissingConfig) UnmarshalText(text []byte) error {
 	return nil
 }
 
-var _ jsonschema.Preparer = MissingConfig("")
+var (
+	_ jsonschema.Described = MissingConfig("")
+	_ jsonschema.Enum      = MissingConfig("")
+	_ jsonschema.Preparer  = MissingConfig("")
+)
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (x MissingConfig) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("MissingConfig")
-	schema.WithDescription(`MissingConfig determines what to do when destination paths are missing.`)
+	schema.WithDescription(x.Description())
 	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
 	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x MissingConfig) Description() string {
+	return `Determines what to do when updating an existing file and
+the destination path is missing.
+
+> [!IMPORTANT]
+> Only used in [update] and [delete] tasks.
+
+[update]: https://github.com/twelvelabs/stamp/tree/main/docs/update_task.md
+[delete]: https://github.com/twelvelabs/stamp/tree/main/docs/delete_task.md`
 }
 
 // Enum implements the jsonschema.Enum interface.
@@ -341,5 +425,14 @@ func (x MissingConfig) Enum() []any {
 		"ignore",
 		"touch",
 		"error",
+	}
+}
+
+// EnumComments returns the comment associcated with each enum.
+func (x MissingConfig) EnumComments() []string {
+	return []string{
+		"Do nothing. The task becomes a noop.",
+		"Create an empty file.",
+		"Raise an error.",
 	}
 }

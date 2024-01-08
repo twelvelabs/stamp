@@ -37,11 +37,11 @@ func NewDestinationWithValues(path string, mode string, values map[string]any) (
 }
 
 type Destination struct {
-	ContentTypeTpl render.Template `mapstructure:"content_type"`
-	Conflict       ConflictConfig  `mapstructure:"conflict" default:"prompt"`
-	Missing        MissingConfig   `mapstructure:"missing" default:"ignore"`
-	ModeTpl        render.Template `mapstructure:"mode"`
-	PathTpl        render.Template `mapstructure:"path"`
+	ContentTypeTpl render.Template `mapstructure:"content_type" title:"Content Type"`
+	Conflict       ConflictConfig  `mapstructure:"conflict"     title:"Conflict"  default:"prompt"`
+	Missing        MissingConfig   `mapstructure:"missing"      title:"Missing"   default:"ignore"`
+	ModeTpl        render.Template `mapstructure:"mode"         title:"Mode"`
+	PathTpl        render.Template `mapstructure:"path"         title:"Path" required:"true"`
 
 	content     any
 	contentType FileType
@@ -55,16 +55,15 @@ func (d Destination) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithDescription("The destination path.")
 	if prop, ok := schema.Properties["content_type"]; ok {
 		prop.TypeObjectEns().
-			WithDescription(
-				"An explicit content type. Inferred from the file extension by default.",
-			).
+			WithDescription(d.contentType.Description()).
 			WithEnum(d.contentType.Enum()...)
 	}
 	if prop, ok := schema.Properties["mode"]; ok {
 		prop.TypeObjectEns().
 			WithDefault("0666").
 			WithDescription(
-				"An optional POSIX file mode to set on the file path.",
+				"An optional [POSIX mode](https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation) "+
+					"to set on the file path.",
 			).
 			WithExamples(
 				"0755",
@@ -76,7 +75,12 @@ func (d Destination) PrepareJSONSchema(schema *jsonschema.Schema) error {
 		prop.TypeObjectEns().
 			WithDescription(
 				"The file path relative to the destination directory. " +
-					"Attempts to traverse outside the destination directory will raise a runtime error",
+					"Attempts to traverse outside the destination directory will raise a runtime error" +
+					"\n\n" +
+					"When creating new files, the [conflict](#conflict) attribute " +
+					"will be used if the path already exists. " +
+					"When updating or deleting files, the [missing](#missing) attribute " +
+					"will be used if the path does not exist.",
 			)
 	}
 	return nil

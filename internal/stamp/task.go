@@ -23,27 +23,26 @@ type Task interface {
 	// ShouldExecute returns true if the task should be run.
 	// Configured via the `if` attribute (default `true`).
 	ShouldExecute(values map[string]any) bool
+
+	// TypeKey returns the short name used to identify the task in generator metadata.
+	TypeKey() string
 }
 
-type SetDefaultsFunc func(any) error
-
-var (
-	// DefaultSetDefaultsFunc is the default SetDefaults implementation.
-	// Delegates to [defaults.Set].
-	DefaultSetDefaultsFunc SetDefaultsFunc = defaults.Set
-
-	// SetDefaults sets the default values for the given task.
-	SetDefaults = DefaultSetDefaultsFunc
-)
-
 // AllTasks returns a slice of all known tasks.
-func AllTasks() []any {
-	return []any{
+// Whenever a new task type is created, it should be added here.
+func AllTasks() []Task {
+	tasks := []Task{
 		&CreateTask{},
+		&UpdateTask{},
 		&DeleteTask{},
 		&GeneratorTask{},
-		&UpdateTask{},
 	}
+	// Ensure defaults are set.
+	// Needed for TypeKey() implementation.
+	for _, t := range tasks {
+		defaults.MustSet(t)
+	}
+	return tasks
 }
 
 // NewTask returns a new Task struct for the given map of data.
@@ -53,17 +52,14 @@ func NewTask(taskData map[string]any) (Task, error) {
 		return nil, errors.New("undefined task type")
 	}
 
-	var task Task // these should all be pointers
-	switch taskType {
-	case "create", "generate":
-		task = &CreateTask{}
-	case "delete":
-		task = &DeleteTask{}
-	case "generator":
-		task = &GeneratorTask{}
-	case "update":
-		task = &UpdateTask{}
-	default:
+	var task Task
+	for _, t := range AllTasks() {
+		if t.TypeKey() == taskType {
+			task = t
+			break
+		}
+	}
+	if task == nil {
 		return nil, fmt.Errorf("unknown task type: %v", taskType)
 	}
 
@@ -75,10 +71,6 @@ func NewTask(taskData map[string]any) (Task, error) {
 	}
 	decoder, _ := mapstructure.NewDecoder(decoderConfig)
 
-	// Set struct defaults, decode data map into the struct, and then validate
-	if err := SetDefaults(task); err != nil {
-		return nil, err
-	}
 	// if err := mapstructure.Decode(taskData, task); err != nil {
 	if err := decoder.Decode(taskData); err != nil {
 		return nil, err

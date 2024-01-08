@@ -1,7 +1,6 @@
 package stamp
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,11 +8,10 @@ import (
 
 func TestNewTask(t *testing.T) {
 	tests := []struct {
-		Name        string
-		TaskData    map[string]any
-		Task        Task
-		SetDefaults SetDefaultsFunc
-		Err         string
+		Name     string
+		TaskData map[string]any
+		Task     Task
+		Err      string
 	}{
 		{
 			Name:     "returns an error if type field is missing",
@@ -28,17 +26,6 @@ func TestNewTask(t *testing.T) {
 			},
 			Task: nil,
 			Err:  "unknown task type: not-a-type",
-		},
-		{
-			Name: "returns an error if unable to set defaults",
-			TaskData: map[string]any{
-				"type": "create",
-			},
-			Task: nil,
-			SetDefaults: func(a any) error {
-				return errors.New("boom")
-			},
-			Err: "boom",
 		},
 		{
 			Name: "returns an error if decoding fails",
@@ -57,12 +44,6 @@ func TestNewTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			if tt.SetDefaults != nil {
-				SetDefaults = tt.SetDefaults
-				defer func() {
-					SetDefaults = DefaultSetDefaultsFunc
-				}()
-			}
 			actual, err := NewTask(tt.TaskData)
 			assert.Equal(t, tt.Task, actual)
 			if tt.Err == "" {

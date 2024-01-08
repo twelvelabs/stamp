@@ -10,30 +10,85 @@ import (
 	"github.com/swaggest/jsonschema-go"
 	"github.com/twelvelabs/termite/render"
 
+	"github.com/twelvelabs/stamp/internal/mdutil"
 	"github.com/twelvelabs/stamp/internal/modify"
 )
 
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action         UpdateAction    `mapstructure:"action"`
-	DescriptionTpl render.Template `mapstructure:"description" description:"An optional description of what is being updated."` //nolint: lll
-	Dst            Destination     `mapstructure:"dst"`
-	Match          UpdateMatch     `mapstructure:"match"`
-	Src            Source          `mapstructure:"src"`
-	Type           string          `mapstructure:"type" const:"update" description:"Updates a file in the destination directory."` //nolint: lll
+	Action         UpdateAction    `mapstructure:"action"      title:"Action"`
+	DescriptionTpl render.Template `mapstructure:"description" title:"Description" description:"An optional description of what is being updated."` //nolint: lll
+	Dst            Destination     `mapstructure:"dst"         title:"Destination" required:"true"`
+	Match          UpdateMatch     `mapstructure:"match"       title:"Match"`
+	Src            Source          `mapstructure:"src"         title:"Source" required:"true"`
+	Type           string          `mapstructure:"type"        title:"Type"   required:"true" description:"Updates a file in the destination directory." const:"update" default:"update"` //nolint: lll
 }
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (t *UpdateTask) PrepareJSONSchema(schema *jsonschema.Schema) error {
 	schema.WithTitle("UpdateTask")
-	schema.WithDescription("Updates a file in the destination directory.")
+	schema.WithDescription(mdutil.ToMarkdown(`
+		Updates a file in the destination directory.
+
+		The default behavior is to replace the entire file with the
+		source content, but you can optionally specify alternate
+		[actions](#action) (prepend, append, or delete) or [target](#match)
+		a subsection of the destination file.
+		If the destination file is structured (JSON, YAML), then you
+		may target a JSON path pattern, otherwise it will be treated
+		as plain text and you can target via regular expression.
+
+		Examples:
+
+		__CODE_BLOCK__yaml
+		tasks:
+			- type: update
+				# Render <./_src/COPYRIGHT.tpl> and append it
+				# to the end of the README.
+				# If the README does not exist in the destination dir,
+				# then do nothing.
+				src:
+					path: "COPYRIGHT.tpl"
+				action:
+					type: "append"
+				dst:
+					path: "README.md"
+		__CODE_BLOCK__
+
+		__CODE_BLOCK__yaml
+		tasks:
+			- type: update
+				# Update <./package.json> in the destination dir.
+				# If the file is missing, create it.
+				dst:
+					path: "package.json"
+					missing: "touch"
+				# Don't update the entire file - just the dependencies section.
+				# If the dependencies section is missing, initialize it to an empty object.
+				match:
+					pattern: "$.dependencies"
+					default: {}
+				# Append (i.e. merge) the source content to the dependencies section.
+				# The default behavior is to fully replace the matched pattern
+				# with the source content.
+				action:
+					type: "append"
+				# Use this inline object as the source content.
+				# We could alternately reference a source file
+				# containing a JSON object.
+				src:
+					content:
+						lodash: "4.17.21"
+		__CODE_BLOCK__
+	`))
+
 	return nil
 }
 
 type UpdateAction struct {
-	Type      modify.Action    `mapstructure:"type" default:"replace"`
-	MergeType modify.MergeType `mapstructure:"merge" default:"concat"`
+	Type      modify.Action    `mapstructure:"type"  title:"Type"  default:"replace"`
+	MergeType modify.MergeType `mapstructure:"merge" title:"Merge" default:"concat"`
 }
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
@@ -44,9 +99,9 @@ func (UpdateAction) PrepareJSONSchema(schema *jsonschema.Schema) error {
 }
 
 type UpdateMatch struct {
-	PatternTpl render.Template `mapstructure:"pattern" default:"" description:"A regexp or JSON path expression."`
-	Default    any             `mapstructure:"default" description:"A default value to use if the JSON path expression is not found."` //nolint: lll
-	Source     MatchSource     `mapstructure:"source" default:"line"`
+	PatternTpl render.Template `mapstructure:"pattern" title:"Pattern" default:"" description:"A regexp (content type: text) or JSON path expression (content type: json, yaml). When empty, will match everything."` //nolint: lll
+	Default    any             `mapstructure:"default" title:"Default" description:"A default value to use if the JSON path expression is not found."`                                                                //nolint: lll
+	Source     MatchSource     `mapstructure:"source"  title:"Source"  default:"line"`
 
 	pattern string
 }
@@ -76,6 +131,10 @@ func (um *UpdateMatch) SetPattern(pat string, ct FileType) {
 			um.pattern = "(?s)^(.*)$" // `?s` causes . to match newlines
 		}
 	}
+}
+
+func (t *UpdateTask) TypeKey() string {
+	return t.Type
 }
 
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
