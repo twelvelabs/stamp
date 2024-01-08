@@ -3,59 +3,118 @@
     "$schema": "https://json-schema.org/draft-07/schema",
     "title": "Generator",
     "description": "Stamp generator metadata.",
+    "required": [
+        "name"
+    ],
     "definitions": {
         "Action": {
             "title": "Action",
-            "description": "Action determines what type of modification to perform.",
+            "description": "Determines what type of modification to perform.\n\nThe append/prepend behavior differs slightly depending on\nthe destination content type. Strings are concatenated,\nnumbers are added, and objects are recursively merged.\nArrays are concatenated by default, but that behavior can\nbe customized via the 'merge' enum.\n\nReplace and delete behave consistently across all types.",
             "enum": [
                 "append",
                 "prepend",
                 "replace",
                 "delete"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Append to the destination content.",
+                "Prepend to the destination content.",
+                "Replace the destination.",
+                "Delete the destination content."
+            ],
+            "markdownDescription": "Determines what type of modification to perform.\n\nThe append/prepend behavior differs slightly depending on\nthe destination content type. Strings are concatenated,\nnumbers are added, and objects are recursively merged.\nArrays are concatenated by default, but that behavior can\nbe customized via the 'merge' enum.\n\nReplace and delete behave consistently across all types."
         },
         "ConflictConfig": {
             "title": "ConflictConfig",
-            "description": "ConflictConfig determines what to do when destination paths already exist.",
+            "description": "Determines what to do when creating a new file and\nthe destination path already exists.\n\n\u003e [!IMPORTANT]\n\u003e Only used in [create] tasks.\n\n[create]: https://github.com/twelvelabs/stamp/tree/main/docs/create_task.md",
             "enum": [
                 "keep",
                 "replace",
                 "prompt"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Keep the existing path. The task becomes a noop.",
+                "Replace the existing path.",
+                "Prompt the user."
+            ],
+            "markdownDescription": "Determines what to do when creating a new file and\nthe destination path already exists.\n\n\u003e [!IMPORTANT]\n\u003e Only used in [create] tasks.\n\n[create]: https://github.com/twelvelabs/stamp/tree/main/docs/create_task.md"
         },
         "CreateTask": {
             "title": "CreateTask",
-            "description": "Creates a new file in the destination directory.",
+            "description": "Creates a new path in the destination directory.\n\nWhen using source templates, the [src.path](source_path.md#path)\nattribute may be a file or a directory path. When the latter,\nthe source directory will be copied to the destination path recursively.\n\nExamples:\n\n```yaml\ntasks:\n  - type: create\n    # Render \u003c./_src/README.tpl\u003e (using the values defined in the generator)\n    # and write it to \u003c./README.md\u003e in the destination directory.\n    # If the README file already exists in the destination dir,\n    # keep the existing file and do not bother prompting the user.\n    src:\n      path: \"README.tpl\"\n    dst:\n      path: \"README.md\"\n      conflict: keep\n```\n\n```yaml\nvalues:\n  - key: \"FirstName\"\n    default: \"Some Name\"\n\ntasks:\n  - type: create\n    # Render the inline content as a template and write it to\n    # \u003c./some_name/greeting.txt\u003e in the destination directory.\n    src:\n      content: \"Hello, {{ .FirstName }}!\"\n    dst:\n      path: \"{{ .FirstName | underscore }}/greeting.txt\"\n```\n\n```yaml\ntasks:\n  - type: create\n    # Render all the files in \u003c./_src/scripts/\u003e (using the values defined in the generator),\n    # copy them to \u003c./scripts/\u003e in the destination directory, then make them executable.\n    src:\n      path: \"scripts/\"\n    dst:\n      path: \"scripts/\"\n      mode: \"0755\"\n```\n",
+            "required": [
+                "dst",
+                "src",
+                "type"
+            ],
             "additionalProperties": false,
             "properties": {
                 "dst": {
-                    "$ref": "#/definitions/Destination"
+                    "$ref": "#/definitions/Destination",
+                    "title": "Destination",
+                    "examples": [
+                        {
+                            "path": "README.md"
+                        },
+                        {
+                            "mode": "0755",
+                            "path": "bin/build.sh"
+                        }
+                    ]
                 },
                 "each": {
+                    "title": "Each",
                     "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly.",
-                    "type": "string"
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly."
                 },
                 "if": {
-                    "description": "Determines whether the task should be executed. The value must be coercible to a boolean.",
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "src": {
-                    "$ref": "#/definitions/Source"
+                    "$ref": "#/definitions/Source",
+                    "title": "Source",
+                    "examples": [
+                        {
+                            "path": "README.tpl"
+                        },
+                        {
+                            "content": "Hello, {{ .FirstName }}!"
+                        }
+                    ]
                 },
                 "type": {
-                    "description": "Creates a new file in the destination directory.",
+                    "title": "Type",
+                    "description": "Creates a new path in the destination directory.",
+                    "default": "create",
+                    "examples": [
+                        "create"
+                    ],
                     "const": "create",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "Creates a new path in the destination directory."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "Creates a new path in the destination directory.\n\nWhen using source templates, the [src.path](source_path.md#path)\nattribute may be a file or a directory path. When the latter,\nthe source directory will be copied to the destination path recursively.\n\nExamples:\n\n```yaml\ntasks:\n  - type: create\n    # Render \u003c./_src/README.tpl\u003e (using the values defined in the generator)\n    # and write it to \u003c./README.md\u003e in the destination directory.\n    # If the README file already exists in the destination dir,\n    # keep the existing file and do not bother prompting the user.\n    src:\n      path: \"README.tpl\"\n    dst:\n      path: \"README.md\"\n      conflict: keep\n```\n\n```yaml\nvalues:\n  - key: \"FirstName\"\n    default: \"Some Name\"\n\ntasks:\n  - type: create\n    # Render the inline content as a template and write it to\n    # \u003c./some_name/greeting.txt\u003e in the destination directory.\n    src:\n      content: \"Hello, {{ .FirstName }}!\"\n    dst:\n      path: \"{{ .FirstName | underscore }}/greeting.txt\"\n```\n\n```yaml\ntasks:\n  - type: create\n    # Render all the files in \u003c./_src/scripts/\u003e (using the values defined in the generator),\n    # copy them to \u003c./scripts/\u003e in the destination directory, then make them executable.\n    src:\n      path: \"scripts/\"\n    dst:\n      path: \"scripts/\"\n      mode: \"0755\"\n```\n"
         },
         "DataType": {
             "title": "DataType",
-            "description": "DataType is the data type of a value.",
+            "description": "Specifies the data type of a [value].\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md",
             "enum": [
                 "bool",
                 "int",
@@ -63,164 +122,273 @@
                 "string",
                 "stringSlice"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Boolean.",
+                "Integer.",
+                "Integer array/slice.",
+                "String.",
+                "String array/slice."
+            ],
+            "markdownDescription": "Specifies the data type of a [value].\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md"
         },
         "DeleteTask": {
             "title": "DeleteTask",
-            "description": "Deletes a file in the destination directory.",
+            "description": "Deletes a path in the destination directory.",
+            "required": [
+                "dst",
+                "type"
+            ],
             "additionalProperties": false,
             "properties": {
                 "dst": {
-                    "$ref": "#/definitions/Destination"
+                    "$ref": "#/definitions/Destination",
+                    "title": "Destination"
                 },
                 "each": {
+                    "title": "Each",
                     "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly.",
-                    "type": "string"
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly."
                 },
                 "if": {
-                    "description": "Determines whether the task should be executed. The value must be coercible to a boolean.",
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "type": {
-                    "description": "Deletes a file in the destination directory.",
+                    "title": "Type",
+                    "description": "Deletes a path in the destination directory.",
+                    "default": "delete",
                     "const": "delete",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "Deletes a path in the destination directory."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "Deletes a path in the destination directory."
         },
         "Destination": {
             "title": "Destination",
             "description": "The destination path.",
+            "required": [
+                "path"
+            ],
             "additionalProperties": false,
             "properties": {
                 "conflict": {
                     "$ref": "#/definitions/ConflictConfig",
+                    "title": "Conflict",
                     "default": "prompt"
                 },
                 "content_type": {
-                    "description": "An explicit content type. Inferred from the file extension by default.",
+                    "title": "Content Type",
+                    "description": "Specifies the content type of the file.\nInferred from the file extension by default.\n\nWhen the content type is JSON or YAML, the file will be\nparsed into a data structure before use.\nWhen updating files, the content type determines\nthe behavior of the [match.pattern] attribute.\n\n[match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern",
                     "enum": [
                         "json",
                         "yaml",
                         "text"
                     ],
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "Specifies the content type of the file.\nInferred from the file extension by default.\n\nWhen the content type is JSON or YAML, the file will be\nparsed into a data structure before use.\nWhen updating files, the content type determines\nthe behavior of the [match.pattern] attribute.\n\n[match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern"
                 },
                 "missing": {
                     "$ref": "#/definitions/MissingConfig",
+                    "title": "Missing",
                     "default": "ignore"
                 },
                 "mode": {
-                    "description": "An optional POSIX file mode to set on the file path.",
+                    "title": "Mode",
+                    "description": "An optional [POSIX mode](https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation) to set on the file path.",
                     "default": "0666",
                     "examples": [
                         "0755",
                         "{{ .ModeValue }}"
                     ],
                     "pattern": "\\{\\{(.*)\\}\\}|\\d{4}",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "An optional [POSIX mode](https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation) to set on the file path."
                 },
                 "path": {
-                    "description": "The file path relative to the destination directory. Attempts to traverse outside the destination directory will raise a runtime error",
-                    "type": "string"
+                    "title": "Path",
+                    "description": "The file path relative to the destination directory. Attempts to traverse outside the destination directory will raise a runtime error\n\nWhen creating new files, the [conflict](#conflict) attribute will be used if the path already exists. When updating or deleting files, the [missing](#missing) attribute will be used if the path does not exist.",
+                    "type": "string",
+                    "markdownDescription": "The file path relative to the destination directory. Attempts to traverse outside the destination directory will raise a runtime error\n\nWhen creating new files, the [conflict](#conflict) attribute will be used if the path already exists. When updating or deleting files, the [missing](#missing) attribute will be used if the path does not exist."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "The destination path."
         },
         "FileType": {
             "title": "FileType",
-            "description": "FileType specifies the content type of the destination path.",
+            "description": "Specifies the content type of the file.\nInferred from the file extension by default.\n\nWhen the content type is JSON or YAML, the file will be\nparsed into a data structure before use.\nWhen updating files, the content type determines\nthe behavior of the [match.pattern] attribute.\n\n[match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern",
             "enum": [
                 "json",
                 "yaml",
                 "text"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "",
+                "",
+                ""
+            ],
+            "markdownDescription": "Specifies the content type of the file.\nInferred from the file extension by default.\n\nWhen the content type is JSON or YAML, the file will be\nparsed into a data structure before use.\nWhen updating files, the content type determines\nthe behavior of the [match.pattern] attribute.\n\n[match.pattern]: https://github.com/twelvelabs/stamp/tree/main/docs/match.md#pattern"
         },
         "GeneratorTask": {
             "title": "GeneratorTask",
-            "description": "Executes another generator.",
+            "description": "Executes another generator.\n\nAll values defined by the included generator are prepended\nto the including generator's values list. This allows the\nincluding generator to redefine values if needed.\n\nYou can also optionally define values to set in the included generator.\nThis can be useful to prevent the user from being prompted for\nvalues that do not make sense in your use case (see example).\n\nExample:\n\n```yaml\nname: \"python-api\"\n\ntasks:\n  - type: \"generator\"\n    # Executes the gitignore generator, pre-setting\n    # the \"Language\" value so the user isn't prompted.\n    name: \"gitignore\"\n    values:\n      Language: \"python\"\n\n  # ... other tasks ...\n```\n",
+            "required": [
+                "name",
+                "type"
+            ],
             "additionalProperties": false,
             "properties": {
                 "each": {
+                    "title": "Each",
                     "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly.",
-                    "type": "string"
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly."
                 },
                 "if": {
-                    "description": "Determines whether the task should be executed. The value must be coercible to a boolean.",
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "name": {
-                    "type": "string"
+                    "title": "Name",
+                    "description": "The name of the generator to execute.",
+                    "type": "string",
+                    "markdownDescription": "The name of the generator to execute."
                 },
                 "type": {
+                    "title": "Type",
                     "description": "Executes another generator.",
+                    "default": "generator",
                     "const": "generator",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "Executes another generator."
                 },
                 "values": {
+                    "title": "Values",
+                    "description": "Optional key/value pairs to pass to the generator.",
                     "default": {},
+                    "examples": [
+                        {
+                            "ValueKeyOne": "foo",
+                            "ValueKeyTwo": "bar"
+                        }
+                    ],
                     "additionalProperties": {},
                     "type": [
                         "object",
                         "null"
-                    ]
+                    ],
+                    "markdownDescription": "Optional key/value pairs to pass to the generator."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "Executes another generator.\n\nAll values defined by the included generator are prepended\nto the including generator's values list. This allows the\nincluding generator to redefine values if needed.\n\nYou can also optionally define values to set in the included generator.\nThis can be useful to prevent the user from being prompted for\nvalues that do not make sense in your use case (see example).\n\nExample:\n\n```yaml\nname: \"python-api\"\n\ntasks:\n  - type: \"generator\"\n    # Executes the gitignore generator, pre-setting\n    # the \"Language\" value so the user isn't prompted.\n    name: \"gitignore\"\n    values:\n      Language: \"python\"\n\n  # ... other tasks ...\n```\n"
         },
         "InputMode": {
             "title": "InputMode",
-            "description": "InputMode determines whether the value is a flag or positional argument.",
+            "description": "Determines how the [value] can be set.\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md",
             "enum": [
                 "arg",
                 "flag",
                 "hidden"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Can be set via positional argument OR prompt.",
+                "Can be set via flag OR prompt.",
+                "Can only be set via user config."
+            ],
+            "markdownDescription": "Determines how the [value] can be set.\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md"
         },
         "MatchSource": {
             "title": "MatchSource",
-            "description": "MatchSource determines whether match patterns should be applied per-line or to the entire file.",
+            "description": "Determines how regexp patterns should be applied.",
             "enum": [
                 "file",
                 "line"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Match the entire file.",
+                "Match each line."
+            ],
+            "markdownDescription": "Determines how regexp patterns should be applied."
         },
         "MergeType": {
             "title": "MergeType",
-            "description": "MergeType determines slice merge behavior.",
+            "description": "Determines merge behavior for arrays - either when modifying them directly\nor when recursively merging objects containing arrays.",
             "enum": [
                 "concat",
                 "upsert",
                 "replace"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Concatenate source and destination arrays.",
+                "Add source array items if not present in the destination.",
+                "Replace the destination with the source."
+            ],
+            "markdownDescription": "Determines merge behavior for arrays - either when modifying them directly\nor when recursively merging objects containing arrays."
         },
         "MissingConfig": {
             "title": "MissingConfig",
-            "description": "MissingConfig determines what to do when destination paths are missing.",
+            "description": "Determines what to do when updating an existing file and\nthe destination path is missing.\n\n\u003e [!IMPORTANT]\n\u003e Only used in [update] and [delete] tasks.\n\n[update]: https://github.com/twelvelabs/stamp/tree/main/docs/update_task.md\n[delete]: https://github.com/twelvelabs/stamp/tree/main/docs/delete_task.md",
             "enum": [
                 "ignore",
                 "touch",
                 "error"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Do nothing. The task becomes a noop.",
+                "Create an empty file.",
+                "Raise an error."
+            ],
+            "markdownDescription": "Determines what to do when updating an existing file and\nthe destination path is missing.\n\n\u003e [!IMPORTANT]\n\u003e Only used in [update] and [delete] tasks.\n\n[update]: https://github.com/twelvelabs/stamp/tree/main/docs/update_task.md\n[delete]: https://github.com/twelvelabs/stamp/tree/main/docs/delete_task.md"
         },
         "PromptConfig": {
             "title": "PromptConfig",
-            "description": "PromptConfig determines when a value should prompt.",
+            "description": "Determines when a [value] should prompt for input.\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md",
             "enum": [
                 "always",
                 "never",
                 "on-empty",
                 "on-unset"
             ],
-            "type": "string"
+            "type": "string",
+            "enumDescriptions": [
+                "Always prompt.",
+                "Never prompt.",
+                "Only when input OR default is blank/zero.",
+                "Only when not explicitly set via CLI."
+            ],
+            "markdownDescription": "Determines when a [value] should prompt for input.\n\n[value]: https://github.com/twelvelabs/stamp/tree/main/docs/value.md"
         },
         "Source": {
             "title": "Source",
@@ -233,7 +401,8 @@
                 {
                     "$ref": "#/definitions/SourceWithPath"
                 }
-            ]
+            ],
+            "markdownDescription": "The source path or inline content."
         },
         "SourceWithContent": {
             "title": "Source Content",
@@ -244,13 +413,23 @@
             "additionalProperties": false,
             "properties": {
                 "content": {
-                    "description": "Inline content. Can be any type. String keys and/or values will be rendered as templates."
-                },
-                "content_type": {
-                    "$ref": "#/definitions/FileType"
+                    "title": "Content",
+                    "description": "Inline content. Can be any type. String keys and/or values will be rendered as templates.",
+                    "examples": [
+                        "{{ .ValueOne }}",
+                        [
+                            "{{ .ValueOne }}",
+                            "{{ .ValueTwo }}"
+                        ],
+                        {
+                            "foo": "{{ .ValueOne }}"
+                        }
+                    ],
+                    "markdownDescription": "Inline content. Can be any type. String keys and/or values will be rendered as templates."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "The source content."
         },
         "SourceWithPath": {
             "title": "Source Path",
@@ -261,33 +440,79 @@
             "additionalProperties": false,
             "properties": {
                 "content_type": {
-                    "$ref": "#/definitions/FileType"
+                    "$ref": "#/definitions/FileType",
+                    "title": "Content Type"
                 },
                 "path": {
-                    "description": "The file path relative to the source directory. Attempts to traverse outside the source directory will raise a runtime error.",
-                    "type": "string"
+                    "title": "Path",
+                    "description": "The file path relative to the generator source directory (\\_src). Attempts to traverse outside the source directory will raise a runtime error.\n\nThe file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) and have access to all the [values](value.md) defined by the generator. \n\nThe file _may_ be parsed depending on it's [content type](#content_type). Note that this happens post-render. This allows for dynamic data sources when creating/updating structured files.",
+                    "type": "string",
+                    "markdownDescription": "The file path relative to the generator source directory (\\_src). Attempts to traverse outside the source directory will raise a runtime error.\n\nThe file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) and have access to all the [values](value.md) defined by the generator. \n\nThe file _may_ be parsed depending on it's [content type](#content_type). Note that this happens post-render. This allows for dynamic data sources when creating/updating structured files."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "The source path."
         },
         "TaskSchema": {
             "title": "Task",
-            "description": "A generator task.",
+            "description": "A task to execute in the destination directory.",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "description": "The task type.",
+                    "enum": [
+                        "create",
+                        "update",
+                        "delete",
+                        "generator"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "The task type."
+                }
+            },
             "type": "object",
             "oneOf": [
                 {
                     "$ref": "#/definitions/CreateTask"
                 },
                 {
+                    "$ref": "#/definitions/UpdateTask"
+                },
+                {
                     "$ref": "#/definitions/DeleteTask"
                 },
                 {
                     "$ref": "#/definitions/GeneratorTask"
-                },
-                {
-                    "$ref": "#/definitions/UpdateTask"
                 }
-            ]
+            ],
+            "markdownDescription": "A task to execute in the destination directory."
+        },
+        "Transform": {
+            "title": "Transform",
+            "description": "A transformation function used to process a value.",
+            "enum": [
+                "dasherize",
+                "expand-path",
+                "lowercase",
+                "pascalize",
+                "trim",
+                "underscore",
+                "uppercase"
+            ],
+            "type": "string",
+            "enumDescriptions": [
+                "Converts to `kebab-case`.",
+                "Converts to abs file path; Expands env vars and tilde.",
+                "Converts to `lowercase`.",
+                "Converts to `PascalCase`.",
+                "Removes all leading and trailing whitespace.",
+                "Converts to snake_case.",
+                "Converts to `UPPERCASE`."
+            ],
+            "markdownDescription": "A transformation function used to process a value."
         },
         "UpdateAction": {
             "title": "Action",
@@ -296,14 +521,17 @@
             "properties": {
                 "merge": {
                     "$ref": "#/definitions/MergeType",
+                    "title": "Merge",
                     "default": "concat"
                 },
                 "type": {
                     "$ref": "#/definitions/Action",
+                    "title": "Type",
                     "default": "replace"
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "The action to perform on the destination."
         },
         "UpdateMatch": {
             "title": "Match",
@@ -311,139 +539,239 @@
             "additionalProperties": false,
             "properties": {
                 "default": {
-                    "description": "A default value to use if the JSON path expression is not found."
+                    "title": "Default",
+                    "description": "A default value to use if the JSON path expression is not found.",
+                    "markdownDescription": "A default value to use if the JSON path expression is not found."
                 },
                 "pattern": {
-                    "description": "A regexp or JSON path expression.",
+                    "title": "Pattern",
+                    "description": "A regexp (content type: text) or JSON path expression (content type: json, yaml). When empty, will match everything.",
                     "default": "",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "A regexp (content type: text) or JSON path expression (content type: json, yaml). When empty, will match everything."
                 },
                 "source": {
                     "$ref": "#/definitions/MatchSource",
+                    "title": "Source",
                     "default": "line"
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "Target a subset of the destination to update."
         },
         "UpdateTask": {
             "title": "UpdateTask",
-            "description": "Updates a file in the destination directory.",
+            "description": "Updates a file in the destination directory.\n\nThe default behavior is to replace the entire file with the\nsource content, but you can optionally specify alternate\n[actions](#action) (prepend, append, or delete) or [target](#match)\na subsection of the destination file.\nIf the destination file is structured (JSON, YAML), then you\nmay target a JSON path pattern, otherwise it will be treated\nas plain text and you can target via regular expression.\n\nExamples:\n\n```yaml\ntasks:\n  - type: update\n    # Render \u003c./_src/COPYRIGHT.tpl\u003e and append it\n    # to the end of the README.\n    # If the README does not exist in the destination dir,\n    # then do nothing.\n    src:\n      path: \"COPYRIGHT.tpl\"\n    action:\n      type: \"append\"\n    dst:\n      path: \"README.md\"\n```\n\n```yaml\ntasks:\n  - type: update\n    # Update \u003c./package.json\u003e in the destination dir.\n    # If the file is missing, create it.\n    dst:\n      path: \"package.json\"\n      missing: \"touch\"\n    # Don't update the entire file - just the dependencies section.\n    # If the dependencies section is missing, initialize it to an empty object.\n    match:\n      pattern: \"$.dependencies\"\n      default: {}\n    # Append (i.e. merge) the source content to the dependencies section.\n    # The default behavior is to fully replace the matched pattern\n    # with the source content.\n    action:\n      type: \"append\"\n    # Use this inline object as the source content.\n    # We could alternately reference a source file\n    # containing a JSON object.\n    src:\n      content:\n        lodash: \"4.17.21\"\n```\n",
+            "required": [
+                "dst",
+                "src",
+                "type"
+            ],
             "additionalProperties": false,
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/UpdateAction"
+                    "$ref": "#/definitions/UpdateAction",
+                    "title": "Action"
                 },
                 "description": {
+                    "title": "Description",
                     "description": "An optional description of what is being updated.",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "An optional description of what is being updated."
                 },
                 "dst": {
-                    "$ref": "#/definitions/Destination"
+                    "$ref": "#/definitions/Destination",
+                    "title": "Destination"
                 },
                 "each": {
+                    "title": "Each",
                     "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly.",
-                    "type": "string"
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly."
                 },
                 "if": {
-                    "description": "Determines whether the task should be executed. The value must be coercible to a boolean.",
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "match": {
-                    "$ref": "#/definitions/UpdateMatch"
+                    "$ref": "#/definitions/UpdateMatch",
+                    "title": "Match"
                 },
                 "src": {
-                    "$ref": "#/definitions/Source"
+                    "$ref": "#/definitions/Source",
+                    "title": "Source"
                 },
                 "type": {
+                    "title": "Type",
                     "description": "Updates a file in the destination directory.",
+                    "default": "update",
                     "const": "update",
-                    "type": "string"
+                    "type": "string",
+                    "markdownDescription": "Updates a file in the destination directory."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "Updates a file in the destination directory.\n\nThe default behavior is to replace the entire file with the\nsource content, but you can optionally specify alternate\n[actions](#action) (prepend, append, or delete) or [target](#match)\na subsection of the destination file.\nIf the destination file is structured (JSON, YAML), then you\nmay target a JSON path pattern, otherwise it will be treated\nas plain text and you can target via regular expression.\n\nExamples:\n\n```yaml\ntasks:\n  - type: update\n    # Render \u003c./_src/COPYRIGHT.tpl\u003e and append it\n    # to the end of the README.\n    # If the README does not exist in the destination dir,\n    # then do nothing.\n    src:\n      path: \"COPYRIGHT.tpl\"\n    action:\n      type: \"append\"\n    dst:\n      path: \"README.md\"\n```\n\n```yaml\ntasks:\n  - type: update\n    # Update \u003c./package.json\u003e in the destination dir.\n    # If the file is missing, create it.\n    dst:\n      path: \"package.json\"\n      missing: \"touch\"\n    # Don't update the entire file - just the dependencies section.\n    # If the dependencies section is missing, initialize it to an empty object.\n    match:\n      pattern: \"$.dependencies\"\n      default: {}\n    # Append (i.e. merge) the source content to the dependencies section.\n    # The default behavior is to fully replace the matched pattern\n    # with the source content.\n    action:\n      type: \"append\"\n    # Use this inline object as the source content.\n    # We could alternately reference a source file\n    # containing a JSON object.\n    src:\n      content:\n        lodash: \"4.17.21\"\n```\n"
         },
         "Value": {
             "title": "Value",
             "description": "A generator input value.",
             "additionalProperties": false,
             "properties": {
-                "default": {},
+                "default": {
+                    "title": "Default",
+                    "description": "The value default. Can refer to other values defined earlier in the list.",
+                    "examples": [
+                        "{{ .OtherValue | underscore }}.txt"
+                    ],
+                    "markdownDescription": "The value default. Can refer to other values defined earlier in the list."
+                },
                 "flag": {
-                    "type": "string"
+                    "title": "Flag",
+                    "description": "The flag name for the value. Will default to a [dash separated](https://pkg.go.dev/github.com/gobuffalo/flect#Dasherize) form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key).",
+                    "examples": [
+                        "custom-flag-name"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "The flag name for the value. Will default to a [dash separated](https://pkg.go.dev/github.com/gobuffalo/flect#Dasherize) form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key)."
                 },
                 "help": {
-                    "type": "string"
+                    "title": "Help",
+                    "description": "Help text describing the value. Shown when prompting and when using the `--help` flag.",
+                    "examples": [
+                        "You should enter a random value."
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Help text describing the value. Shown when prompting and when using the `--help` flag."
                 },
                 "if": {
+                    "title": "If",
+                    "description": "Determines whether the value is enabled. Can refer to other values defined earlier in the list (allows for dynamic prompts).",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "{{ .UseDatabase }}",
+                        "{{ eq .Language \"python\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the value is enabled. Can refer to other values defined earlier in the list (allows for dynamic prompts)."
                 },
                 "key": {
-                    "type": "string"
+                    "title": "Key",
+                    "description": "The variable name for the value. This is how you will refer to the value in template files.",
+                    "examples": [
+                        "MyValue"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "The variable name for the value. This is how you will refer to the value in template files."
                 },
                 "mode": {
                     "$ref": "#/definitions/InputMode",
                     "default": "flag"
                 },
                 "name": {
-                    "type": "string"
+                    "title": "Name",
+                    "description": "The display name shown when prompting for the value. Will default to a [humanized](https://pkg.go.dev/github.com/gobuffalo/flect#Humanize) form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key).",
+                    "examples": [
+                        "Custom display name"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "The display name shown when prompting for the value. Will default to a [humanized](https://pkg.go.dev/github.com/gobuffalo/flect#Humanize) form of the [key](https://github.com/twelvelabs/stamp/tree/main/docs/value.md#key)."
                 },
                 "options": {
-                    "default": [],
+                    "title": "Options",
+                    "description": "A fixed set of valid options for the value. Will cause the value to be rendered as a single or multi-select when prompted (depending on data type). Attempts to assign a value not in this list will raise a validation error.",
+                    "examples": [
+                        [
+                            "foo",
+                            "bar"
+                        ]
+                    ],
                     "items": {},
-                    "type": [
-                        "array",
-                        "null"
-                    ]
+                    "type": "array",
+                    "markdownDescription": "A fixed set of valid options for the value. Will cause the value to be rendered as a single or multi-select when prompted (depending on data type). Attempts to assign a value not in this list will raise a validation error."
                 },
                 "prompt": {
                     "$ref": "#/definitions/PromptConfig",
                     "default": "on-unset"
                 },
                 "transform": {
-                    "type": "string"
+                    "title": "Transform",
+                    "description": "Optional, comma-separated list of [transform](https://github.com/twelvelabs/stamp/tree/main/docs/transform.md) rules.",
+                    "examples": [
+                        "trim,uppercase"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Optional, comma-separated list of [transform](https://github.com/twelvelabs/stamp/tree/main/docs/transform.md) rules."
                 },
                 "type": {
                     "$ref": "#/definitions/DataType",
                     "default": "string"
                 },
                 "validate": {
-                    "type": "string"
+                    "title": "Validate",
+                    "description": "Optional, comma-separated list of [validation](https://github.com/go-playground/validator#baked-in-validations) rules.",
+                    "examples": [
+                        "required,email"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Optional, comma-separated list of [validation](https://github.com/go-playground/validator#baked-in-validations) rules."
                 }
             },
-            "type": "object"
+            "type": "object",
+            "markdownDescription": "A generator input value."
         }
     },
     "properties": {
         "description": {
+            "title": "Description",
             "description": "The generator description. The first line is shown when listing all generators. The full description is used when viewing generator help/usage text.",
-            "type": "string"
+            "type": "string",
+            "markdownDescription": "The generator description. The first line is shown when listing all generators. The full description is used when viewing generator help/usage text."
         },
         "name": {
+            "title": "Name",
             "description": "The generator name.",
             "minLength": 1,
             "pattern": "^[\\w:_-]+$",
-            "type": "string"
+            "type": "string",
+            "markdownDescription": "The generator name."
         },
         "tasks": {
+            "title": "Tasks",
+            "description": "A list of generator [tasks](https://github.com/twelvelabs/stamp/tree/main/docs/task.md).",
             "items": {
                 "$ref": "#/definitions/TaskSchema"
             },
             "type": [
                 "array",
                 "null"
-            ]
+            ],
+            "markdownDescription": "A list of generator [tasks](https://github.com/twelvelabs/stamp/tree/main/docs/task.md)."
         },
         "values": {
+            "title": "Values",
+            "description": "A list of generator input [values](https://github.com/twelvelabs/stamp/tree/main/docs/value.md).",
             "items": {
                 "$ref": "#/definitions/Value"
             },
             "type": [
                 "array",
                 "null"
-            ]
+            ],
+            "markdownDescription": "A list of generator input [values](https://github.com/twelvelabs/stamp/tree/main/docs/value.md)."
         }
     },
-    "type": "object"
+    "type": "object",
+    "markdownDescription": "Stamp generator metadata.\n\nExample:\n\n```yaml\nname: \"greet\"\ndescription: \"Generates a text file with a greeting message.\"\n\n# When run, the generator will prompt the user for these values.\n# Alternately, the user can pass them in via flags.\nvalues:\n  # Values are prompted in the order they are defined.\n  - key: \"Name\"\n    default: \"Some Name\"\n\n  # Subsequent values can reference those defined prior.\n  # This allows for sensible, derived defaults.\n  - key: \"Greeting\"\n    default: \"Hello, {{ .Name }}.\"\n\n# Next, the generator executes a series of tasks.\n# Tasks have access to the values defined above.\ntasks:\n  # Render the inline content as a template string.\n  # Write it to \u003c./some_name.txt\u003e in the destination directory.\n  - type: create\n    src:\n      content: \"{{ .Greeting }}\"\n    dst:\n      path: \"{{ .Name | underscore }}.txt\"\n```\n\n\n```shell\n# Save the above to \u003c./greeting/generator.yaml\u003e.\n# The following will prompt for values, then write \u003c./some_name.txt\u003e.\nstamp new ./greeting\n\n# Pass an alternate destination dir as the second argument.\n# The following creates \u003c/some/other/dir/some_name.txt\u003e.\nstamp new ./greeting /some/other/dir\n\n# Install the generator so you can refer to it by name\n# rather than filesystem path.\nstamp add ./greeting\nstamp new greet\n\n# You can also publish it to a git repo or upload it as an archive\n# and share it with others:\nstamp add git@github.com:username/my-generator.git\nstamp add github.com/username/my-generator\nstamp add https://example.com/my-generator.tar.gz\n```\n"
 }
