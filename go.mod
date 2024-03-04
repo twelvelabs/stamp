@@ -11,7 +11,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/roff v0.1.0
-	github.com/ohler55/ojg v1.21.0
+	github.com/ohler55/ojg v1.21.4
 	github.com/otiai10/copy v1.14.0
 	github.com/rodaine/table v1.1.1
 	github.com/spf13/cast v1.6.0
