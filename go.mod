@@ -18,7 +18,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/swaggest/jsonschema-go v0.3.64
 	github.com/twelvelabs/termite v0.13.1
 	gopkg.in/yaml.v3 v3.0.1
