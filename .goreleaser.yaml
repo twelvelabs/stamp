@@ -71,19 +71,6 @@ checksum:
   name_template: "checksums.txt"
   algorithm: sha256
 
-# Temporarily disabling gomod.proxy until we can update mergo.
-# See goreleaser output:
-# • your go.mod file has replace directive in it, and go mod proxying is enabled -
-#   this does not work, and you need to either disable it or remove the replace directive
-# • the offending line is replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
-# gomod:
-#   proxy: true
-
-report_sizes: true
-
-snapshot:
-  name_template: "{{ incpatch .Version }}-next" # cspell: disable-line
-
 changelog:
   use: github
   sort: asc
@@ -96,3 +83,54 @@ changelog:
       order: 10
     - title: Other work
       order: 99
+
+dockers:
+  - image_templates:
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-amd64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/amd64"
+    goarch: amd64
+    use: buildx
+
+  - image_templates:
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-arm64"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/arm64"
+    goarch: arm64
+    use: buildx
+
+docker_manifests:
+  - name_template: "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-arm64"
+
+  - name_template: "ghcr.io/twelvelabs/{{ .ProjectName }}:latest"
+    image_templates:
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-amd64"
+      - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-arm64"
+
+# Temporarily disabling gomod.proxy until we can update mergo.
+# See goreleaser output:
+# • your go.mod file has replace directive in it, and go mod proxying is enabled -
+#   this does not work, and you need to either disable it or remove the replace directive
+# • the offending line is replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
+# gomod:
+#   proxy: true
+
+report_sizes: true
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next" # cspell: disable-line
