@@ -30,6 +30,7 @@ ignoreRegExpList:
 words:
   - abice
   - baney
+  - buildx
   - codecov
   - containedctx
   - copystructure
@@ -70,6 +71,7 @@ words:
   - nocomments
   - nolint
   - oneof
+  - opencontainers
   - ordinalize
   - orlangure
   - pascalize
@@ -82,6 +84,7 @@ words:
   - schemadoc
   - shellcheck
   - signingkey
+  - sigstore
   - symwalk
   - testdata
   - testutil
