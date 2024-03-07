@@ -11,6 +11,8 @@ import (
 
 	// cspell:disable-line
 	yaml "gopkg.in/yaml.v3"
+
+	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 var (
@@ -46,13 +48,19 @@ func PackagePath(root string, name string) (string, error) {
 
 // LoadPackage parses and returns the package at `pkgPath`.
 func LoadPackage(pkgPath string, metaFile string) (*Package, error) {
-	// Ensure package path exists.
-	if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
+	// Ensure package path exists and is a directory.
+	if !fsutil.PathIsDir(pkgPath) {
+		return nil, NewNotFoundError(metaFile)
+	}
+
+	// Ensure package metadata path exists.
+	pkgMetaPath := filepath.Join(pkgPath, metaFile)
+	if fsutil.NoPathExists(pkgMetaPath) {
 		return nil, NewNotFoundError(metaFile)
 	}
 
 	// Read the package metadata file.
-	pkgMeta, err := os.ReadFile(filepath.Join(pkgPath, metaFile))
+	pkgMeta, err := os.ReadFile(pkgMetaPath)
 	if err != nil {
 		return nil, fmt.Errorf("load package: %w", err)
 	}

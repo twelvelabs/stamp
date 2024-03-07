@@ -67,7 +67,7 @@ func TestLoadPackage(t *testing.T) {
 		{
 			PackageName: "empty",
 			PackagePath: packageFixtureDir("empty"),
-			Err:         "no such file or directory",
+			Err:         "package not found",
 		},
 		{
 			PackageName: "non-parsable",
