@@ -120,7 +120,7 @@ func (x Action) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x Action) EnumComments() []string {
 	return []string{
 		"Append to the destination content.",
@@ -225,7 +225,7 @@ func (x MergeType) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x MergeType) EnumComments() []string {
 	return []string{
 		"Concatenate source and destination arrays.",

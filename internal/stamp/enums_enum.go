@@ -113,7 +113,7 @@ func (x ConflictConfig) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x ConflictConfig) EnumComments() []string {
 	return []string{
 		"Keep the existing path. The task becomes a noop.",
@@ -221,7 +221,7 @@ func (x FileType) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x FileType) EnumComments() []string {
 	return []string{
 		"",
@@ -319,7 +319,7 @@ func (x MatchSource) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x MatchSource) EnumComments() []string {
 	return []string{
 		"Match the entire file.",
@@ -428,7 +428,7 @@ func (x MissingConfig) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x MissingConfig) EnumComments() []string {
 	return []string{
 		"Do nothing. The task becomes a noop.",

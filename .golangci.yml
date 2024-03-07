@@ -20,6 +20,7 @@ linters:
     - ireturn
     - nlreturn
     - paralleltest
+    - perfsprint
     - tagalign
     - tagliatelle
     - testifylint
@@ -60,6 +61,11 @@ linters-settings:
 
   lll:
     line-length: 120
+
+  revive:
+    rules:
+      - name: unused-parameter
+        disabled: true
 
 severity:
   case-sensitive: false
