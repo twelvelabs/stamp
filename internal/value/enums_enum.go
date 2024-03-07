@@ -124,7 +124,7 @@ func (x DataType) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x DataType) EnumComments() []string {
 	return []string{
 		"Boolean.",
@@ -234,7 +234,7 @@ func (x InputMode) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x InputMode) EnumComments() []string {
 	return []string{
 		"Can be set via positional argument OR prompt.",
@@ -348,7 +348,7 @@ func (x PromptConfig) Enum() []any {
 	}
 }
 
-// EnumComments returns the comment associcated with each enum.
+// EnumComments returns the comment associated with each enum.
 func (x PromptConfig) EnumComments() []string {
 	return []string{
 		"Always prompt.",

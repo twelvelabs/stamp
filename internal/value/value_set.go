@@ -5,7 +5,7 @@ import (
 )
 
 // ValueSet is a unique set of Values (identified by Value.Key).
-type ValueSet struct { //nolint:revive
+type ValueSet struct {
 	keys    []string
 	values  map[string]*Value
 	dataMap DataMap
