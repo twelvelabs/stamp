@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -41,11 +42,29 @@ func (s *Store) WithMetaFile(filename string) *Store {
 
 // Returns the named package from the store.
 func (s *Store) Load(name string) (*Package, error) {
-	pkgPath, err := s.path(name)
-	if err != nil {
+	var pkg *Package
+	var err error
+
+	// The name may be a direct path to a package on the filesystem.
+	pkg, err = LoadPackage(name, s.MetaFile)
+	nfErr := NewNotFoundError(s.MetaFile)
+	if err != nil && !errors.Is(err, nfErr) {
 		return nil, err
 	}
-	return LoadPackage(pkgPath, s.MetaFile)
+
+	// If that doesn't return a result, then it must be
+	// a named package in the store.
+	// Convert the name to a path and load.
+	if pkg == nil {
+		var pkgPath string
+		pkgPath, err = s.path(name)
+		if err != nil {
+			return nil, err
+		}
+		pkg, err = LoadPackage(pkgPath, s.MetaFile)
+	}
+
+	return pkg, err
 }
 
 // Returns all valid packages in the store.

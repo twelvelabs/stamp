@@ -3,6 +3,7 @@ package stamp
 import (
 	"github.com/mitchellh/copystructure"
 	"github.com/swaggest/jsonschema-go"
+	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/mdutil"
 )
@@ -67,6 +68,11 @@ func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
 		return err
 	}
 
+	renderedValues, err := render.Map(t.Values, values)
+	if err != nil {
+		return err
+	}
+
 	// Deep copy so that any value mutation done by this generator
 	// doesn't leak up to the caller.
 	copied, err := copystructure.Copy(values)
@@ -77,7 +83,7 @@ func (t *GeneratorTask) Execute(ctx *TaskContext, values map[string]any) error {
 	// Doing this here (in addition to the setting in GetGenerator) to cover
 	// the case where the same generator name is used in multiple tasks.
 	// In that scenario, `values` would contain those from the last task added.
-	for k, v := range t.Values {
+	for k, v := range renderedValues {
 		data[k] = v
 	}
 

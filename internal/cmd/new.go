@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -100,18 +99,9 @@ func (a *NewAction) Run() error {
 		}
 	}
 
-	// The name may be a direct path to a generator on the filesystem.
-	generator, err := stamp.NewGeneratorFromPath(a.Store, a.Name)
-	if err != nil && !errors.Is(err, stamp.ErrNotFound) {
+	generator, err := a.Store.Load(a.Name)
+	if err != nil {
 		return err
-	}
-	// If that doesn't return a result, then it must be a named
-	// generator in the store...
-	if generator == nil {
-		generator, err = a.Store.Load(a.Name)
-		if err != nil {
-			return err
-		}
 	}
 
 	// Update usage text w/ info from generator.
