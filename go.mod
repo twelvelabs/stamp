@@ -13,7 +13,7 @@ require (
 	github.com/muesli/roff v0.1.0
 	github.com/ohler55/ojg v1.21.5
 	github.com/otiai10/copy v1.14.0
-	github.com/rodaine/table v1.1.1
+	github.com/rodaine/table v1.2.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
