@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/creasty/defaults v1.7.0
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	github.com/gobuffalo/flect v1.0.2
 	github.com/hashicorp/go-getter v1.7.4
 	github.com/mitchellh/copystructure v1.2.0
