@@ -1,3 +1,5 @@
+version: 2
+
 project_name: stamp
 
 before:
@@ -54,7 +56,7 @@ brews:
       owner: twelvelabs
       name: homebrew-tap
       branch: main
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/twelvelabs/stamp"
     description: "A project and file scaffolding tool"
     license: "MIT"
