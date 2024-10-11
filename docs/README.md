@@ -1,4 +1,4 @@
-# Stamp documentation
+# Getting Started
 
 ## Creating a generator
 
@@ -34,7 +34,7 @@ When installed and executed, this generator will:
 - Prompt the user for a greeting (defaulting to "Hello")
 - Render the template to a file named `message.txt`
 
-See the [full documentation](./generator.md) for all generator options.
+See the `generator.yaml` [documentation](./generator.md) for all generator options.
 
 ## Adding a generator
 
