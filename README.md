@@ -5,9 +5,7 @@
 
 Stamp is a CLI tool for scaffolding new projects.
 
-Project templates are packaged as generators, and are easy to create and share
-(they're just a directory with [a generator.yaml file](https://github.com/twelvelabs/generator-app/blob/main/generator.yaml)).
-Documentation for how to create your own generators can be found in [docs](./docs/README.md).
+Project templates are packaged as [generators](./docs/README.md), and are easy to create and share with others. 
 
 ## Installation
 
@@ -26,22 +24,10 @@ Choose one of the following:
   go install github.com/twelvelabs/stamp@latest
   ```
 
-## Usage
+## Documentation
 
-```shell
-# Show all installed generators
-stamp list
-
-# Add a generator from a local directory
-stamp add ~/my/generator/dir
-
-# Add a generator from a remote origin
-# Origin can be anything supported by https://github.com/hashicorp/go-getter
-stamp add github.com/twelvelabs/generator-app
-
-# Run the `app` generator
-stamp new app
-```
+- [Getting Started](./docs/README.md)
+- [Generator YAML Syntax](./docs/generator.md)
 
 ## Development
 
