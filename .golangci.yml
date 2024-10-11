@@ -17,7 +17,9 @@ linters:
     - godox
     - gofumpt
     - gomnd
+    - govet
     - ireturn
+    - mnd
     - nlreturn
     - paralleltest
     - perfsprint
