@@ -5,7 +5,7 @@
 
 Stamp is a CLI tool for scaffolding new projects.
 
-Project templates are packaged as [generators](./docs/README.md), and are easy to create and share with others. 
+Project templates are packaged as [generators](./docs/README.md), and are easy to create and share with others.
 
 ## Installation
 
