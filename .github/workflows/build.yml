@@ -20,18 +20,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # pin@v4.1.3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           # Need a PAT so that `make release-tag` will trigger the release workflow.
           # See: https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
           token: ${{ github.ref_name == 'main' && secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/golangci-lint
+            ~/.npm
+            ~/go/bin
+            /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-dependencies
+
       - name: Set up Homebrew
-        uses: homebrew/actions/setup-homebrew@f8b224a6d5e4f1668351c7e7e7c0c1c10e228294 # pin@master
+        uses: homebrew/actions/setup-homebrew@master
 
       - name: Set up Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # pin@v5.0.0
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
@@ -48,10 +58,13 @@ jobs:
         run: make test
 
       - name: Coverage
-        uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed # pin@v4.3.0
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # pin@v6.1.0
+        uses: crazy-max/ghaction-import-gpg@v6
         if: github.ref_name == 'main'
         with:
           gpg_private_key: ${{ secrets.GH_COMMIT_SIGNING_KEY }}
