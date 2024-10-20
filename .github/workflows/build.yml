@@ -27,12 +27,14 @@ jobs:
           # See: https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
           token: ${{ github.ref_name == 'main' && secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
-      - name: Cache Homebrew
-        id: cache-homebrew
+      - name: Cache Dependencies
         uses: actions/cache@v4
         with:
-          path: /home/linuxbrew/.linuxbrew
-          key: ${{ runner.os }}-homebrew
+          path: |
+            ~/.npm
+            ~/go/bin
+            /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-dependencies
 
       - name: Set up Homebrew
         uses: homebrew/actions/setup-homebrew@master
