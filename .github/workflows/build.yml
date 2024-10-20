@@ -27,6 +27,13 @@ jobs:
           # See: https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
           token: ${{ github.ref_name == 'main' && secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
+      - name: Cache Homebrew
+        id: cache-homebrew
+        uses: actions/cache@v4
+        with:
+          path: /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-homebrew
+
       - name: Set up Homebrew
         uses: homebrew/actions/setup-homebrew@master
 
@@ -49,6 +56,9 @@ jobs:
 
       - name: Coverage
         uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6

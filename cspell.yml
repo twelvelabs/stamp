@@ -60,6 +60,7 @@ words:
   - jsonschema
   - kebabcase
   - ldflags
+  - linuxbrew
   - maintidx
   - mapstructure
   - markdownlint

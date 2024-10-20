@@ -21,6 +21,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Cache Homebrew
+        id: cache-homebrew
+        uses: actions/cache@v4
+        with:
+          path: /home/linuxbrew/.linuxbrew
+          key: ${{ runner.os }}-homebrew
+
       - name: Set up Homebrew
         uses: homebrew/actions/setup-homebrew@master
 
