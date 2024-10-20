@@ -36,6 +36,7 @@ func AllTasks() []Task {
 		&UpdateTask{},
 		&DeleteTask{},
 		&GeneratorTask{},
+		&PluginTask{},
 	}
 	// Ensure defaults are set.
 	// Needed for TypeKey() implementation.

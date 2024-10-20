@@ -13,9 +13,10 @@ func NewTaskSet() *TaskSet {
 
 // TaskSet is an ordered set of tasks that can be executed sequentially.
 type TaskSet struct {
-	tasks   []Task
-	SrcPath string
-	DstPath string
+	tasks     []Task
+	SrcPath   string
+	DstPath   string
+	Generator *Generator
 }
 
 // All returns all tasks in the set.
@@ -25,6 +26,11 @@ func (ts *TaskSet) All() []Task {
 
 // Add adds a task to the set.
 func (ts *TaskSet) Add(t Task) *TaskSet {
+	if pt, ok := t.(*PluginTask); ok {
+		pt.Generator = ts.Generator
+		t = pt
+		// fmt.Printf("PT: %#v \n", pt)
+	}
 	ts.tasks = append(ts.tasks, t)
 	return ts
 }

@@ -1,11 +1,14 @@
 package stamp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
+	extism "github.com/extism/go-sdk"
+	"github.com/spf13/cast"
 	"github.com/twelvelabs/termite/render"
 
 	"github.com/twelvelabs/stamp/internal/fsutil"
@@ -106,6 +109,7 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 		Values:  value.NewValueSet(),
 		Tasks:   NewTaskSet(),
 	}
+	gen.Tasks.Generator = gen
 
 	for _, tm := range gen.taskMetadata() {
 		t, err := NewTask(tm)
@@ -179,6 +183,44 @@ type Generator struct {
 
 	Values *value.ValueSet
 	Tasks  *TaskSet
+}
+
+func (g *Generator) LoadPlugin(name string) (*extism.Plugin, error) {
+	path := filepath.Join(g.Path(), "_plugins", name)
+
+	ctx := context.Background()
+	manifest := extism.Manifest{
+		AllowedHosts: []string{
+			"*",
+		},
+		// AllowedPaths: map[string]string{
+		// 	"": "/src",
+		// },
+		Wasm: []extism.Wasm{
+			extism.WasmFile{
+				Name: name,
+				Path: path,
+			},
+		},
+	}
+	config := extism.PluginConfig{
+		EnableWasi: true,
+	}
+
+	return extism.NewPlugin(ctx, manifest, config, []extism.HostFunction{})
+}
+
+func (g *Generator) Plugins() (map[string]*extism.Plugin, error) {
+	plugins := map[string]*extism.Plugin{}
+	for _, n := range g.MetadataSlice("plugins") {
+		name := cast.ToString(n)
+		plugin, err := g.LoadPlugin(name)
+		if err != nil {
+			return nil, err
+		}
+		plugins[name] = plugin
+	}
+	return plugins, nil
 }
 
 // ShortDescription returns the first line of the description.

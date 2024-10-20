@@ -39,6 +39,7 @@ words:
   - depctl
   - devcontainer
   - dupword
+  - extism
   - flect
   - fsutil
   - ghaction
@@ -93,3 +94,4 @@ words:
   - trimpath
   - twelvelabs
   - unmarshaller
+  - Wasi
