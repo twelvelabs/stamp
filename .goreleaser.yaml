@@ -135,4 +135,4 @@ docker_manifests:
 report_sizes: true
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next" # cspell: disable-line
+  version_template: "{{ incpatch .Version }}-next" # cspell: disable-line
