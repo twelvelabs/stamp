@@ -1,6 +1,6 @@
 module github.com/twelvelabs/stamp
 
-go 1.21
+go 1.23
 
 require (
 	github.com/creasty/defaults v1.7.0
