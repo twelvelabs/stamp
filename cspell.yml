@@ -54,7 +54,6 @@ words:
   - gopls
   - goreleaser
   - gpgsign
-  - imdario
   - iostreams
   - ireturn
   - jsonschema

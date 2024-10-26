@@ -124,13 +124,8 @@ docker_manifests:
       - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-amd64"
       - "ghcr.io/twelvelabs/{{ .ProjectName }}:{{ .Tag }}-arm64"
 
-# Temporarily disabling gomod.proxy until we can update mergo.
-# See goreleaser output:
-# • your go.mod file has replace directive in it, and go mod proxying is enabled -
-#   this does not work, and you need to either disable it or remove the replace directive
-# • the offending line is replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
-# gomod:
-#   proxy: true
+gomod:
+  proxy: true
 
 report_sizes: true
 
