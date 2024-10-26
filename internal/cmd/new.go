@@ -164,10 +164,7 @@ func (a *NewAction) setUsage(generator *stamp.Generator) {
 
 func (a *NewAction) setDefaults(generator *stamp.Generator) {
 	for _, val := range generator.Values.All() {
-		// viper forces all config keys to lowercase,
-		// so users have to store defaults by flag name :shrug:
-		// See: https://github.com/spf13/viper/issues/1014
-		if def, ok := a.Config.Defaults[val.FlagName()]; ok {
+		if def, ok := a.Config.Defaults[val.Key]; ok {
 			val.Default = def
 		}
 		_ = val.Get() // hack to force value set cache update

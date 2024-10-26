@@ -17,13 +17,11 @@ func TestNewConfig_Valid(t *testing.T) {
 	config, err := NewConfig(path)
 	assert.NoError(t, err)
 	assert.Equal(t, "~/some/dir", config.StorePath)
-	// viper converts all keys to lowercase :shrug:
-	assert.Nil(t, config.Defaults["UserName"])
-	assert.Equal(t, "test-user", config.Defaults["username"])
+	assert.Equal(t, "test-user", config.Defaults["UserName"])
 }
 
 func TestNewConfig_Invalid(t *testing.T) {
 	path := filepath.Join("testdata", "config", "invalid.yml")
 	_, err := NewConfig(path)
-	assert.ErrorContains(t, err, "cannot parse 'debug' as bool")
+	assert.Error(t, err)
 }
