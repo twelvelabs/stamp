@@ -5,14 +5,16 @@ import (
 	"os"
 
 	"github.com/creasty/defaults"
-	"github.com/spf13/viper"
+	"github.com/twelvelabs/termite/conf"
+
+	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
 type Config struct {
-	Debug     bool           `mapstructure:"debug"`
-	Defaults  map[string]any `mapstructure:"defaults"   default:"{}"`
-	DryRun    bool           `mapstructure:"dry_run"`
-	StorePath string         `mapstructure:"store_path" default:"~/.stamp/packages"`
+	Debug     bool           `yaml:"debug"       env:"STAMP_DEBUG"`
+	Defaults  map[string]any `yaml:"defaults"    default:"{}"`
+	DryRun    bool           `yaml:"dry_run"     env:"STAMP_DRY_RUN"`
+	StorePath string         `yaml:"store_path"  env:"STAMP_STORE_PATH"  default:"~/.stamp/packages"`
 }
 
 // NewDefaultConfig returns a new, default config.
@@ -24,28 +26,28 @@ func NewDefaultConfig() (*Config, error) {
 // NewConfig returns a new config for the file at path.
 // If path is empty, uses one of:
 //   - .stamp.yaml
-//   - ~/.stamp/.stamp.yaml
+//   - ~/.stamp/config.yaml
 func NewConfig(path string) (*Config, error) {
-	if path != "" {
-		viper.SetConfigFile(path)
-	} else {
-		viper.AddConfigPath(".")
-		viper.AddConfigPath("$HOME/.stamp/")
-		viper.SetConfigName(".stamp")
-		viper.SetConfigType("yaml")
+	var err error
+
+	if path == "" {
+		if fsutil.PathExists(".stamp.yaml") {
+			path = ".stamp.yaml"
+		} else {
+			path = os.ExpandEnv("$HOME/.stamp/config.yaml")
+		}
 	}
-	viper.SetEnvPrefix("stamp")
-	viper.AutomaticEnv()
-	_ = viper.ReadInConfig()
 
 	config, _ := NewDefaultConfig()
-	err := viper.Unmarshal(config)
-	if err != nil {
-		return nil, err
+	if fsutil.PathExists(path) {
+		config, err = conf.NewLoader(config, path).Load()
+		if err != nil {
+			return nil, fmt.Errorf("config load: %w", err)
+		}
 	}
 
 	if config.Debug {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		fmt.Fprintln(os.Stderr, "Using config file:", path)
 		fmt.Fprintln(os.Stderr, "Store path:", config.StorePath)
 	}
 
