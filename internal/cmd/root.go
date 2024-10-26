@@ -11,7 +11,7 @@ import (
 func init() {
 	table.DefaultHeaderFormatter = color.New(color.FgYellow, color.Underline).SprintfFunc()
 	table.DefaultFirstColumnFormatter = color.New(color.FgCyan).SprintfFunc()
-	table.DefaultPadding = 5
+	table.DefaultPadding = 2
 }
 
 func NewRootCmd(app *stamp.App) *cobra.Command {

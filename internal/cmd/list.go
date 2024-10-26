@@ -25,6 +25,8 @@ func NewListCmd(app *stamp.App) *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVarP(&action.ShowAll, "all", "a", action.ShowAll, "Show all columns.")
+
 	return cmd
 }
 
@@ -36,6 +38,7 @@ func NewListAction(app *stamp.App) *ListAction {
 
 type ListAction struct {
 	*stamp.App
+	ShowAll bool
 }
 
 func (a *ListAction) Setup(_ *cobra.Command, _ []string) error {
@@ -50,9 +53,18 @@ func (a *ListAction) Run() error {
 		return err
 	}
 
-	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
+	columns := []any{"Name", "Description"}
+	if a.ShowAll {
+		columns = append(columns, "Origin")
+	}
+
+	tbl := table.New(columns...).WithWriter(a.IO.Out)
 	for _, p := range results {
-		tbl.AddRow(p.Name(), p.ShortDescription(), p.Origin())
+		row := []any{p.Name(), p.ShortDescription()}
+		if a.ShowAll {
+			row = append(row, p.Origin())
+		}
+		tbl.AddRow(row...)
 	}
 	tbl.Print()
 

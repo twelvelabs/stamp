@@ -78,9 +78,9 @@ func (a *AddAction) Run() error {
 		return err
 	}
 
-	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
+	tbl := table.New("Name", "Description").WithWriter(a.IO.Out)
 	for _, p := range packages {
-		tbl.AddRow(p.Name(), p.Description(), p.Origin())
+		tbl.AddRow(p.Name(), p.Description())
 	}
 	tbl.Print()
 
