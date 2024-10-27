@@ -52,6 +52,16 @@ type MatchSource string
 */
 type MissingConfig string
 
+// Determines the visibility of the generator.
+/*
+	ENUM(
+		public   // Callable anywhere.
+		hidden   // Public, but hidden in the generator list.
+		private  // Only callable as a sub-generator. Never displayed.
+	).
+*/
+type VisibilityType string
+
 // Specifies the content type of the file.
 // Inferred from the file extension by default.
 //

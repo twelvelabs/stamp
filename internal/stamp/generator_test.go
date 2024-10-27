@@ -19,7 +19,25 @@ func TestNewGenerator(t *testing.T) {
 	_, err = NewGenerator(store, nil)
 	assert.ErrorContains(t, err, "nil package")
 
-	p := &pkg.Package{
+	var p *pkg.Package
+
+	p = &pkg.Package{
+		Metadata: map[string]any{
+			"visibility": "hidden",
+		},
+	}
+	_, err = NewGenerator(store, p)
+	assert.NoError(t, err)
+
+	p = &pkg.Package{
+		Metadata: map[string]any{
+			"visibility": "purple",
+		},
+	}
+	_, err = NewGenerator(store, p)
+	assert.ErrorContains(t, err, "generator metadata invalid")
+
+	p = &pkg.Package{
 		Metadata: map[string]any{
 			"values": []any{
 				map[string]any{

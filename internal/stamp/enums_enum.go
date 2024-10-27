@@ -436,3 +436,106 @@ func (x MissingConfig) EnumComments() []string {
 		"Raise an error.",
 	}
 }
+
+const (
+	// Callable anywhere.
+	VisibilityTypePublic VisibilityType = "public"
+	// Public, but hidden in the generator list.
+	VisibilityTypeHidden VisibilityType = "hidden"
+	// Only callable as a sub-generator. Never displayed.
+	VisibilityTypePrivate VisibilityType = "private"
+)
+
+var ErrInvalidVisibilityType = fmt.Errorf("not a valid VisibilityType, try [%s]", strings.Join(_VisibilityTypeNames, ", "))
+
+var _VisibilityTypeNames = []string{
+	string(VisibilityTypePublic),
+	string(VisibilityTypeHidden),
+	string(VisibilityTypePrivate),
+}
+
+// VisibilityTypeNames returns a list of possible string values of VisibilityType.
+func VisibilityTypeNames() []string {
+	tmp := make([]string, len(_VisibilityTypeNames))
+	copy(tmp, _VisibilityTypeNames)
+	return tmp
+}
+
+// String implements the Stringer interface.
+func (x VisibilityType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x VisibilityType) IsValid() bool {
+	_, err := ParseVisibilityType(string(x))
+	return err == nil
+}
+
+var _VisibilityTypeValue = map[string]VisibilityType{
+	"public":  VisibilityTypePublic,
+	"hidden":  VisibilityTypeHidden,
+	"private": VisibilityTypePrivate,
+}
+
+// ParseVisibilityType attempts to convert a string to a VisibilityType.
+func ParseVisibilityType(name string) (VisibilityType, error) {
+	if x, ok := _VisibilityTypeValue[name]; ok {
+		return x, nil
+	}
+	return VisibilityType(""), fmt.Errorf("%s is %w", name, ErrInvalidVisibilityType)
+}
+
+// MarshalText implements the text marshaller method.
+func (x VisibilityType) MarshalText() ([]byte, error) {
+	return []byte(string(x)), nil
+}
+
+// UnmarshalText implements the text unmarshaller method.
+func (x *VisibilityType) UnmarshalText(text []byte) error {
+	tmp, err := ParseVisibilityType(string(text))
+	if err != nil {
+		return err
+	}
+	*x = tmp
+	return nil
+}
+
+var (
+	_ jsonschema.Described = VisibilityType("")
+	_ jsonschema.Enum      = VisibilityType("")
+	_ jsonschema.Preparer  = VisibilityType("")
+)
+
+// PrepareJSONSchema implements the jsonschema.Preparer interface.
+func (x VisibilityType) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithTitle("VisibilityType")
+	schema.WithDescription(x.Description())
+	schema.WithEnum(x.Enum()...)
+	schema.WithExtraPropertiesItem("enumDescriptions", x.EnumComments())
+	return nil
+}
+
+// Enum implements the jsonschema.Described interface.
+func (x VisibilityType) Description() string {
+	return `Determines the visibility of the generator.`
+}
+
+// Enum implements the jsonschema.Enum interface.
+func (x VisibilityType) Enum() []any {
+	return []any{
+		"public",
+		"hidden",
+		"private",
+	}
+}
+
+// EnumComments returns the comment associated with each enum.
+func (x VisibilityType) EnumComments() []string {
+	return []string{
+		"Callable anywhere.",
+		"Public, but hidden in the generator list.",
+		"Only callable as a sub-generator. Never displayed.",
+	}
+}

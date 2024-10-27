@@ -102,9 +102,19 @@ func NewGenerator(store *Store, pkg *pkg.Package) (*Generator, error) {
 	}
 
 	gen := &Generator{
-		Package: pkg,
-		Values:  value.NewValueSet(),
-		Tasks:   NewTaskSet(),
+		Package:    pkg,
+		Visibility: VisibilityTypePublic,
+		Values:     value.NewValueSet(),
+		Tasks:      NewTaskSet(),
+	}
+
+	visStr := gen.MetadataString("visibility")
+	if visStr != "" {
+		vis, err := ParseVisibilityType(visStr)
+		if err != nil {
+			return nil, fmt.Errorf("generator metadata invalid: %w", err)
+		}
+		gen.Visibility = vis
 	}
 
 	for _, tm := range gen.taskMetadata() {
@@ -177,8 +187,9 @@ func NewGenerators(store *Store, packages []*pkg.Package) ([]*Generator, error) 
 type Generator struct {
 	*pkg.Package
 
-	Values *value.ValueSet
-	Tasks  *TaskSet
+	Visibility VisibilityType
+	Values     *value.ValueSet
+	Tasks      *TaskSet
 }
 
 // ShortDescription returns the first line of the description.

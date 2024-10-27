@@ -9,10 +9,11 @@ import (
 
 // GeneratorMetadata represents the structure of the generator.yaml file.
 type GeneratorMetadata struct {
-	Name        string        `mapstructure:"name" required:"true"`
-	Description string        `mapstructure:"description"`
-	Values      []value.Value `mapstructure:"values"`
-	Tasks       []TaskSchema  `mapstructure:"tasks"`
+	Name        string         `mapstructure:"name" required:"true"`
+	Description string         `mapstructure:"description"`
+	Visibility  VisibilityType `mapstructure:"visibility" default:"public"`
+	Values      []value.Value  `mapstructure:"values"`
+	Tasks       []TaskSchema   `mapstructure:"tasks"`
 }
 
 var _ jsonschema.Preparer = &GeneratorMetadata{}
@@ -95,6 +96,10 @@ func (m *GeneratorMetadata) PrepareJSONSchema(schema *jsonschema.Schema) error {
 				"The first line is shown when listing all generators. " +
 				"The full description is used when viewing generator help/usage text.",
 		)
+
+	schema.Properties["visibility"].TypeObject.
+		WithTitle("Visibility").
+		WithDescription("How the generator may be viewed or invoked.")
 
 	schema.Properties["values"].TypeObject.
 		WithTitle("Values").
