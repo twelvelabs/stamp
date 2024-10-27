@@ -61,6 +61,7 @@ stamp add https://example.com/my-generator.tar.gz
 | [`name`](#name) | string | ✅ | ➖ | ➖ | <p>The generator name. |
 | [`tasks`](#tasks) | [Task](task.md#task)[] &#124; null | ➖ | ➖ | ➖ | <p>A list of generator tasks. |
 | [`values`](#values) | [Value](value.md#value)[] &#124; null | ➖ | ➖ | ➖ | <p>A list of generator input values. |
+| [`visibility`](#visibility) | string | ➖ | ✅ | `"public"` | <p>How the generator may be viewed or invoked. |
 
 ### `description`
 
@@ -93,3 +94,17 @@ A list of generator [tasks](https://github.com/twelvelabs/stamp/tree/main/docs/t
 | [Value](value.md#value)[] &#124; null | ➖ | ➖ | ➖ |
 
 A list of generator input [values](https://github.com/twelvelabs/stamp/tree/main/docs/value.md).
+
+### `visibility`
+
+| Type | Required | Enum | Default |
+| ---- | -------- | ---- | ------- |
+| string | ➖ | ✅ | `"public"` |
+
+How the generator may be viewed or invoked.
+
+Allowed Values:
+
+- `"public"`: Callable anywhere.
+- `"hidden"`: Public, but hidden in the generator list.
+- `"private"`: Only callable as a sub-generator. Never displayed.

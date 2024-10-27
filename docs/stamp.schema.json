@@ -730,6 +730,22 @@
             },
             "type": "object",
             "markdownDescription": "A generator input value."
+        },
+        "VisibilityType": {
+            "title": "VisibilityType",
+            "description": "Determines the visibility of the generator.",
+            "enum": [
+                "public",
+                "hidden",
+                "private"
+            ],
+            "type": "string",
+            "enumDescriptions": [
+                "Callable anywhere.",
+                "Public, but hidden in the generator list.",
+                "Only callable as a sub-generator. Never displayed."
+            ],
+            "markdownDescription": "Determines the visibility of the generator."
         }
     },
     "properties": {
@@ -770,6 +786,13 @@
                 "null"
             ],
             "markdownDescription": "A list of generator input [values](https://github.com/twelvelabs/stamp/tree/main/docs/value.md)."
+        },
+        "visibility": {
+            "$ref": "#/definitions/VisibilityType",
+            "title": "Visibility",
+            "description": "How the generator may be viewed or invoked.",
+            "default": "public",
+            "markdownDescription": "How the generator may be viewed or invoked."
         }
     },
     "type": "object",
