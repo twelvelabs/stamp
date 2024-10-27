@@ -146,44 +146,6 @@ func TestGenerator_Description(t *testing.T) {
 	assert.Equal(t, "a test generator", gen.Description())
 }
 
-func TestGenerator_ShortDescription(t *testing.T) {
-	tests := []struct {
-		desc     string
-		given    string
-		expected string
-	}{
-		{
-			desc:     "empty string is a noop",
-			given:    "",
-			expected: "",
-		},
-		{
-			desc:     "single line is a noop",
-			given:    "Example description",
-			expected: "Example description",
-		},
-		{
-			desc:     "otherwise first line is returned",
-			given:    "Example description\nExtended info",
-			expected: "Example description",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			gen := &Generator{
-				Package: &pkg.Package{
-					Metadata: map[string]any{
-						"description": tt.given,
-					},
-				},
-			}
-
-			actual := gen.ShortDescription()
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
 func TestGenerator_SrcPath(t *testing.T) {
 	store := NewTestStore()
 	gen, err := store.Load("file")

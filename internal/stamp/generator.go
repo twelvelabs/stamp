@@ -192,10 +192,16 @@ type Generator struct {
 	Tasks      *TaskSet
 }
 
-// ShortDescription returns the first line of the description.
-func (g *Generator) ShortDescription() string {
-	lines := strings.Split(g.Description(), "\n")
-	return lines[0]
+func (g *Generator) IsHidden() bool {
+	return g.Visibility == VisibilityTypeHidden
+}
+
+func (g *Generator) IsPublic() bool {
+	return g.Visibility == VisibilityTypePublic
+}
+
+func (g *Generator) IsPrivate() bool {
+	return g.Visibility == VisibilityTypePrivate
 }
 
 func (g *Generator) SrcPath() string {
