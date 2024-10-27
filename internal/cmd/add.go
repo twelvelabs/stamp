@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
@@ -73,16 +72,11 @@ func (a *AddAction) Run() error {
 	a.UI.Out(a.UI.SuccessIcon()+" Installed package: %s\n", installed.Name())
 	a.UI.Out("\n")
 
-	packages, err := installed.All()
+	generators, err := a.Store.AsGenerators(installed.All())
 	if err != nil {
 		return err
 	}
-
-	tbl := table.New("Name", "Description").WithWriter(a.IO.Out)
-	for _, p := range packages {
-		tbl.AddRow(p.Name(), p.Description())
-	}
-	tbl.Print()
+	renderGeneratorList(generators, false, a.IO.Out)
 
 	return nil
 }

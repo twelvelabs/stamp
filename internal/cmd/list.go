@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
@@ -53,20 +54,35 @@ func (a *ListAction) Run() error {
 		return err
 	}
 
+	renderGeneratorList(results, a.ShowAll, a.IO.Out)
+
+	return nil
+}
+
+func renderGeneratorList(
+	generators []*stamp.Generator,
+	showAll bool,
+	out ui.IOStream,
+) {
 	columns := []any{"Name", "Description"}
-	if a.ShowAll {
+	if showAll {
 		columns = append(columns, "Origin")
 	}
+	tbl := table.New(columns...).WithWriter(out)
 
-	tbl := table.New(columns...).WithWriter(a.IO.Out)
-	for _, p := range results {
-		row := []any{p.Name(), p.ShortDescription()}
-		if a.ShowAll {
-			row = append(row, p.Origin())
+	for _, g := range generators {
+		if g.IsPrivate() {
+			continue
+		}
+		if g.IsHidden() && !showAll {
+			continue
+		}
+		row := []any{g.Name(), g.ShortDescription()}
+		if showAll {
+			row = append(row, g.Origin())
 		}
 		tbl.AddRow(row...)
 	}
-	tbl.Print()
 
-	return nil
+	tbl.Print()
 }
