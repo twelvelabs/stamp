@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/gobuffalo/flect"
 )
@@ -46,6 +47,12 @@ func (p *Package) Description() string {
 // SetName sets the package description.
 func (p *Package) SetDescription(value string) {
 	p.Metadata["Description"] = value
+}
+
+// ShortDescription returns the first line of the description.
+func (p *Package) ShortDescription() string {
+	lines := strings.Split(p.Description(), "\n")
+	return lines[0]
 }
 
 // Origin returns the path or URL used to install the package.

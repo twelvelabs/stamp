@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
@@ -65,16 +64,11 @@ func (a *RemoveAction) Run() error {
 		return err
 	}
 
-	packages, err := generator.All()
+	generators, err := a.Store.AsGenerators(generator.All())
 	if err != nil {
 		return err
 	}
-
-	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
-	for _, p := range packages {
-		tbl.AddRow(p.Name(), p.Description(), p.Origin())
-	}
-	tbl.Print()
+	renderGeneratorList(generators, false, a.IO.Out)
 
 	a.UI.Out("\n")
 	ok, err := a.UI.Confirm("Remove these packages", false)

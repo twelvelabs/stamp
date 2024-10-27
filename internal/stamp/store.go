@@ -14,18 +14,28 @@ func NewStore(root string) *Store {
 	}
 }
 
-func (s *Store) Load(name string) (*Generator, error) {
-	pkg, err := s.Store.Load(name)
+// AsGenerator returns pkg wrapped in a Generator type or err.
+// Useful when calling [pkg.Store] methods that normally return a [pkg.Package].
+func (s *Store) AsGenerator(pkg *pkg.Package, err error) (*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
 	return NewGenerator(s, pkg)
 }
 
-func (s *Store) LoadAll() ([]*Generator, error) {
-	packages, err := s.Store.LoadAll()
+// AsGenerators returns packages wrapped in Generator types or err.
+// Useful when calling [pkg.Store] methods that normally return a slice of [pkg.Package] types.
+func (s *Store) AsGenerators(packages []*pkg.Package, err error) ([]*Generator, error) {
 	if err != nil {
 		return nil, err
 	}
 	return NewGenerators(s, packages)
+}
+
+func (s *Store) Load(name string) (*Generator, error) {
+	return s.AsGenerator(s.Store.Load(name))
+}
+
+func (s *Store) LoadAll() ([]*Generator, error) {
+	return s.AsGenerators(s.Store.LoadAll())
 }

@@ -70,6 +70,26 @@ func TestMissingConfig(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestVisibilityType(t *testing.T) {
+	name := VisibilityTypeNames()[0]
+	enum := VisibilityType(name)
+
+	assert.Equal(t, true, enum.IsValid())
+	assert.Equal(t, name, enum.String())
+
+	buf, err := enum.MarshalText()
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(name), buf)
+
+	err = (&enum).UnmarshalText(buf)
+	assert.NoError(t, err)
+	err = (&enum).UnmarshalText([]byte{})
+	assert.Error(t, err)
+
+	err = enum.PrepareJSONSchema(&jsonschema.Schema{})
+	assert.NoError(t, err)
+}
+
 func TestFileType(t *testing.T) {
 	name := FileTypeNames()[0]
 	enum := FileType(name)

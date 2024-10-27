@@ -1,8 +1,12 @@
 package cmd
 
 import (
-	"github.com/rodaine/table"
+	"fmt"
+
+	"github.com/alexeyco/simpletable"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/twelvelabs/termite/ui"
 
 	"github.com/twelvelabs/stamp/internal/stamp"
 )
@@ -25,6 +29,8 @@ func NewListCmd(app *stamp.App) *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVarP(&action.ShowAll, "all", "a", action.ShowAll, "Show all columns.")
+
 	return cmd
 }
 
@@ -36,6 +42,7 @@ func NewListAction(app *stamp.App) *ListAction {
 
 type ListAction struct {
 	*stamp.App
+	ShowAll bool
 }
 
 func (a *ListAction) Setup(_ *cobra.Command, _ []string) error {
@@ -50,11 +57,60 @@ func (a *ListAction) Run() error {
 		return err
 	}
 
-	tbl := table.New("Name", "Description", "Origin").WithWriter(a.IO.Out)
-	for _, p := range results {
-		tbl.AddRow(p.Name(), p.ShortDescription(), p.Origin())
-	}
-	tbl.Print()
+	renderGeneratorList(results, a.ShowAll, a.IO.Out)
 
 	return nil
+}
+
+func renderGeneratorList(
+	generators []*stamp.Generator,
+	showAll bool,
+	out ui.IOStream,
+) {
+	table := simpletable.New()
+
+	formatHeader := color.New(color.FgYellow, color.Underline).SprintfFunc()
+	formatPublic := color.New(color.FgCyan).SprintfFunc()
+	formatHidden := color.New(color.FgCyan, color.Faint).SprintfFunc()
+
+	// Setup the header.
+	table.Header.Cells = []*simpletable.Cell{
+		{Text: formatHeader("Name")},
+		{Text: formatHeader("Description")},
+	}
+	if showAll {
+		cell := &simpletable.Cell{
+			Text: formatHeader("Origin"),
+		}
+		table.Header.Cells = append(table.Header.Cells, cell)
+	}
+
+	// Setup the body.
+	for _, g := range generators {
+		if g.IsPrivate() {
+			continue
+		}
+		if g.IsHidden() && !showAll {
+			continue
+		}
+
+		name := formatPublic(g.Name())
+		if g.IsHidden() {
+			name = formatHidden(g.Name())
+		}
+		row := []*simpletable.Cell{
+			{Text: name},
+			{Text: g.ShortDescription()},
+		}
+		if showAll {
+			row = append(row, &simpletable.Cell{
+				Text: g.Origin(),
+			})
+		}
+
+		table.Body.Cells = append(table.Body.Cells, row)
+	}
+
+	table.SetStyle(simpletable.StyleCompactClassic)
+	fmt.Fprintln(out, table.String())
 }

@@ -19,7 +19,25 @@ func TestNewGenerator(t *testing.T) {
 	_, err = NewGenerator(store, nil)
 	assert.ErrorContains(t, err, "nil package")
 
-	p := &pkg.Package{
+	var p *pkg.Package
+
+	p = &pkg.Package{
+		Metadata: map[string]any{
+			"visibility": "hidden",
+		},
+	}
+	_, err = NewGenerator(store, p)
+	assert.NoError(t, err)
+
+	p = &pkg.Package{
+		Metadata: map[string]any{
+			"visibility": "purple",
+		},
+	}
+	_, err = NewGenerator(store, p)
+	assert.ErrorContains(t, err, "generator metadata invalid")
+
+	p = &pkg.Package{
 		Metadata: map[string]any{
 			"values": []any{
 				map[string]any{
@@ -126,44 +144,6 @@ func TestGenerator_Description(t *testing.T) {
 		},
 	}
 	assert.Equal(t, "a test generator", gen.Description())
-}
-
-func TestGenerator_ShortDescription(t *testing.T) {
-	tests := []struct {
-		desc     string
-		given    string
-		expected string
-	}{
-		{
-			desc:     "empty string is a noop",
-			given:    "",
-			expected: "",
-		},
-		{
-			desc:     "single line is a noop",
-			given:    "Example description",
-			expected: "Example description",
-		},
-		{
-			desc:     "otherwise first line is returned",
-			given:    "Example description\nExtended info",
-			expected: "Example description",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			gen := &Generator{
-				Package: &pkg.Package{
-					Metadata: map[string]any{
-						"description": tt.given,
-					},
-				},
-			}
-
-			actual := gen.ShortDescription()
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
 }
 
 func TestGenerator_SrcPath(t *testing.T) {
