@@ -85,6 +85,7 @@ words:
   - shellcheck
   - signingkey
   - sigstore
+  - simpletable
   - symwalk
   - testdata
   - testutil

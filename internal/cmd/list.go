@@ -1,7 +1,10 @@
 package cmd
 
 import (
-	"github.com/rodaine/table"
+	"fmt"
+
+	"github.com/alexeyco/simpletable"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/twelvelabs/termite/ui"
 
@@ -64,12 +67,25 @@ func renderGeneratorList(
 	showAll bool,
 	out ui.IOStream,
 ) {
-	columns := []any{"Name", "Description"}
-	if showAll {
-		columns = append(columns, "Origin")
-	}
-	tbl := table.New(columns...).WithWriter(out)
+	table := simpletable.New()
 
+	formatHeader := color.New(color.FgYellow, color.Underline).SprintfFunc()
+	formatPublic := color.New(color.FgCyan).SprintfFunc()
+	formatHidden := color.New(color.FgCyan, color.Faint).SprintfFunc()
+
+	// Setup the header.
+	table.Header.Cells = []*simpletable.Cell{
+		{Text: formatHeader("Name")},
+		{Text: formatHeader("Description")},
+	}
+	if showAll {
+		cell := &simpletable.Cell{
+			Text: formatHeader("Origin"),
+		}
+		table.Header.Cells = append(table.Header.Cells, cell)
+	}
+
+	// Setup the body.
 	for _, g := range generators {
 		if g.IsPrivate() {
 			continue
@@ -77,12 +93,24 @@ func renderGeneratorList(
 		if g.IsHidden() && !showAll {
 			continue
 		}
-		row := []any{g.Name(), g.ShortDescription()}
-		if showAll {
-			row = append(row, g.Origin())
+
+		name := formatPublic(g.Name())
+		if g.IsHidden() {
+			name = formatHidden(g.Name())
 		}
-		tbl.AddRow(row...)
+		row := []*simpletable.Cell{
+			{Text: name},
+			{Text: g.ShortDescription()},
+		}
+		if showAll {
+			row = append(row, &simpletable.Cell{
+				Text: g.Origin(),
+			})
+		}
+
+		table.Body.Cells = append(table.Body.Cells, row)
 	}
 
-	tbl.Print()
+	table.SetStyle(simpletable.StyleCompactClassic)
+	fmt.Fprintln(out, table.String())
 }
