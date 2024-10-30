@@ -1,8 +1,19 @@
 package stamp
 
 import (
+	"embed"
+	"os"
+	"path/filepath"
+
+	"github.com/twelvelabs/stamp/internal/fsutil"
 	"github.com/twelvelabs/stamp/internal/pkg"
 )
+
+// Note: the `all:` prefix is required so that the
+// dirs starting with `_` are included.
+//
+//go:embed all:generator
+var defaultGen embed.FS
 
 type Store struct {
 	*pkg.Store
@@ -30,6 +41,14 @@ func (s *Store) AsGenerators(packages []*pkg.Package, err error) ([]*Generator, 
 		return nil, err
 	}
 	return NewGenerators(s, packages)
+}
+
+func (s *Store) Init() error {
+	defaultGenPath := filepath.Join(s.Store.BasePath, "generator")
+	if fsutil.PathExists(defaultGenPath) {
+		return nil
+	}
+	return os.CopyFS(s.Store.BasePath, defaultGen)
 }
 
 func (s *Store) Load(name string) (*Generator, error) {

@@ -59,6 +59,10 @@ func NewApp(meta *AppMeta) (*App, error) {
 		return nil, fmt.Errorf("startup error: %w", err)
 	}
 	store := NewStore(storePath)
+	err = store.Init()
+	if err != nil {
+		return nil, err
+	}
 
 	app := &App{
 		Config: config,
