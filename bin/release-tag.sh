@@ -4,6 +4,12 @@ set -o errexit -o errtrace -o nounset -o pipefail
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 source "${SCRIPT_DIR}/release-status.sh"
 
+CURRENT_COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+if [[ $CURRENT_COMMIT_MSG =~ ^chore\(release\): ]]; then
+    echo "Ignoring release commit."
+    exit 0
+fi
+
 if [[ "$CURRENT_VERSION" == "$NEXT_VERSION" ]]; then
     echo "Nothing to tag."
     exit 0

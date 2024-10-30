@@ -19,7 +19,7 @@ fi
 
 NEXT_VERSION=$(gh semver)
 if [[ "${CURRENT_VERSION}" != "" ]]; then
-    COMMITS_REF="$CURRENT_VERSION...HEAD"
+    COMMITS_REF="$CURRENT_VERSION..HEAD"
 else
     COMMITS_REF="HEAD"
 fi
