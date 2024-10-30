@@ -1,0 +1,18 @@
+# {{ "" }}yaml-language-server: $schema=https://raw.githubusercontent.com/twelvelabs/stamp/refs/heads/main/docs/stamp.schema.json
+---
+name: "{{ .GeneratorName }}"
+description: "{{ .GeneratorName }} description."
+
+values:
+  - key: Name
+    default: '{{`{{ env "USER" }}`}}'
+
+  - key: Message
+    default: "Hello, {{`{{ .Name }}`}}"
+
+tasks:
+  - type: create
+    src:
+      path: greeting.txt
+    dst:
+      path: greeting.txt

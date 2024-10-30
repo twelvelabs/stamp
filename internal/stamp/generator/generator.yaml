@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/twelvelabs/stamp/refs/heads/main/docs/stamp.schema.json
+---
+name: generator
+description: |
+  Generator for creating new generators.
+
+values:
+  - key: GeneratorName
+    default: "{{ base .DstPath }}"
+
+tasks:
+  - type: create
+    src:
+      path: _src
+    dst:
+      path: _src
+
+  - type: create
+    src:
+      path: generator.yaml
+      content_type: text
+    dst:
+      path: generator.yaml
+      content_type: text
