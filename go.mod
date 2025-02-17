@@ -15,7 +15,7 @@ require (
 	github.com/ohler55/ojg v1.26.1
 	github.com/otiai10/copy v1.14.1
 	github.com/spf13/cast v1.7.1
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggest/jsonschema-go v0.3.73
