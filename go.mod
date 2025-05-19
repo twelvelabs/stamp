@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/roff v0.1.0
-	github.com/ohler55/ojg v1.26.1
+	github.com/ohler55/ojg v1.26.5
 	github.com/otiai10/copy v1.14.1
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.8.1
