@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -64,7 +65,7 @@ func (a *UpdateAction) Run() error {
 	updated, err := a.Store.Update(a.Name)
 	if err != nil {
 		a.UI.ProgressIndicator.Stop()
-		a.UI.Out(a.UI.FailureIcon() + " Update failed\n")
+		fmt.Fprint(a.IO.Out, a.UI.FailureIcon()+" Update failed\n")
 		return err
 	}
 

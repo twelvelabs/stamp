@@ -46,10 +46,12 @@ archives:
       - src: build/schemas/*
         dst: schemas
         strip_parent: true
-    format: tar.gz
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
 
 brews:
   - repository:

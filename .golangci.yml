@@ -50,6 +50,7 @@ linters:
 
     errcheck:
       exclude-functions:
+        - fmt.Fprint
         - fmt.Fprintln
 
     exhaustive:
