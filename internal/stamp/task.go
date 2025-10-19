@@ -46,7 +46,7 @@ func AllTasks() []Task {
 }
 
 // NewTask returns a new Task struct for the given map of data.
-func NewTask(taskData map[string]any) (Task, error) {
+func NewTask(taskData map[string]any) (Task, error) { //nolint:ireturn
 	taskType, ok := taskData["type"]
 	if !ok {
 		return nil, errors.New("undefined task type")

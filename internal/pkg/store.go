@@ -82,7 +82,7 @@ func (s *Store) Stage(src string) (*Package, CleanupFunc, error) {
 		return nil, func() {}, fmt.Errorf("staging error: %w", err)
 	}
 	cleanup := func() {
-		os.RemoveAll(stagingRoot)
+		_ = os.RemoveAll(stagingRoot)
 	}
 
 	// Normalize `src` into a fully qualified url (i.e. "." to "file:///${PWD}").

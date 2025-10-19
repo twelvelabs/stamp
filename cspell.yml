@@ -53,6 +53,7 @@ words:
   - gomod
   - gopls
   - goreleaser
+  - gosec
   - gpgsign
   - iostreams
   - ireturn
