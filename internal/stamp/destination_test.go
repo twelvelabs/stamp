@@ -12,33 +12,54 @@ import (
 	"github.com/twelvelabs/termite/testutil"
 )
 
-func TestNewDestinationWithValues(t *testing.T) {
-	values := map[string]any{
-		"foo": "bar",
+func TestDestination_ForPath(t *testing.T) {
+	var mode os.FileMode = 0655
+
+	dst := Destination{
+		ContentTypeTpl: *render.MustCompile(`text`),
+		ModeTpl:        *render.MustCompile(`0655`),
+		PathTpl:        *render.MustCompile(`templates/`),
 	}
-	dst, err := NewDestinationWithValues("{{ .foo }}", "", values)
+	values := map[string]any{
+		"DstPath": "testdata",
+	}
+
+	err := dst.SetValues(values)
 	assert.NoError(t, err)
-	assert.Equal(t, "bar", filepath.Base(dst.Path()))
+	assert.Equal(t, "templates", filepath.Base(dst.Path()))
+	assert.Equal(t, FileTypeText, dst.ContentType())
+	assert.Equal(t, mode, dst.Mode())
+	assert.Equal(t, true, dst.IsDir())
 
-	dst, err = NewDestinationWithValues("{{}", "", values)
-	assert.ErrorContains(t, err, `unexpected "}" in command`)
+	dst, err = dst.ForPath("templates/valid.json", values)
+	assert.NoError(t, err)
 
-	dst, err = NewDestinationWithValues("../../foo", "", values)
+	assert.Equal(t, "valid.json", filepath.Base(dst.Path()))
+	assert.Equal(t, FileTypeText, dst.ContentType())
+	assert.Equal(t, mode, dst.Mode())
+	assert.Equal(t, false, dst.IsDir())
+
+	dst, err = dst.ForPath("../../foo", values)
 	assert.ErrorContains(t, err, "attempted to traverse outside of")
 }
 
 func TestDestination_FilesystemMethods(t *testing.T) {
-	dst, err := NewDestinationWithValues("unknown", "", map[string]any{})
+	var err error
+
+	dst := Destination{}
+	values := map[string]any{}
+
+	dst, err = dst.ForPath("unknown", values)
 	assert.NoError(t, err)
 	assert.Equal(t, false, dst.Exists())
 	assert.Equal(t, false, dst.IsDir())
 
-	dst, err = NewDestinationWithValues("testdata", "", map[string]any{})
+	dst, err = dst.ForPath("testdata", values)
 	assert.NoError(t, err)
 	assert.Equal(t, true, dst.Exists())
 	assert.Equal(t, true, dst.IsDir())
 
-	dst, err = NewDestinationWithValues("testdata/templates/valid.txt", "", map[string]any{})
+	dst, err = dst.ForPath("testdata/templates/valid.txt", values)
 	assert.NoError(t, err)
 	assert.Equal(t, true, dst.Exists())
 	assert.Equal(t, false, dst.IsDir())

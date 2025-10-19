@@ -9,18 +9,29 @@ import (
 	"github.com/twelvelabs/termite/testutil"
 )
 
-func TestNewSourceWithValues(t *testing.T) {
-	values := map[string]any{
-		"foo": "bar",
+func TestSource_ForPath(t *testing.T) {
+	src := Source{
+		ContentTypeTpl: *render.MustCompile(`text`),
+		PathTpl:        *render.MustCompile(`templates/`),
 	}
-	src, err := NewSourceWithValues("{{ .foo }}", values)
+	values := map[string]any{
+		"SrcPath": "testdata",
+	}
+
+	err := src.SetValues(values)
 	assert.NoError(t, err)
-	assert.Equal(t, "bar", filepath.Base(src.Path()))
+	assert.Equal(t, "templates", filepath.Base(src.Path()))
+	assert.Equal(t, FileTypeText, src.ContentType())
+	assert.Equal(t, true, src.IsDir())
 
-	src, err = NewSourceWithValues("{{}", values)
-	assert.ErrorContains(t, err, `unexpected "}" in command`)
+	src, err = src.ForPath("templates/valid.json", values)
+	assert.NoError(t, err)
 
-	src, err = NewSourceWithValues("../../foo", values)
+	assert.Equal(t, "valid.json", filepath.Base(src.Path()))
+	assert.Equal(t, FileTypeText, src.ContentType())
+	assert.Equal(t, false, src.IsDir())
+
+	src, err = src.ForPath("../../foo", values)
 	assert.ErrorContains(t, err, "attempted to traverse outside of")
 }
 

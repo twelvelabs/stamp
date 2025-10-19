@@ -10,23 +10,6 @@ import (
 	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
-// NewSourceWithValues returns a new source set with the given values.
-func NewSourceWithValues(path string, values map[string]any) (Source, error) {
-	src := Source{}
-
-	pathTpl, err := render.Compile(path)
-	if err != nil {
-		return src, fmt.Errorf("new source: %w", err)
-	}
-	src.PathTpl = *pathTpl
-
-	if err := src.SetValues(values); err != nil {
-		return src, fmt.Errorf("new source: %w", err)
-	}
-
-	return src, nil
-}
-
 type Source struct {
 	ContentTypeTpl render.Template `mapstructure:"content_type"`
 	InlineContent  any             `mapstructure:"content"`
@@ -201,4 +184,17 @@ func (s *Source) SetValues(values map[string]any) error {
 	}
 
 	return nil
+}
+
+// ForPath returns a new Source for the given path and values.
+func (s *Source) ForPath(path string, values map[string]any) (Source, error) {
+	src := Source{
+		ContentTypeTpl: s.ContentTypeTpl,
+		InlineContent:  s.InlineContent,
+		PathTpl:        *render.MustCompile(path),
+	}
+	if err := src.SetValues(values); err != nil {
+		return src, fmt.Errorf("for path: %w", err)
+	}
+	return src, nil
 }
