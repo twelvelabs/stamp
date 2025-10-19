@@ -60,7 +60,7 @@ func LoadPackage(pkgPath string, metaFile string) (*Package, error) {
 	}
 
 	// Read the package metadata file.
-	pkgMeta, err := os.ReadFile(pkgMetaPath)
+	pkgMeta, err := os.ReadFile(pkgMetaPath) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("load package: %w", err)
 	}
@@ -140,7 +140,7 @@ func MovePackage(pkg *Package, newPath string) error {
 		return ErrPkgExists
 	}
 
-	err := os.MkdirAll(filepath.Dir(newPath), 0755)
+	err := os.MkdirAll(filepath.Dir(newPath), 0755) //nolint:gosec
 	if err != nil {
 		return err
 	}

@@ -44,11 +44,11 @@ func (s *Store) AsGenerators(packages []*pkg.Package, err error) ([]*Generator, 
 }
 
 func (s *Store) Init() error {
-	defaultGenPath := filepath.Join(s.Store.BasePath, "generator")
+	defaultGenPath := filepath.Join(s.BasePath, "generator")
 	if fsutil.PathExists(defaultGenPath) {
 		return nil
 	}
-	return os.CopyFS(s.Store.BasePath, defaultGen)
+	return os.CopyFS(s.BasePath, defaultGen)
 }
 
 func (s *Store) Load(name string) (*Generator, error) {

@@ -42,6 +42,7 @@ func NewListAction(app *stamp.App) *ListAction {
 
 type ListAction struct {
 	*stamp.App
+
 	ShowAll bool
 }
 

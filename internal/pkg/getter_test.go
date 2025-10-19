@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"context"
-	"os"
 	"path"
 	"testing"
 
@@ -10,11 +9,7 @@ import (
 )
 
 func TestDefaultGetter(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "pkg-")
-	if err != nil {
-		assert.FailNow(t, "unable to create temp dir")
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
 	pkgSrcPath := packageFixtureDir("minimal")
 	pkgDstPath := path.Join(tmpDir, "package")
@@ -23,7 +18,7 @@ func TestDefaultGetter(t *testing.T) {
 	assert.NoDirExists(t, pkgDstPath)
 	assert.NoFileExists(t, pkgManifestPath)
 
-	err = DefaultGetter(context.Background(), pkgSrcPath, pkgDstPath)
+	err := DefaultGetter(context.Background(), pkgSrcPath, pkgDstPath)
 
 	assert.NoError(t, err)
 	assert.FileExists(t, pkgManifestPath)

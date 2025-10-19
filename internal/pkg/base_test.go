@@ -120,7 +120,7 @@ func TestStorePackage(t *testing.T) {
 	assert.Equal(t, "bar", pkg.Name())
 	assert.NoError(t, err)
 
-	data, err := os.ReadFile(pkgMetaPath)
+	data, err := os.ReadFile(pkgMetaPath) //nolint:gosec
 	assert.Equal(t, "Name: bar\n", string(data))
 	assert.NoError(t, err)
 }
@@ -175,7 +175,7 @@ func createPackage(t *testing.T, root string, name string) (string, string) {
 	pkgPath := path.Join(root, strings.ReplaceAll(name, ":", "/"))
 	pkgMetaPath := path.Join(pkgPath, DefaultMetaFile)
 
-	err := os.MkdirAll(pkgPath, 0755)
+	err := os.MkdirAll(pkgPath, 0755) //nolint:gosec
 	if err != nil {
 		t.Fatal(err)
 	}

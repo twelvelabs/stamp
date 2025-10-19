@@ -37,7 +37,7 @@ func TestStore_Init_WhenAlreadyExists(t *testing.T) {
 		store := NewStore(tmpDir)
 
 		genDir := filepath.Join(tmpDir, "generator")
-		_ = os.Mkdir(genDir, 0777)
+		_ = os.Mkdir(genDir, 0777) //nolint:gosec
 		_ = os.WriteFile(filepath.Join(genDir, "hello.txt"), []byte("hi"), 0600)
 
 		err := store.Init()
