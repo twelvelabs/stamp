@@ -54,8 +54,8 @@ tasks:
 | Property | Type | Required | Enum | Default | Description |
 | -------- | ---- | -------- | ---- | ------- | ----------- |
 | [`dst`](#dst) | [Destination](destination.md#destination) | ✅ | ➖ | ➖ | <p>The destination path. |
-| [`each`](#each) | string | ➖ | ➖ | ➖ | <p>Set to a comma separated value and the task will be executued once per-item. |
-| [`if`](#if) | string | ➖ | ➖ | `"true"` | <p>Determines whether the task should be executed. |
+| [`each`](#each) | string | ➖ | ➖ | ➖ |  |
+| [`if`](#if) | string | ➖ | ➖ | `"true"` |  |
 | [`src`](#src) | [Source](source.md#source) | ✅ | ➖ | ➖ | <p>The source path or inline content. |
 | [`type`](#type) | string | ✅ | ✅ | `"create"` | <p>Creates a new path in the destination directory. |
 
@@ -86,35 +86,11 @@ dst:
 | ---- | -------- | ---- | ------- |
 | string | ➖ | ➖ | ➖ |
 
-Set to a comma separated value and the task will be executued once per-item. On each iteration, the `_Item` and `_Index` values will be set accordingly.
-
-Examples:
-
-```yaml
-each: foo, bar, baz
-```
-
-```yaml
-each: '{{ .SomeList | join "," }}'
-```
-
 ### `if`
 
 | Type | Required | Enum | Default |
 | ---- | -------- | ---- | ------- |
 | string | ➖ | ➖ | `"true"` |
-
-Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.
-
-Examples:
-
-```yaml
-if: "true"
-```
-
-```yaml
-if: '{{ .SomeBool }}'
-```
 
 ### `src`
 
