@@ -129,7 +129,7 @@ func (m *GeneratorMetadata) ReflectSchema() (jsonschema.Schema, error) {
 	}
 
 	addTransformRules(&schema)
-	squashEmbeddedStruct(&schema, "Common")
+	setAdditionalProperties(&schema)
 	setMarkdownDescription(&schema)
 
 	return schema, nil
@@ -189,20 +189,10 @@ func addTransformRules(schema *jsonschema.Schema) {
 
 // Helper that squashes embedded structs up into the parent
 // (similar to how mapstructure behaves when using the `squash` struct tag).
-func squashEmbeddedStruct(schema *jsonschema.Schema, embeddedName string) {
-	embeddedDef, ok := schema.Definitions[embeddedName]
-	if !ok {
-		return // not found; nothing to do.
-	}
-
+func setAdditionalProperties(schema *jsonschema.Schema) {
 	// Create a new set of definitions that will replace the current set.
 	newDefs := map[string]jsonschema.SchemaOrBool{}
 	for k, def := range schema.Definitions {
-		// If this definition is the embedded one, then remove it from the new set.
-		if k == embeddedName {
-			continue
-		}
-
 		// Set additionalProperties to false for all `object` defs.
 		// (though not if it's a (all|any|one)Of type, because that breaks validation).
 		s := def.TypeObjectEns()
@@ -210,33 +200,9 @@ func squashEmbeddedStruct(schema *jsonschema.Schema, embeddedName string) {
 		if sIsObj && len(s.AllOf) == 0 && len(s.AnyOf) == 0 && len(s.OneOf) == 0 {
 			s.AdditionalPropertiesEns().WithTypeBoolean(false)
 		}
-
-		if _, ok := def.TypeObjectEns().Properties[embeddedName]; !ok {
-			// This def doesn't contain the embedded struct.
-			// Just need to add it to the new set of defs and move on.
-			newDefs[k] = def
-			continue
-		}
-
-		// Otherwise, create a new set of properties for the definition.
-		// that flatten the embedded struct's props down into the definition.
-		newProps := map[string]jsonschema.SchemaOrBool{}
-		for k, v := range embeddedDef.TypeObjectEns().Properties {
-			newProps[k] = v
-		}
-		for k, v := range def.TypeObjectEns().Properties {
-			if k == embeddedName {
-				continue
-			}
-			newProps[k] = v
-		}
-		// Replace the definition's props with the new, flattened set.
-		def.TypeObjectEns().WithProperties(newProps)
-
 		// Add the updated definition to the new set.
 		newDefs[k] = def
 	}
-
 	// Finally, update the schema w/ the new defs.
 	schema.WithDefinitions(newDefs)
 }
