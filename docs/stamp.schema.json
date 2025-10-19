@@ -49,6 +49,7 @@
                 "src",
                 "type"
             ],
+            "additionalProperties": false,
             "properties": {
                 "dst": {
                     "$ref": "#/definitions/Destination",
@@ -64,11 +65,25 @@
                     ]
                 },
                 "each": {
-                    "type": "string"
+                    "title": "Each",
+                    "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly.",
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly."
                 },
                 "if": {
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "src": {
                     "$ref": "#/definitions/Source",
@@ -124,17 +139,32 @@
                 "dst",
                 "type"
             ],
+            "additionalProperties": false,
             "properties": {
                 "dst": {
                     "$ref": "#/definitions/Destination",
                     "title": "Destination"
                 },
                 "each": {
-                    "type": "string"
+                    "title": "Each",
+                    "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly.",
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly."
                 },
                 "if": {
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "type": {
                     "title": "Type",
@@ -154,6 +184,7 @@
             "required": [
                 "path"
             ],
+            "additionalProperties": false,
             "properties": {
                 "conflict": {
                     "$ref": "#/definitions/ConflictConfig",
@@ -221,13 +252,28 @@
                 "name",
                 "type"
             ],
+            "additionalProperties": false,
             "properties": {
                 "each": {
-                    "type": "string"
+                    "title": "Each",
+                    "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly.",
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly."
                 },
                 "if": {
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "name": {
                     "title": "Name",
@@ -364,6 +410,7 @@
             "required": [
                 "content"
             ],
+            "additionalProperties": false,
             "properties": {
                 "content": {
                     "title": "Content",
@@ -390,6 +437,7 @@
             "required": [
                 "path"
             ],
+            "additionalProperties": false,
             "properties": {
                 "content_type": {
                     "$ref": "#/definitions/FileType",
@@ -469,6 +517,7 @@
         "UpdateAction": {
             "title": "Action",
             "description": "The action to perform on the destination.",
+            "additionalProperties": false,
             "properties": {
                 "merge": {
                     "$ref": "#/definitions/MergeType",
@@ -487,6 +536,7 @@
         "UpdateMatch": {
             "title": "Match",
             "description": "Target a subset of the destination to update.",
+            "additionalProperties": false,
             "properties": {
                 "default": {
                     "title": "Default",
@@ -517,6 +567,7 @@
                 "src",
                 "type"
             ],
+            "additionalProperties": false,
             "properties": {
                 "action": {
                     "$ref": "#/definitions/UpdateAction",
@@ -533,11 +584,25 @@
                     "title": "Destination"
                 },
                 "each": {
-                    "type": "string"
+                    "title": "Each",
+                    "description": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly.",
+                    "examples": [
+                        "foo, bar, baz",
+                        "{{ .SomeList | join \",\" }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and _Index values will be set accordingly."
                 },
                 "if": {
+                    "title": "If",
+                    "description": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.",
                     "default": "true",
-                    "type": "string"
+                    "examples": [
+                        "true",
+                        "{{ .SomeBool }}"
+                    ],
+                    "type": "string",
+                    "markdownDescription": "Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean."
                 },
                 "match": {
                     "$ref": "#/definitions/UpdateMatch",
@@ -562,6 +627,7 @@
         "Value": {
             "title": "Value",
             "description": "A generator input value.",
+            "additionalProperties": false,
             "properties": {
                 "default": {
                     "title": "Default",

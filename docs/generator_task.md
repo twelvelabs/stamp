@@ -30,8 +30,8 @@ tasks:
 
 | Property | Type | Required | Enum | Default | Description |
 | -------- | ---- | -------- | ---- | ------- | ----------- |
-| [`each`](#each) | string | ➖ | ➖ | ➖ |  |
-| [`if`](#if) | string | ➖ | ➖ | `"true"` |  |
+| [`each`](#each) | string | ➖ | ➖ | ➖ | <p>Set to a comma separated value and the task will be executued once per-item. |
+| [`if`](#if) | string | ➖ | ➖ | `"true"` | <p>Determines whether the task should be executed. |
 | [`name`](#name) | string | ✅ | ➖ | ➖ | <p>The name of the generator to execute. |
 | [`type`](#type) | string | ✅ | ✅ | `"generator"` | <p>Executes another generator. |
 | [`values`](#values) | [Values](values.md#values) &#124; null | ➖ | ➖ | `{}` | <p>Optional key/value pairs to pass to the generator. |
@@ -42,11 +42,35 @@ tasks:
 | ---- | -------- | ---- | ------- |
 | string | ➖ | ➖ | ➖ |
 
+Set to a comma separated value and the task will be executued once per-item. On each iteration, the _Item and_Index values will be set accordingly.
+
+Examples:
+
+```yaml
+each: foo, bar, baz
+```
+
+```yaml
+each: '{{ .SomeList | join "," }}'
+```
+
 ### `if`
 
 | Type | Required | Enum | Default |
 | ---- | -------- | ---- | ------- |
 | string | ➖ | ➖ | `"true"` |
+
+Determines whether the task should be executed. The value must be [coercible](https://pkg.go.dev/strconv#ParseBool) to a boolean.
+
+Examples:
+
+```yaml
+if: "true"
+```
+
+```yaml
+if: '{{ .SomeBool }}'
+```
 
 ### `name`
 
