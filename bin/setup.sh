@@ -29,3 +29,5 @@ else
         chmod +x .git/hooks/*
     fi
 fi
+
+echo "[setup] ✅"

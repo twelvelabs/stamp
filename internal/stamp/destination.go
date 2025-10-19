@@ -13,29 +13,6 @@ import (
 	"github.com/twelvelabs/stamp/internal/fsutil"
 )
 
-// NewDestinationWithValues returns a new destination set with the given values.
-func NewDestinationWithValues(path string, mode string, values map[string]any) (Destination, error) {
-	dst := Destination{}
-
-	pathTpl, err := render.Compile(path)
-	if err != nil {
-		return dst, fmt.Errorf("new destination: %w", err)
-	}
-	dst.PathTpl = *pathTpl
-
-	modeTpl, err := render.Compile(mode)
-	if err != nil {
-		return dst, fmt.Errorf("new destination: %w", err)
-	}
-	dst.ModeTpl = *modeTpl
-
-	if err := dst.SetValues(values); err != nil {
-		return dst, fmt.Errorf("new destination: %w", err)
-	}
-
-	return dst, nil
-}
-
 type Destination struct {
 	ContentTypeTpl render.Template `mapstructure:"content_type" title:"Content Type"`
 	Conflict       ConflictConfig  `mapstructure:"conflict"     title:"Conflict"  default:"prompt"`
@@ -222,4 +199,19 @@ func (d *Destination) Write(data any) error {
 // Delete removes the destination file.
 func (d *Destination) Delete() error {
 	return os.RemoveAll(d.path)
+}
+
+// ForPath returns a new Destination for the given path and values.
+func (d *Destination) ForPath(path string, values map[string]any) (Destination, error) {
+	dst := Destination{
+		ContentTypeTpl: d.ContentTypeTpl,
+		Conflict:       d.Conflict,
+		Missing:        d.Missing,
+		ModeTpl:        d.ModeTpl,
+		PathTpl:        *render.MustCompile(path),
+	}
+	if err := dst.SetValues(values); err != nil {
+		return dst, fmt.Errorf("for path: %w", err)
+	}
+	return dst, nil
 }

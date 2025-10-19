@@ -140,12 +140,11 @@ func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 			}
 
 			// Otherwise create new Source and Destination structs and dispatch.
-			src, err := NewSourceWithValues(srcPath, values)
+			src, err := t.Src.ForPath(srcPath, values)
 			if err != nil {
 				return err
 			}
-			mode, _ := t.Dst.ModeTpl.Render(values)
-			dst, err := NewDestinationWithValues(dstPath, mode, values)
+			dst, err := t.Dst.ForPath(dstPath, values)
 			if err != nil {
 				return err
 			}

@@ -7,3 +7,5 @@ source "${SCRIPT_DIR}/build.sh"
 rm -fv "${BIN_INSTALL_PATH}"
 rm -fv "${CMP_INSTALL_PATH}"
 rm -fv "${MAN_INSTALL_PATH}"
+
+echo "[uninstall] ✅"
