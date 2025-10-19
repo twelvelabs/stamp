@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -64,7 +65,7 @@ func (a *AddAction) Run() error {
 	installed, err := a.Store.Install(a.Origin)
 	if err != nil {
 		a.UI.ProgressIndicator.Stop()
-		a.UI.Out(a.UI.FailureIcon() + " Install failed\n")
+		fmt.Fprint(a.IO.Out, a.UI.FailureIcon()+" Install failed\n")
 		return err
 	}
 

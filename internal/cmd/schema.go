@@ -55,7 +55,7 @@ func (a *SchemaAction) Run(_ context.Context) error {
 	if err != nil {
 		return fmt.Errorf("schema marshal: %w", err)
 	}
-	a.UI.Out(string(buf) + "\n")
+	fmt.Fprint(a.IO.Out, string(buf)+"\n")
 
 	return nil
 }
