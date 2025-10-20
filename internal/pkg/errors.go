@@ -2,9 +2,7 @@ package pkg
 
 import (
 	"fmt"
-	"path/filepath"
 	"reflect"
-	"strings"
 )
 
 func NewMetadataTypeCastError(key string, value any, expectedType string) MetadataTypeCastError {
@@ -31,21 +29,4 @@ func (e MetadataTypeCastError) Error() string {
 		e.expectedType,
 		e.actualType,
 	)
-}
-
-func NewNotFoundError(metaFile string) NotFoundError {
-	return NotFoundError{
-		metaFile: metaFile,
-	}
-}
-
-type NotFoundError struct {
-	metaFile string
-}
-
-func (e NotFoundError) Error() string {
-	// This assumes that the meta filename describes what the package is.
-	// i.e. if your package is a "widget", then name the file widget.yaml
-	kind := strings.TrimSuffix(e.metaFile, filepath.Ext(e.metaFile))
-	return fmt.Sprintf("%s not found", kind)
 }

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -99,7 +100,20 @@ func (a *NewAction) Run() error {
 		}
 	}
 
-	generator, err := a.Store.Load(a.Name)
+	var (
+		generator *stamp.Generator
+		cleanup   stamp.CleanupFunc
+		err       error
+	)
+
+	// First try to load the generator from the store.
+	generator, err = a.Store.Load(a.Name)
+	if errors.Is(err, stamp.ErrNotFound) {
+		// Otherwise, assume `name` is a src address
+		// and stage it for use.
+		generator, cleanup, err = a.Store.Stage(a.Name)
+		defer cleanup()
+	}
 	if err != nil {
 		return err
 	}

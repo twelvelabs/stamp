@@ -93,6 +93,14 @@ func EnsurePathRelativeToRoot(path string, root string) (string, error) {
 		return "", err
 	}
 
+	// EvalSymlinks returns an lstat error if path does not exist.
+	if PathExists(absRoot) {
+		absRoot, err = filepath.EvalSymlinks(absRoot)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	absPath := path
 	if !filepath.IsAbs(absPath) {
 		absPath, err = filepath.Abs(filepath.Join(absRoot, path))

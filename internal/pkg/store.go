@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -42,29 +41,21 @@ func (s *Store) WithMetaFile(filename string) *Store {
 
 // Returns the named package from the store.
 func (s *Store) Load(name string) (*Package, error) {
-	var pkg *Package
-	var err error
-
-	// The name may be a direct path to a package on the filesystem.
-	pkg, err = LoadPackage(name, s.MetaFile)
-	nfErr := NewNotFoundError(s.MetaFile)
-	if err != nil && !errors.Is(err, nfErr) {
-		return nil, err
+	// 1. A local filesystem path: `./foo/bar`
+	if IsPackagePath(name, s.MetaFile) {
+		return LoadPackage(name, s.MetaFile)
 	}
 
-	// If that doesn't return a result, then it must be
-	// a named package in the store.
-	// Convert the name to a path and load.
-	if pkg == nil {
-		var pkgPath string
-		pkgPath, err = s.path(name)
+	// 2. The name of an installed package: `foo:bar`
+	if pkgNameRegexp.MatchString(name) {
+		pkgPath, err := s.installPath(name)
 		if err != nil {
 			return nil, err
 		}
-		pkg, err = LoadPackage(pkgPath, s.MetaFile)
+		return LoadPackage(pkgPath, s.MetaFile)
 	}
 
-	return pkg, err
+	return nil, ErrNotFound
 }
 
 // Returns all valid packages in the store.
@@ -75,6 +66,9 @@ func (s *Store) LoadAll() ([]*Package, error) {
 
 type CleanupFunc func()
 
+// Stage copies a package from src into a temp dir.
+// Returns the package and a cleanup function that
+// removes the temp dir.
 func (s *Store) Stage(src string) (*Package, CleanupFunc, error) {
 	// Create a temp staging dir.
 	stagingRoot, err := os.MkdirTemp("", "pkg-")
@@ -130,7 +124,7 @@ func (s *Store) Install(src string) (*Package, error) {
 	}
 
 	// Move it to the store dir.
-	pkgPath, err := s.path(pkg.Name())
+	pkgPath, err := s.installPath(pkg.Name())
 	if err != nil {
 		return nil, fmt.Errorf("install error: %w", err)
 	}
@@ -177,6 +171,6 @@ func (s *Store) Update(name string) (*Package, error) {
 	return s.Install(origin)
 }
 
-func (s *Store) path(name string) (string, error) {
+func (s *Store) installPath(name string) (string, error) {
 	return PackagePath(s.BasePath, name)
 }

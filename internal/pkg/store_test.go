@@ -21,7 +21,19 @@ func TestNewStore(t *testing.T) {
 	assert.Equal(t, "custom.yml", store.MetaFile)
 }
 
-func TestLoadingIndividualPackages(t *testing.T) {
+func TestLoadingLocalPackages(t *testing.T) {
+	store := NewStore("/does/not/exist")
+
+	localPath := packageFixtureDir("minimal")
+	pkg, err := store.Load(localPath)
+	if assert.NotNil(t, pkg) {
+		assert.Equal(t, localPath, pkg.Path())
+		assert.Equal(t, "minimal", pkg.Name())
+	}
+	assert.NoError(t, err)
+}
+
+func TestLoadingInstalledPackages(t *testing.T) {
 	store := NewStore(packageFixturesDir())
 
 	pkg, err := store.Load("minimal")
@@ -37,6 +49,14 @@ func TestLoadingIndividualPackages(t *testing.T) {
 		assert.Equal(t, "nested:aaa:111", pkg.Name())
 	}
 	assert.NoError(t, err)
+}
+
+func TestLoadingUnknownPackages(t *testing.T) {
+	store := NewStore(packageFixturesDir())
+
+	pkg, err := store.Load("https://some.remote/location")
+	assert.Nil(t, pkg)
+	assert.ErrorIs(t, err, ErrNotFound)
 }
 
 func TestLoadingAllPackages(t *testing.T) {
