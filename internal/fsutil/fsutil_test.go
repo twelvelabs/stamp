@@ -44,6 +44,14 @@ func TestPathIsDir(t *testing.T) {
 	})
 }
 
+func TestTryRelative(t *testing.T) {
+	workingDir, _ := filepath.Abs(".")
+
+	assert.Equal(t, "already/relative", TryRelative("already/relative"))
+	assert.Equal(t, ".", TryRelative(workingDir))
+	assert.Equal(t, "foo/bar", TryRelative(filepath.Join(workingDir, "foo", "bar")))
+}
+
 func TestNormalizePath(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
 	workingDir, _ := filepath.Abs(".")

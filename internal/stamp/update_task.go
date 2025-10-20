@@ -140,25 +140,25 @@ func (t *UpdateTask) TypeKey() string {
 func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	// Render the source and destination.
 	if err := t.Dst.SetValues(values); err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 	if err := t.Src.SetValues(values); err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 
 	// Render description.
 	desc, err := t.DescriptionTpl.Render(values)
 	if err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 
 	// Render the match pattern.
 	pattern, err := t.Match.PatternTpl.Render(values)
 	if err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 	t.Match.SetPattern(pattern, t.Dst.ContentType())
@@ -167,12 +167,12 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	if !t.Dst.Exists() {
 		switch t.Dst.Missing {
 		case MissingConfigError:
-			ctx.Logger.Failure("fail", t.Dst.Path())
+			ctx.Logger.Failure("fail", t.Dst.RelativePath())
 			return ErrPathNotFound
 		case MissingConfigTouch:
 			if !ctx.DryRun {
 				if err := os.WriteFile(t.Dst.Path(), []byte{}, DstFileMode); err != nil {
-					ctx.Logger.Failure("fail", t.Dst.Path())
+					ctx.Logger.Failure("fail", t.Dst.RelativePath())
 					return err
 				}
 			}
@@ -183,18 +183,18 @@ func (t *UpdateTask) Execute(ctx *TaskContext, values map[string]any) error {
 
 	// Update the file.
 	if err := t.updateDst(ctx); err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 
 	// Log success.
-	updateMsg := t.Dst.Path()
+	updateMsg := t.Dst.RelativePath()
 	if desc != "" {
 		// Include custom, generator supplied description.
-		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.Path(), desc)
+		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.RelativePath(), desc)
 	} else if t.Dst.ContentType().IsStructured() {
 		// Or the JSON path expression.
-		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.Path(), t.Match.Pattern())
+		updateMsg = fmt.Sprintf("%s (%s)", t.Dst.RelativePath(), t.Match.Pattern())
 	}
 	ctx.Logger.Success("update", updateMsg)
 

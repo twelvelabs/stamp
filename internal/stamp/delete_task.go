@@ -30,13 +30,13 @@ func (t *DeleteTask) Execute(ctx *TaskContext, values map[string]any) error {
 
 	if t.Dst.Exists() {
 		if err := t.deleteDst(ctx); err != nil {
-			ctx.Logger.Failure("fail", t.Dst.Path())
+			ctx.Logger.Failure("fail", t.Dst.RelativePath())
 			return err
 		}
-		ctx.Logger.Success("delete", t.Dst.Path())
+		ctx.Logger.Success("delete", t.Dst.RelativePath())
 		return nil
 	} else if t.Dst.Missing == MissingConfigError {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return ErrPathNotFound
 	}
 

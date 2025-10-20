@@ -90,6 +90,10 @@ func (d *Destination) Path() string {
 	return d.path
 }
 
+func (d *Destination) RelativePath() string {
+	return fsutil.TryRelative(d.path)
+}
+
 // Exists returns true if the file path exists.
 func (d *Destination) Exists() bool {
 	return fsutil.PathExists(d.path)
