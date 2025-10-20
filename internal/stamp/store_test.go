@@ -1,12 +1,16 @@
 package stamp
 
 import (
+	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/twelvelabs/termite/testutil"
+
+	"github.com/twelvelabs/stamp/internal/pkg"
 )
 
 // NewTestStore returns a new store pointing to ./testdata/generators.
@@ -60,4 +64,19 @@ func TestStore_LoadAll(t *testing.T) {
 
 	assert.True(t, len(items) > 0)
 	assert.NoError(t, err)
+}
+
+func TestStore_Stage(t *testing.T) {
+	getter := pkg.NewMockGetter(func(ctx context.Context, src, dst string) error {
+		return errors.New("boom")
+	})
+
+	store := NewStore("/some/path/that/does/not/exist")
+	store.WithGetter(getter.Get)
+
+	pkg, cleanup, err := store.Stage("https://github.com/example/repo")
+	defer cleanup()
+
+	assert.Nil(t, pkg)
+	assert.ErrorContains(t, err, "boom")
 }

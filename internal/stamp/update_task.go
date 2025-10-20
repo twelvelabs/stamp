@@ -17,10 +17,10 @@ import (
 type UpdateTask struct {
 	Common `mapstructure:",squash"`
 
-	Action         UpdateAction    `mapstructure:"action"      title:"Action"`
+	Action         UpdateAction    `mapstructure:"action"      title:"UpdateAction"`
 	DescriptionTpl render.Template `mapstructure:"description" title:"Description" description:"An optional description of what is being updated."` //nolint: lll
 	Dst            Destination     `mapstructure:"dst"         title:"Destination" required:"true"`
-	Match          UpdateMatch     `mapstructure:"match"       title:"Match"`
+	Match          UpdateMatch     `mapstructure:"match"       title:"UpdateMatch"`
 	Src            Source          `mapstructure:"src"         title:"Source" required:"true"`
 	Type           string          `mapstructure:"type"        title:"Type"   required:"true" description:"Updates a file in the destination directory." const:"update" default:"update"` //nolint: lll
 }
@@ -93,7 +93,7 @@ type UpdateAction struct {
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (UpdateAction) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithTitle("Action")
+	schema.WithTitle("UpdateAction")
 	schema.WithDescription("The action to perform on the destination.")
 	return nil
 }
@@ -108,7 +108,7 @@ type UpdateMatch struct {
 
 // PrepareJSONSchema implements the jsonschema.Preparer interface.
 func (UpdateMatch) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithTitle("Match")
+	schema.WithTitle("UpdateMatch")
 	schema.WithDescription("Target a subset of the destination to update.")
 	return nil
 }

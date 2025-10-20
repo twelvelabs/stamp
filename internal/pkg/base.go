@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	ErrNotFound       = errors.New("package not found")
 	ErrPkgExists      = errors.New("package already installed")
 	ErrPkgNameInvalid = errors.New("invalid package name")
 	ErrUnknown        = errors.New("unexpected error")
@@ -46,20 +47,19 @@ func PackagePath(root string, name string) (string, error) {
 	return abs, nil
 }
 
+// IsPackagePath returns true if pkgPath contains a metadata file.
+func IsPackagePath(pkgPath string, metaFile string) bool {
+	return fsutil.PathExists(filepath.Join(pkgPath, metaFile))
+}
+
 // LoadPackage parses and returns the package at `pkgPath`.
 func LoadPackage(pkgPath string, metaFile string) (*Package, error) {
-	// Ensure package path exists and is a directory.
-	if !fsutil.PathIsDir(pkgPath) {
-		return nil, NewNotFoundError(metaFile)
-	}
-
-	// Ensure package metadata path exists.
-	pkgMetaPath := filepath.Join(pkgPath, metaFile)
-	if fsutil.NoPathExists(pkgMetaPath) {
-		return nil, NewNotFoundError(metaFile)
+	if !IsPackagePath(pkgPath, metaFile) {
+		return nil, ErrNotFound
 	}
 
 	// Read the package metadata file.
+	pkgMetaPath := filepath.Join(pkgPath, metaFile)
 	pkgMeta, err := os.ReadFile(pkgMetaPath) //nolint:gosec
 	if err != nil {
 		return nil, fmt.Errorf("load package: %w", err)
@@ -175,5 +175,5 @@ func RemovePackage(pkg *Package) error {
 	if _, err := os.Stat(pkg.Path()); !os.IsNotExist(err) {
 		return os.RemoveAll(pkg.Path())
 	}
-	return NewNotFoundError(pkg.MetaFile())
+	return ErrNotFound
 }
