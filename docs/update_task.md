@@ -57,12 +57,12 @@ tasks:
 
 | Property | Type | Required | Enum | Default | Description |
 | -------- | ---- | -------- | ---- | ------- | ----------- |
-| [`action`](#action) | [Action](action.md#action) | ➖ | ➖ | ➖ | <p>The action to perform on the destination. |
+| [`action`](#action) | [UpdateAction](update_action.md#updateaction) | ➖ | ➖ | ➖ | <p>The action to perform on the destination. |
 | [`description`](#description) | string | ➖ | ➖ | ➖ | <p>An optional description of what is being updated. |
 | [`dst`](#dst) | [Destination](destination.md#destination) | ✅ | ➖ | ➖ | <p>The destination path. |
 | [`each`](#each) | string | ➖ | ➖ | ➖ | <p>Set to a comma separated value and the task will be executued once per-item. |
 | [`if`](#if) | string | ➖ | ➖ | `"true"` | <p>Determines whether the task should be executed. |
-| [`match`](#match) | [Match](match.md#match) | ➖ | ➖ | ➖ | <p>Target a subset of the destination to update. |
+| [`match`](#match) | [UpdateMatch](update_match.md#updatematch) | ➖ | ➖ | ➖ | <p>Target a subset of the destination to update. |
 | [`src`](#src) | [Source](source.md#source) | ✅ | ➖ | ➖ | <p>The source path or inline content. |
 | [`type`](#type) | string | ✅ | ✅ | `"update"` | <p>Updates a file in the destination directory. |
 
@@ -70,7 +70,7 @@ tasks:
 
 | Type | Required | Enum | Default |
 | ---- | -------- | ---- | ------- |
-| [Action](action.md#action) | ➖ | ➖ | ➖ |
+| [UpdateAction](update_action.md#updateaction) | ➖ | ➖ | ➖ |
 
 The action to perform on the destination.
 
@@ -130,7 +130,7 @@ if: '{{ .SomeBool }}'
 
 | Type | Required | Enum | Default |
 | ---- | -------- | ---- | ------- |
-| [Match](match.md#match) | ➖ | ➖ | ➖ |
+| [UpdateMatch](update_match.md#updatematch) | ➖ | ➖ | ➖ |
 
 Target a subset of the destination to update.
 

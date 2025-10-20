@@ -515,7 +515,7 @@
             "markdownDescription": "A transformation function used to process a value."
         },
         "UpdateAction": {
-            "title": "Action",
+            "title": "UpdateAction",
             "description": "The action to perform on the destination.",
             "additionalProperties": false,
             "properties": {
@@ -534,7 +534,7 @@
             "markdownDescription": "The action to perform on the destination."
         },
         "UpdateMatch": {
-            "title": "Match",
+            "title": "UpdateMatch",
             "description": "Target a subset of the destination to update.",
             "additionalProperties": false,
             "properties": {
@@ -571,7 +571,7 @@
             "properties": {
                 "action": {
                     "$ref": "#/definitions/UpdateAction",
-                    "title": "Action"
+                    "title": "UpdateAction"
                 },
                 "description": {
                     "title": "Description",
@@ -606,7 +606,7 @@
                 },
                 "match": {
                     "$ref": "#/definitions/UpdateMatch",
-                    "title": "Match"
+                    "title": "UpdateMatch"
                 },
                 "src": {
                     "$ref": "#/definitions/Source",
