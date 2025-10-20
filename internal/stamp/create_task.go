@@ -115,11 +115,11 @@ func (t *CreateTask) TypeKey() string {
 
 func (t *CreateTask) Execute(ctx *TaskContext, values map[string]any) error {
 	if err := t.Dst.SetValues(values); err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 	if err := t.Src.SetValues(values); err != nil {
-		ctx.Logger.Failure("fail", t.Dst.Path())
+		ctx.Logger.Failure("fail", t.Dst.RelativePath())
 		return err
 	}
 
@@ -174,37 +174,37 @@ func (t *CreateTask) dispatch(ctx *TaskContext, src Source, dst Destination) err
 // create is called to create a non-existing dst file.
 func (t *CreateTask) create(ctx *TaskContext, src Source, dst Destination) error {
 	if err := t.createDst(ctx, src, dst); err != nil {
-		ctx.Logger.Failure("fail", dst.Path())
+		ctx.Logger.Failure("fail", dst.RelativePath())
 		return err
 	}
-	ctx.Logger.Success("create", dst.Path())
+	ctx.Logger.Success("create", dst.RelativePath())
 	return nil
 }
 
 // keep is called when keeping an existing dst file.
 func (t *CreateTask) keep(ctx *TaskContext, _ Source, dst Destination) error {
-	ctx.Logger.Success("keep", dst.Path())
+	ctx.Logger.Success("keep", dst.RelativePath())
 	return nil
 }
 
 // replace is called when replacing an existing dst file.
 func (t *CreateTask) replace(ctx *TaskContext, src Source, dst Destination) error {
 	if err := t.deleteDst(ctx, src, dst); err != nil {
-		ctx.Logger.Failure("fail", dst.Path())
+		ctx.Logger.Failure("fail", dst.RelativePath())
 		return err
 	}
 	if err := t.createDst(ctx, src, dst); err != nil {
-		ctx.Logger.Failure("fail", dst.Path())
+		ctx.Logger.Failure("fail", dst.RelativePath())
 		return err
 	}
-	ctx.Logger.Success("replace", dst.Path())
+	ctx.Logger.Success("replace", dst.RelativePath())
 	return nil
 }
 
 // prompt is called to prompt the user for how to resolve a dst file conflict.
 // delegates to keep or replace depending on their response.
 func (t *CreateTask) prompt(ctx *TaskContext, src Source, dst Destination) error {
-	ctx.Logger.Warning("conflict", "%s already exists", dst.Path())
+	ctx.Logger.Warning("conflict", "%s already exists", dst.RelativePath())
 	overwrite, err := ctx.UI.Confirm("Overwrite", false)
 	if err != nil {
 		return err

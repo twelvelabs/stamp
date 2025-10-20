@@ -36,6 +36,21 @@ func PathIsDir(path string) bool {
 	return info != nil && info.IsDir()
 }
 
+// TryRelative attempts to make path relative to the
+// current working dir.
+// If unable, it returns the path unchanged.
+func TryRelative(path string) string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return path
+	}
+	rel, err := filepath.Rel(wd, path)
+	if err != nil {
+		return path
+	}
+	return rel
+}
+
 // NormalizePath ensures that name is an absolute path.
 // Environment variables (and the ~ string) are expanded.
 func NormalizePath(name string) (string, error) {
