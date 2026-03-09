@@ -56,7 +56,7 @@ jobs:
         run: make setup
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GH_COMMIT_SIGNING_KEY }}
           passphrase: ${{ secrets.GH_COMMIT_SIGNING_PASS }}
