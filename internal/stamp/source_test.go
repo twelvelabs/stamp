@@ -200,6 +200,26 @@ func TestSource(t *testing.T) {
 				}, s.Content())
 			},
 		},
+
+		{
+			desc: "should not render when rendering is disabled",
+			setup: func(t *testing.T, dir string) {
+				t.Helper()
+				testutil.WritePaths(t, dir, map[string]any{
+					"example.txt": `{{ .Something }}`,
+				})
+			},
+			src: Source{
+				PathTpl: *render.MustCompile(`example.txt`),
+				Static:  true,
+			},
+			assert: func(t *testing.T, s Source) {
+				t.Helper()
+				buf, err := s.ContentBytes()
+				assert.NoError(t, err)
+				assert.Equal(t, `{{ .Something }}`, string(buf))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {

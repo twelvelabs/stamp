@@ -1,6 +1,6 @@
 module github.com/twelvelabs/stamp
 
-go 1.25
+go 1.26
 
 require (
 	github.com/alexeyco/simpletable v1.0.0

@@ -1,37 +1,6 @@
-version: "2"
+version: '2'
 
 linters:
-  default: all
-  disable:
-    - containedctx
-    - cyclop
-    - depguard
-    - err113
-    - exhaustruct
-    - forbidigo
-    - forcetypeassert
-    - funcorder
-    - funlen
-    - gocognit
-    - godox
-    - gochecknoglobals
-    - gochecknoinits
-    - mnd
-    - nlreturn
-    - noinlineerr
-    - paralleltest
-    - perfsprint
-    - recvcheck
-    - revive
-    - tagalign
-    - tagliatelle
-    - testifylint
-    - testpackage
-    - varnamelen
-    - wrapcheck
-    - wsl
-    - wsl_v5
-
   exclusions:
     rules:
       - path: _test.go

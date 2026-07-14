@@ -2,6 +2,7 @@ package stamp
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cast"
 	"github.com/swaggest/jsonschema-go"
@@ -14,6 +15,7 @@ type Source struct {
 	ContentTypeTpl render.Template `mapstructure:"content_type"`
 	InlineContent  any             `mapstructure:"content"`
 	PathTpl        render.Template `mapstructure:"path"`
+	Static         bool            `mapstructure:"static"`
 
 	content     any
 	contentType FileType
@@ -50,6 +52,7 @@ func (s SourceWithContent) PrepareJSONSchema(schema *jsonschema.Schema) error {
 type SourceWithPath struct {
 	ContentType FileType `mapstructure:"content_type" title:"Content Type"`
 	Path        string   `mapstructure:"path"         title:"Path" required:"true"`
+	Static      bool     `mapstructure:"static"       title:"Static" default:"false"`
 }
 
 func (s SourceWithPath) PrepareJSONSchema(schema *jsonschema.Schema) error {
@@ -68,6 +71,12 @@ func (s SourceWithPath) PrepareJSONSchema(schema *jsonschema.Schema) error {
 					"The file _may_ be parsed depending on it's [content type](#content_type). " +
 					"Note that this happens post-render. This allows for dynamic data sources " +
 					"when creating/updating structured files.",
+			)
+	}
+	if prop, ok := schema.Properties["static"]; ok {
+		prop.TypeObjectEns().
+			WithDescription(
+				"When true, the file will not be rendered by the template engine.",
 			)
 	}
 
@@ -169,15 +178,24 @@ func (s *Source) SetValues(values map[string]any) error {
 	}
 
 	if s.Exists() && !s.IsDir() {
-		// Render the content located at the path.
-		rendered, err := render.File(s.path, values)
+		// Read the path content.
+		buf, err := os.ReadFile(s.path)
 		if err != nil {
-			return fmt.Errorf("src path content render: %w", err)
+			return fmt.Errorf("src path content read: %w", err)
+		}
+
+		if !s.Static {
+			// Render the path content.
+			rendered, err := render.String(string(buf), values)
+			if err != nil {
+				return fmt.Errorf("src path content render: %w", err)
+			}
+			buf = []byte(rendered)
 		}
 
 		// Decode the rendered content.
 		encoder := s.contentType.Encoder()
-		s.content, err = encoder.Decode([]byte(rendered))
+		s.content, err = encoder.Decode(buf)
 		if err != nil {
 			return fmt.Errorf("src path content decode: %w", err)
 		}
@@ -192,6 +210,7 @@ func (s *Source) ForPath(path string, values map[string]any) (Source, error) {
 		ContentTypeTpl: s.ContentTypeTpl,
 		InlineContent:  s.InlineContent,
 		PathTpl:        *render.MustCompile(path),
+		Static:         s.Static,
 	}
 	if err := src.SetValues(values); err != nil {
 		return src, fmt.Errorf("for path: %w", err)
