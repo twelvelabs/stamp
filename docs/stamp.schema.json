@@ -448,6 +448,13 @@
                     "description": "The file path relative to the generator source directory (\\_src). Attempts to traverse outside the source directory will raise a runtime error.\n\nThe file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) and have access to all the [values](value.md) defined by the generator. \n\nThe file _may_ be parsed depending on it's [content type](#content_type). Note that this happens post-render. This allows for dynamic data sources when creating/updating structured files.",
                     "type": "string",
                     "markdownDescription": "The file path relative to the generator source directory (\\_src). Attempts to traverse outside the source directory will raise a runtime error.\n\nThe file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) and have access to all the [values](value.md) defined by the generator. \n\nThe file _may_ be parsed depending on it's [content type](#content_type). Note that this happens post-render. This allows for dynamic data sources when creating/updating structured files."
+                },
+                "static": {
+                    "title": "Static",
+                    "description": "When true, the file will not be rendered by the template engine.",
+                    "default": false,
+                    "type": "boolean",
+                    "markdownDescription": "When true, the file will not be rendered by the template engine."
                 }
             },
             "type": "object",

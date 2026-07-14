@@ -8,6 +8,7 @@ The source path.
 | -------- | ---- | -------- | ---- | ------- | ----------- |
 | [`content_type`](#content_type) | string | ➖ | ✅ | ➖ | <p>Specifies the content type of the file. |
 | [`path`](#path) | string | ✅ | ➖ | ➖ | <p>The file path relative to the generator source directory (\src) |
+| [`static`](#static) | boolean | ➖ | ➖ | `false` | <p>When true, the file will not be rendered by the template engine. |
 
 ### `content_type`
 
@@ -42,3 +43,11 @@ The file path relative to the generator source directory (\_src). Attempts to tr
 The file will be rendered as a Go [text/template](https://pkg.go.dev/text/template) and have access to all the [values](value.md) defined by the generator.
 
 The file _may_ be parsed depending on it's [content type](#content_type). Note that this happens post-render. This allows for dynamic data sources when creating/updating structured files.
+
+### `static`
+
+| Type | Required | Enum | Default |
+| ---- | -------- | ---- | ------- |
+| boolean | ➖ | ➖ | `false` |
+
+When true, the file will not be rendered by the template engine.
