@@ -23,6 +23,8 @@ if [[ "${CI:-}" != "true" ]]; then
     fi
 fi
 
+rm -f codecov*
+
 # Copy build artifacts over to docs and commit.
 mkdir -p \
     build/docs \
