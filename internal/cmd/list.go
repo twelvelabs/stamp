@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/fatih/color"
@@ -15,9 +16,14 @@ func NewListCmd(app *stamp.App) *cobra.Command {
 	action := NewListAction(app)
 
 	cmd := &cobra.Command{
-		Use:   "list",
+		Use:   "list <DIR>",
 		Short: "List installed generators",
-		Long:  "TODO",
+		Long: strings.Join([]string{
+			"List installed generators",
+			"",
+			"DIR defaults to ~/.stamp/packages",
+		}, "\n"),
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := action.Setup(cmd, args); err != nil {
 				return err
@@ -43,17 +49,26 @@ func NewListAction(app *stamp.App) *ListAction {
 type ListAction struct {
 	*stamp.App
 
-	ShowAll bool
+	RootPath string
+	ShowAll  bool
 }
 
-func (a *ListAction) Setup(_ *cobra.Command, _ []string) error {
+func (a *ListAction) Setup(_ *cobra.Command, args []string) error {
+	if len(args) > 0 {
+		a.RootPath = args[0]
+	}
 	return nil
 }
 func (a *ListAction) Validate() error {
 	return nil
 }
 func (a *ListAction) Run() error {
-	results, err := a.Store.LoadAll()
+	store := a.Store
+	if a.RootPath != "" {
+		store = stamp.NewStore(a.RootPath)
+	}
+
+	results, err := store.LoadAll()
 	if err != nil {
 		return err
 	}
