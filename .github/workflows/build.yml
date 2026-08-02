@@ -64,7 +64,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         if: github.ref_name == 'main'
         with:
           gpg_private_key: ${{ secrets.GH_COMMIT_SIGNING_KEY }}
